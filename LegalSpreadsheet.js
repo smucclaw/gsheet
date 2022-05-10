@@ -7,7 +7,7 @@ function onOpen () {
 
 function exportCSV () {
   const ui = SpreadsheetApp.getUi()
-  const ss = SpreadsheetApp.openById('1ZFsceRbsKTsrWGuRVKqfWsEdpmdr0nhp4oE4o4xtsOQ')
+  const ss = SpreadsheetApp.getActiveSpreadsheet()
   const sheet = ss.getSheets()[0]
 
   // This represents ALL the data
