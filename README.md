@@ -1,43 +1,17 @@
 # How to Use the Legal Spreadsheet?
 
-*Version: BabyLegalSSv0.9.1.1 -- 29 Mar 2022*
-
-**SMU CCLAW**
-
-## Content
-
-- [About the Legal Spreadsheet](#about)
-- [Setup](#Setup)
-  - [Signup](#Signup)
-  - [Signin and Access](#signin)
-- [Keywords](#Keywords)
-  - [Single Cell Keywords](#single-cell-keywords)
-  - [Keyword Cell Sequences](#keyword-cell-sequences)
-- [Appendix A - Glossary](#glossary)
-- [Appendix B - Trademarks](#trademarks)
-
 ## About the Legal Spreadsheet<a name="about" />
 
 The Legal Spreadsheet helps users to automate their legal writing.
 
-## Setup
-
-Users must have these setups to access the Legal Spreadsheet and use its keyword functions.
-
-### Signup
-
-Users must first [sign up](https://support.google.com/accounts/answer/27441?hl=en) for a Google:tm: Account.
-
-### Signin and Access<a name="signin" />
-
-<ol>
-  <li>Users must <a href="https://myaccount.google.com">sign in</a> to their Google:tm: Account.</li>
-  <li>Access the <a href="https://docs.google.com/spreadsheets/d/1nylaNUOVApnuPUJBnE_W7f2b9GiKk7-xJ_axLcAJ1XE/edit#gid=0">Legal Spreadsheet</a>.</li>
-  <li>Request access to the Legal Spreadsheet.  Click the "Request Access" button.</li>
-  <img src="images/RequestAccess.png" alt="Request Access" width="300">
-  <img src="images/RequestAccess2.png" alt="Request Access" width="300">
-  <li>Wait for the Request to be approved.</li>
-</ol>
+## Developer Setup
+ 
+- Install [clasp](https://developers.google.com/apps-script/guides/clasp)
+- Run `clasp login`. Please use account you are going to use for spreadsheet development
+- [Enable App Script API](https://script.google.com/home/usersettings)
+- Run `clasp create`. This will create a `.clasp.json` file locally.
+- Finally run `clasp push`. This will compile and push the code to your google account.
+- Open spreadsheet in your google account. It has name of the code checkout folder.
 
 ## Keywords
 
@@ -79,7 +53,3 @@ These are the ways the keyword sequences can be typed out.  Each keyword must be
 | **Term** | **Explanation** |
 | --- | --- |
 | Constitutive rules | Rules that make possible new forms of behaviour. |
-
-## Appendix B - Trademarks<a name="trademarks" />
-
-Google:tm: is a registered trademark of Google Inc.
