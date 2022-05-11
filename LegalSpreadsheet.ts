@@ -519,3 +519,5 @@ function drawUnless (c) {
     c.offset(0, 2).setValue('some exception')
   }
 }
+
+export {isKeyword}
