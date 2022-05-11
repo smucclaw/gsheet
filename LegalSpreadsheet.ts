@@ -1,4 +1,8 @@
-import URLFetchRequestOptions = GoogleAppsScript.URL_Fetch.URLFetchRequestOptions;
+import URLFetchRequestOptions = GoogleAppsScript.URL_Fetch.URLFetchRequestOptions
+import SheetsOnChange = GoogleAppsScript.Events.SheetsOnChange
+import Sheet = GoogleAppsScript.Spreadsheet.Sheet
+import SheetsOnEdit = GoogleAppsScript.Events.SheetsOnEdit
+import Range = GoogleAppsScript.Spreadsheet.Range
 
 function onOpen () {
   const ui = SpreadsheetApp.getUi()
@@ -48,7 +52,7 @@ function exportCSV () {
   ui.prompt(response.getContentText())
 }
 
-function onChange (e) {
+function onChange (e: SheetsOnChange) {
   const sheet = SpreadsheetApp.getActiveSheet()
   if (e.changeType === 'INSERT_ROW') {
     testWait()
@@ -73,7 +77,7 @@ function testWait () {
   lock.releaseLock()
 }
 
-function scanDocIF (sheet) {
+function scanDocIF (sheet : Sheet) {
   // If IF detected in a row,
   // check next row for IF and act accordingly
   let c
@@ -100,7 +104,7 @@ function scanDocIF (sheet) {
   }
 }
 
-function onEdit (e) {
+function onEdit(e: SheetsOnEdit) {
   // Respond to Edit events on spreadsheet.
   let c = e.range
   const sheet = SpreadsheetApp.getActiveSheet()
@@ -110,13 +114,13 @@ function onEdit (e) {
     c = startProcessing(c, h, sheet)
   } else if (c.isBlank()) {
     if (e.oldValue === 'IF' || e.oldValue === 'WHEN' ||
-      e.oldValue === 'IS' || e.oldValue === 'MEANS') {
+        e.oldValue === 'IS' || e.oldValue === 'MEANS') {
       c.offset(-1, 0).clear()
     }
   }
 }
 
-function startProcessing (c, h, sheet) {
+function startProcessing (c: Range, h: ElementHistory, sheet: Sheet): Range {
   const startCell = findStart(c)
   sheet.getRange(1, 1).setValue(startCell.getValue());
   [c, h] = scanDownwards(startCell, h)
@@ -130,13 +134,13 @@ function startProcessing (c, h, sheet) {
 }
 
 class ElementHistory {
-  private history: any[];
+  public history: any[];
   constructor (history = []) {
     this.history = history
   }
 }
 
-function findStart (c) {
+function findStart (c: Range): Range {
   // Find the topLeft start of a block of keywords.
   let nextCol = 0
   const maxCount = 5
@@ -160,16 +164,16 @@ function findStart (c) {
   return c
 }
 
-function scanDownwards (c, h) {
+function scanDownwards (c: Range, h: ElementHistory) {
   // Scan downwards for keywords and
   // put keywords into h.history Array.
   const predValue = c.offset(0, 1).getValue()
   if (isKeyword(c.getValue())) {
     h.history[c.getRowIndex()] =
-      [c.getColumnIndex(), c.getValue(), predValue]
+      [c.getColumn(), c.getValue(), predValue]
   }
   let cellCol = 1
-  const columnLimit = cellCol - c.getColumnIndex()
+  const columnLimit = cellCol - c.getColumn()
   do {
     const nextCellBelow = c.offset(1, cellCol)
     const ncb = nextCellBelow.getValue()
@@ -182,7 +186,7 @@ function scanDownwards (c, h) {
   return [c, h]
 }
 
-function drawBridgeIfAndOr (h, sheet) {
+function drawBridgeIfAndOr (h: ElementHistory, sheet: Sheet) {
   // SpreadsheetApp.getUi().alert("drawBridgeIfAndOr");
   // sheet.getRange(1, 6).setValue("drawBridgeIfAndOr");
   let restart = true
@@ -259,7 +263,7 @@ function drawBridgeIfAndOr (h, sheet) {
   }
 }
 
-function processHistory (h, sheet) {
+function processHistory (h: ElementHistory, sheet: Sheet) {
   // Process the h.history Array.
   let restart = true
   let rowBegin = 0
@@ -327,7 +331,7 @@ function getFurthest (prevIndex, index) {
   else return prevIndex
 }
 
-function isKeyword (cValue) {
+function isKeyword (cValue: string) {
   return (cValue === 'IF' || cValue === 'OR' ||
     cValue === 'AND' || cValue === 'WHEN' ||
     cValue === 'MEANS' || cValue === 'IS' ||
@@ -359,9 +363,9 @@ function goodLayout (c) {
   return true
 }
 
-function drawWords (c) {
+function drawWords (c: Range) {
   // Identify keywords for formatting and drawing.
-  const cValue = c.getValue()
+  const cValue = c.getDisplayValue()
   if (cValue === 'IF' || cValue === 'WHEN') {
     c = drawIfWhenTop(c)
     if (c != null) {
@@ -387,13 +391,13 @@ function drawWords (c) {
   }
 }
 
-function drawIfWhenTop (c) {
+function drawIfWhenTop (c: Range): Range {
   // Check cell above for checkbox.
   // If no checkbox, move cValue down
   // and insert checkbox in original cell.
   const topCell = c.offset(-1, 0)
   if (topCell.getDataValidation() != null) {
-    if (topCell.getDataValidation().getCriteriaType() === 'CHECKBOX') {
+    if (topCell.getDataValidation().getCriteriaType() === SpreadsheetApp.DataValidationCriteria.CHECKBOX) {
       return c
     } else return null
   } else if (topCell.isBlank()) {
@@ -405,7 +409,7 @@ function drawIfWhenTop (c) {
   }
 }
 
-function drawIfWhenOr (c) {
+function drawIfWhenOr (c: Range) {
   if (c.getValue() === 'OR') {
     c.offset(0, -1, 1, 9).clearFormat()
   }
@@ -422,7 +426,7 @@ function drawIfWhenOr (c) {
   }
 }
 
-function drawAnd (c) {
+function drawAnd (c: Range) {
   c.offset(0, -1, 1, 9).clearFormat()
   c.setHorizontalAlignment('right')
   if (c.offset(0, 1).isBlank()) {
@@ -440,7 +444,7 @@ function drawAnd (c) {
   }
 }
 
-function drawTeeOverIsMeans (c) {
+function drawTeeOverIsMeans (c: Range) {
   const cValue = c.getValue()
   c.offset(0, -1, 1, 9).clearFormat()
   c.offset(-1, 1).setValue('a Defined Term')
@@ -460,7 +464,7 @@ function drawTeeOverIsMeans (c) {
   c.offset(1, 2).setValue('another thing')
 }
 
-function drawTeeForITIS (c) {
+function drawTeeForITIS (c: Range) {
   const cValue = c.getValue()
   c.offset(0, -1, 3, 9).clear()
   c.setValue(cValue).setHorizontalAlignment('right')
@@ -480,7 +484,7 @@ function drawTeeForITIS (c) {
   c.offset(2, 3).setValue('something else holds')
 }
 
-function drawPlusUnderEvery (c) {
+function drawPlusUnderEvery (c: Range) {
   const cValue = c.getValue()
   c.offset(0, -1, 3, 9).clear()
   c.setValue(cValue).setHorizontalAlignment('right')
@@ -500,7 +504,7 @@ function drawPlusUnderEvery (c) {
     'grey', SpreadsheetApp.BorderStyle.SOLID_THICK)
 }
 
-function drawHenceLest (c) {
+function drawHenceLest (c: Range) {
   const cValue = c.getValue()
   c.offset(0, -1, 1, 9).clearFormat()
   c.setValue(cValue).setHorizontalAlignment('right')
@@ -508,7 +512,7 @@ function drawHenceLest (c) {
     'grey', SpreadsheetApp.BorderStyle.SOLID_THICK)
 }
 
-function drawUnless (c) {
+function drawUnless (c: Range) {
   const cValue = c.getValue()
   c.offset(0, -1, 1, 9).clearFormat()
   c.setValue(cValue).setHorizontalAlignment('right')
