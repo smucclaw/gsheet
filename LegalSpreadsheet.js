@@ -7,7 +7,7 @@ function onOpen () {
 
 function exportCSV () {
   const ui = SpreadsheetApp.getUi()
-  const ss = SpreadsheetApp.openById('1ZFsceRbsKTsrWGuRVKqfWsEdpmdr0nhp4oE4o4xtsOQ')
+  const ss = SpreadsheetApp.getActiveSpreadsheet()
   const sheet = ss.getSheets()[0]
 
   // This represents ALL the data
@@ -50,16 +50,16 @@ function onChange (e) {
   const sheet = SpreadsheetApp.getActiveSheet()
   if (e.changeType === 'INSERT_ROW') {
     testWait()
-    // sheet.getRange(1, 4).setValue("row inserted");
+    sheet.getRange(1, 4).setValue("row inserted");
     scanDocIF(sheet)
-    // sheet.getRange(1, 5).setValue("insert complete");
+    sheet.getRange(1, 5).setValue("insert complete");
   } else if (e.changeType === 'REMOVE_ROW') {
     testWait()
-    // sheet.getRange(1, 4).setValue("row deleted");
+    sheet.getRange(1, 4).setValue("row deleted");
     scanDocIF(sheet)
-    // sheet.getRange(1, 5).setValue("delete complete");
+    sheet.getRange(1, 5).setValue("delete complete");
   } else if (e.changeType === 'EDIT') {
-    // sheet.getRange(1, 4).setValue("cell edited");
+    sheet.getRange(1, 4).setValue("cell edited");
     sheet.getRange(1, 5).setValue('')
   }
 }
