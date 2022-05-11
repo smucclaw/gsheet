@@ -1,3 +1,5 @@
+import URLFetchRequestOptions = GoogleAppsScript.URL_Fetch.URLFetchRequestOptions;
+
 function onOpen () {
   const ui = SpreadsheetApp.getUi()
   ui.createMenu('Export CSV')
@@ -38,12 +40,12 @@ function exportCSV () {
     csvBlob
   }
 
-  const options = {
+  const options : URLFetchRequestOptions = {
     method: 'post',
     payload: formData
   }
   const response = UrlFetchApp.fetch('https://httpbin.org/post', options)
-  ui.prompt(response)
+  ui.prompt(response.getContentText())
 }
 
 function onChange (e) {
@@ -75,7 +77,7 @@ function scanDocIF (sheet) {
   // If IF detected in a row,
   // check next row for IF and act accordingly
   let c
-  const h = new History()
+  const h = new ElementHistory()
   const totalRows = 100
   const totalCols = 3
   for (let i = 3; i <= totalRows; i++) {
@@ -102,7 +104,7 @@ function onEdit (e) {
   // Respond to Edit events on spreadsheet.
   let c = e.range
   const sheet = SpreadsheetApp.getActiveSheet()
-  const h = new History()
+  const h = new ElementHistory()
   if (goodLayout(c) && !c.isBlank()) {
     drawWords(c)
     c = startProcessing(c, h, sheet)
@@ -127,7 +129,8 @@ function startProcessing (c, h, sheet) {
   return c
 }
 
-class History {
+class ElementHistory {
+  private history: any[];
   constructor (history = []) {
     this.history = history
   }
@@ -186,7 +189,6 @@ function drawBridgeIfAndOr (h, sheet) {
   let rowBegin = 0
   let rowStop = 0
   let numOfRows = 0
-  let buildRange = ''
   const rangeString = ''
   let columnNow = 1
   let farCol = 1
@@ -220,7 +222,7 @@ function drawBridgeIfAndOr (h, sheet) {
         if (columnNow === col && !restart) {
           rowStop = getFurthest(rowStop, row)
           numOfRows = rowStop - rowBegin + 1
-          buildRange = sheet.getRange(rowBegin, columnNow, numOfRows, 1)
+          const buildRange = sheet.getRange(rowBegin, columnNow, numOfRows, 1)
           const getITIS = sheet.getRange(rowBegin - 1, columnNow - 1).getValue()
           const checkITIS = (getITIS === 'IT IS')
           // rangeString = buildRange.getA1Notation();
@@ -263,7 +265,6 @@ function processHistory (h, sheet) {
   let rowBegin = 0
   let rowStop = 0
   let numOfRows = 0
-  let buildRange = ''
   let rangeString = ''
   let columnNow = 1
   let farCol = 1
@@ -303,8 +304,7 @@ function processHistory (h, sheet) {
         if (columnNow === col && !restart) {
           rowStop = getFurthest(rowStop, row)
           numOfRows = rowStop - rowBegin + 1
-          buildRange = sheet.getRange(rowBegin,
-            columnNow + 1, numOfRows, 1)
+          const buildRange = sheet.getRange(rowBegin, columnNow + 1, numOfRows, 1)
           rangeString = buildRange.getA1Notation()
           if (keyword === 'OR' || keyword === 'AND') {
             sheet.getRange(rowBegin - 1, columnNow)
