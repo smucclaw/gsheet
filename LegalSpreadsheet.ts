@@ -118,6 +118,8 @@ function onEdit(e: SheetsOnEdit) {
       c.offset(-1, 0).clear()
     }
   }
+  sheet.getRange(1, 5).setValue("Edit Completed")
+  console.log("Function onEdit completed!")
 }
 
 function startProcessing (c: Range, h: ElementHistory, sheet: Sheet): Range {
