@@ -106,17 +106,16 @@ function scanDocIF (sheet : Sheet) {
 
 function onEdit(e: SheetsOnEdit) {
   // Respond to Edit events on spreadsheet.
-  let cell = e.range
-  const enteredValue = e.value
+  let c = e.range
   const sheet = SpreadsheetApp.getActiveSheet()
-  const history = new ElementHistory()
-  if (goodLayout(cell, enteredValue) && !cell.isBlank()) {
-    drawWords(cell, enteredValue)
-    startProcessing(cell, history, sheet)
-  } else if (cell.isBlank()) {
+  const h = new ElementHistory()
+  if (goodLayout(c) && !c.isBlank()) {
+    drawWords(c)
+    c = startProcessing(c, h, sheet)
+  } else if (c.isBlank()) {
     if (e.oldValue === 'IF' || e.oldValue === 'WHEN' ||
         e.oldValue === 'IS' || e.oldValue === 'MEANS') {
-      cell.offset(-1, 0).clear()
+      c.offset(-1, 0).clear()
     }
   }
   sheet.getRange(1, 5).setValue("Edit Completed")
@@ -345,14 +344,14 @@ function isKeyword (cValue: string) {
   )
 }
 
-function goodLayout (c: Range, enteredValue: string) {
+function goodLayout (c) {
   if (c.getBackground() !== '#ffffff') {
     SpreadsheetApp.getUi().alert(
       'ERROR: Background must be white colour')
     return false
   }
-  if (isKeyword(enteredValue)) {
-    if (c.getColumn() < 2) {
+  if (isKeyword(c.getValue())) {
+    if (c.getColumnIndex() < 2) {
       SpreadsheetApp.getUi().alert(
         'ERROR: Keywords must be entered from column B onwards')
       return false
@@ -366,34 +365,35 @@ function goodLayout (c: Range, enteredValue: string) {
   return true
 }
 
-function drawWords (c: Range, enteredValue: string) {
+function drawWords (c: Range) {
   // Identify keywords for formatting and drawing.
-  if (enteredValue === 'IF' || enteredValue === 'WHEN') {
-    c = drawIfWhenTop(c, enteredValue)
+  const cValue = c.getDisplayValue()
+  if (cValue === 'IF' || cValue === 'WHEN') {
+    c = drawIfWhenTop(c)
     if (c != null) {
-      drawIfWhenOr(c, enteredValue)
+      drawIfWhenOr(c)
     }
-  } else if (enteredValue === 'OR') {
-    drawIfWhenOr(c, enteredValue)
-  } else if (enteredValue === 'AND') {
+  } else if (cValue === 'OR') {
+    drawIfWhenOr(c)
+  } else if (cValue === 'AND') {
     drawAnd(c)
-  } else if (enteredValue === 'IS' || enteredValue === 'MEANS') {
-    c = drawIfWhenTop(c, enteredValue)
+  } else if (cValue === 'IS' || cValue === 'MEANS') {
+    c = drawIfWhenTop(c)
     if (c != null) {
-      drawTeeOverIsMeans(c, enteredValue)
+      drawTeeOverIsMeans(c)
     }
-  } else if (enteredValue === 'IT IS') {
-    drawTeeForITIS(c, enteredValue)
-  } else if (enteredValue === 'EVERY' || enteredValue === 'PARTY') {
-    drawPlusUnderEvery(c, enteredValue)
-  } else if (enteredValue === 'HENCE' || enteredValue === 'LEST') {
-    drawHenceLest(c, enteredValue)
-  } else if (enteredValue === 'UNLESS') {
-    drawUnless(c, enteredValue)
+  } else if (cValue === 'IT IS') {
+    drawTeeForITIS(c)
+  } else if (cValue === 'EVERY' || cValue === 'PARTY') {
+    drawPlusUnderEvery(c)
+  } else if (cValue === 'HENCE' || cValue === 'LEST') {
+    drawHenceLest(c)
+  } else if (cValue === 'UNLESS') {
+    drawUnless(c)
   }
 }
 
-function drawIfWhenTop (c: Range, keyword: string): Range {
+function drawIfWhenTop (c: Range): Range {
   // Check cell above for checkbox.
   // If no checkbox, move cValue down
   // and insert checkbox in original cell.
@@ -403,15 +403,16 @@ function drawIfWhenTop (c: Range, keyword: string): Range {
       return c
     } else return null
   } else if (topCell.isBlank()) {
-    c.setValue(null)
+    const cValue = c.getValue()
+    c.setValue('')
     c.insertCheckboxes()
-    c.offset(1, 0).setValue(keyword)
+    c.offset(1, 0).setValue(cValue)
     return c.offset(1, 0)
   }
 }
 
-function drawIfWhenOr (c: Range, keyword: string) {
-  if (keyword === 'OR') {
+function drawIfWhenOr (c: Range) {
+  if (c.getValue() === 'OR') {
     c.offset(0, -1, 1, 9).clearFormat()
   }
   c.setHorizontalAlignment('right')
@@ -445,7 +446,8 @@ function drawAnd (c: Range) {
   }
 }
 
-function drawTeeOverIsMeans (c: Range, keyword: string) {
+function drawTeeOverIsMeans (c: Range) {
+  const cValue = c.getValue()
   c.offset(0, -1, 1, 9).clearFormat()
   c.offset(-1, 1).setValue('a Defined Term')
   c.offset(0, 0, 1, 3)
@@ -454,7 +456,7 @@ function drawTeeOverIsMeans (c: Range, keyword: string) {
   c.offset(0, 0, 2, 1)
     .setBorder(true, false, false, true, false, false,
       'grey', SpreadsheetApp.BorderStyle.SOLID_THICK)
-  c.offset(0, 0).setValue(keyword).setHorizontalAlignment('right')
+  c.offset(0, 0).setValue(cValue).setHorizontalAlignment('right')
   if (c.offset(0, 1).isBlank()) {
     c.offset(0, 1).insertCheckboxes()
   }
@@ -464,9 +466,10 @@ function drawTeeOverIsMeans (c: Range, keyword: string) {
   c.offset(1, 2).setValue('another thing')
 }
 
-function drawTeeForITIS (c: Range, keyword: string) {
+function drawTeeForITIS (c: Range) {
+  const cValue = c.getValue()
   c.offset(0, -1, 3, 9).clear()
-  c.setValue(keyword).setHorizontalAlignment('right')
+  c.setValue(cValue).setHorizontalAlignment('right')
   c.offset(0, 1).insertCheckboxes()
   c.offset(0, 2).setValue('a Defined Situation')
   c.offset(1, 0, 1, 5)
@@ -483,11 +486,12 @@ function drawTeeForITIS (c: Range, keyword: string) {
   c.offset(2, 3).setValue('something else holds')
 }
 
-function drawPlusUnderEvery (c: Range, keyword: string) {
+function drawPlusUnderEvery (c: Range) {
+  const cValue = c.getValue()
   c.offset(0, -1, 3, 9).clear()
-  c.setValue(keyword).setHorizontalAlignment('right')
-  if (keyword === 'EVERY') { c.offset(0, 1).setValue('Entity') }
-  if (keyword === 'PARTY') { c.offset(0, 1).setValue('P') }
+  c.setValue(cValue).setHorizontalAlignment('right')
+  if (cValue === 'EVERY') { c.offset(0, 1).setValue('Entity') }
+  if (cValue === 'PARTY') { c.offset(0, 1).setValue('P') }
   c.offset(1, 0).setValue('MUST').setHorizontalAlignment('right')
   c.offset(1, 1).setValue('BY').setHorizontalAlignment('right')
   c.offset(1, 2).setValue('some deadline')
@@ -502,16 +506,18 @@ function drawPlusUnderEvery (c: Range, keyword: string) {
     'grey', SpreadsheetApp.BorderStyle.SOLID_THICK)
 }
 
-function drawHenceLest (c: Range, keyword: string) {
+function drawHenceLest (c: Range) {
+  const cValue = c.getValue()
   c.offset(0, -1, 1, 9).clearFormat()
-  c.setValue(keyword).setHorizontalAlignment('right')
+  c.setValue(cValue).setHorizontalAlignment('right')
   c.offset(0, 1, 1, 2).setBorder(false, true, true, false, false, false,
     'grey', SpreadsheetApp.BorderStyle.SOLID_THICK)
 }
 
-function drawUnless (c: Range, keyword: string) {
+function drawUnless (c: Range) {
+  const cValue = c.getValue()
   c.offset(0, -1, 1, 9).clearFormat()
-  c.setValue(keyword).setHorizontalAlignment('right')
+  c.setValue(cValue).setHorizontalAlignment('right')
   c.offset(0, 1).insertCheckboxes()
     .setBorder(true, false, true, true, false, false,
       'grey', SpreadsheetApp.BorderStyle.SOLID_THICK)
