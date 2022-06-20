@@ -329,7 +329,7 @@ function processHistory (h: ElementHistory, sheet: Sheet) {
   }
 }
 
-function getFurthest (prevIndex, index) {
+function getFurthest (prevIndex: number, index: number) {
   if (prevIndex < index) return index
   else return prevIndex
 }
