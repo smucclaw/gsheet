@@ -1,0 +1,9 @@
+natural4-exe --only native
+natural4-exe --only prolog
+natural4-exe --only petri
+natural4-exe --only corel4
+natural4-exe --only checklist
+natural4-exe --only aasvg
+natural4-exe --only json
+natural4-exe --only grounds
+natural4-exe --only typescript
