@@ -1,55 +1,43 @@
-
+Logger.log("global top");
 var port       = "8080";
 const url_host = "http://18.139.62.80";
-function url_hp() { return `${url_host}:${port}`; }
-function url_wd() { return `${url_hp()}/workdir/`; }
-
-function devMode() {
-  let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = SpreadsheetApp.getActiveSheet();
-  let range = sheet.getRange("A1:Z10").getDisplayValues();
-  for (let i = 0; i < range.length; i++) {
-    for (let j = 0; j < range[i].length; j++) {
-      if (range[i][j].search(/devMode on/i)) {
-	      return "8080";
-      }
-      else if (devport = range[i][j].search(/devMode port (\d+)/i)) {
-	      return devport[1];
-      }
-    }
-  }
-  return "8080";
-}
+var liveUpdates = true;
 
 function onOpen() {
-  //  saveUuid();
-  //  saveCommands();
-  port = devMode();
+  loadDev();  
   showSidebar();
 }
 
-function saveUuid() {
-  let userCache = CacheService.getUserCache();
-  let cached = "";
-  if (userCache.get("uuid") == null) {
-    cached = Utilities.getUuid();
-    userCache.put("uuid", cached, 21600);
-    return cached;
-  }
-  return userCache.get("uuid")
+function loadDev() {
+  let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = SpreadsheetApp.getActiveSheet();
+  let range = sheet.getRange("A1:Z10").getDisplayValues();
+
+  port = devPort(range) || "8080";
+  liveUpdates = devScan(range, /live updates: (true|false)/i) || true; if (liveUpdates == "false") { liveUpdates = false }
+  Logger.log("setting port to " + port);
+  Logger.log("setting liveUpdates to " + liveUpdates);
 }
+
 function showSidebar() {
   let cachedUuid = saveUuid();
   let [spreadsheetId, sheetId] = getSsid();
   let workDirUrl = (url_wd() + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/");
   
+  Logger.log("url_host = " + url_host);
+  Logger.log("url_hp() = " + url_hp());
+  Logger.log("url_wd() = " + url_wd());
+  Logger.log(`workDirUrl = ` + workDirUrl);
   let sidebar = HtmlService.createTemplateFromFile('main');
   Logger.log("calling exportCSV()");
   sidebar.fromFlask = exportCSV(cachedUuid, spreadsheetId, sheetId);
+  sidebar.native_url          = workDirUrl + "native/LATEST.hs";
   sidebar.corel4url           = workDirUrl + "corel4/LATEST.l4";
   sidebar.petri_url           = workDirUrl + "petri/LATEST.png"
   sidebar.json_url            = workDirUrl + "json/LATEST.json"
   sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
+  sidebar.port                = port;
+  sidebar.liveUpdates         = liveUpdates;
   Logger.log("returned from exportCSV()");
 
   Logger.log("looking for v8k_url in fromFlask")
@@ -114,6 +102,7 @@ function exportCSV(uuid, spreadsheetId, sheetId) {
   let response = UrlFetchApp.fetch(url_hp() + '/post', options);
   return response.getContentText();
 }
+
 function cellArraysToCsv(rows) {
   const ui = SpreadsheetApp.getUi();
   const regex = /"/g;
@@ -141,8 +130,50 @@ function cellArraysToCsv(rows) {
   return csvStr;
 }
 
+function saveUuid() {
+  let userCache = CacheService.getUserCache();
+  let cached = "";
+  if (userCache.get("uuid") == null) {
+    cached = Utilities.getUuid();
+    userCache.put("uuid", cached, 21600);
+    return cached;
+  }
+  return userCache.get("uuid")
+}
+
+function url_hp() {
+  Logger.log("url_hp() called");
+  var toreturn = `${url_host}:${port}`;
+  Logger.log("returning " + toreturn);
+  return toreturn;
+}
+function url_wd() { return `${url_hp()}/workdir/`; }
+
+function devScan(range, scanregex) {
+  for (let i = 0; i < range.length; i++) {
+    for (let j = 0; j < range[i].length; j++) {
+      if (scan = range[i][j].match(scanregex)) {
+        Logger.log(`devScan hit: ${range[i][j]} matched ${scan}`);
+        return scan[1];
+      }
+    }
+  }
+  return null;
+}
+
+function devPort(range) {
+  let mymatch = devScan(range, /devMode port: (\d+)/i);
+  if (mymatch) { return mymatch }
+  return "8080";
+}
+
+
 
 function onChange(e) {
+  loadDev();  
+  if (! liveUpdates) { return }
+
+  Logger.log(`onChange running. liveUpdates=${liveUpdates}; port=${port}`);
   const sheet = SpreadsheetApp.getActiveSheet();
   if (e.changeType=="INSERT_ROW") {
     testWait();
@@ -193,7 +224,10 @@ function scanDocIF(sheet) {
   }
 }
 function onEdit(e) {
+  loadDev();  
+
   // Respond to Edit events on spreadsheet.
+  if (! liveUpdates) { return }
   let c = e.range;
   const sheet = SpreadsheetApp.getActiveSheet();
   const h = new ElementHistory();
