@@ -30,7 +30,7 @@ function showSidebar() {
   Logger.log(`workDirUrl = ` + workDirUrl);
   let sidebar = HtmlService.createTemplateFromFile('main');
   Logger.log("calling exportCSV()");
-  sidebar.fromFlask = exportCSV(cachedUuid, spreadsheetId, sheetId);
+  sidebar.fromFlask = JSON.parse(exportCSV(cachedUuid, spreadsheetId, sheetId));
   sidebar.native_url          = workDirUrl + "native/LATEST.hs";
   sidebar.corel4url           = workDirUrl + "corel4/LATEST.l4";
   sidebar.petri_url           = workDirUrl + "petri/LATEST.png"
@@ -41,31 +41,25 @@ function showSidebar() {
   Logger.log("returned from exportCSV()");
 
   Logger.log("looking for v8k_url in fromFlask")
-  var v8k_url = sidebar.fromFlask.match(/^v8k_url=(.*)$/m);
+  var v8k_url = sidebar.fromFlask.v8k_url;
   if (v8k_url) {
-    Logger.log(`matched a v8k_url: ${v8k_url[1]}`);
-    sidebar.v8k_url = url_host + v8k_url[1];
+    Logger.log(`matched a v8k_url: ${v8k_url}`);
+    sidebar.v8k_url = url_host + v8k_url;
   } else {
     Logger.log("unable to return valid v8k link");
     sidebar.v8k_url = "#";
   }
+
+  let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
+  sidebar.fromFlask.aasvg_index = sidebar.fromFlask.aasvg_index.replace(/href="(\S+)(\.svg">)/g, "href=\"" + aasvgUrl + "$1-full$2"); # <img src=\"" + aasvgUrl + "$1-tiny$2 won't work beause https
+  Logger.log("rewrote aasvg_index = ")
+  Logger.log(sidebar.fromFlask.aasvg_index)
   Logger.log("drawing sidebar");
   let sidebarOutput = sidebar.evaluate().setTitle('Output from L4');
   SpreadsheetApp.getUi().showSidebar(sidebarOutput);
   Logger.log("drawn sidebar");
 }
 
-function aasvgLink() {
-  saveUuid();
-  let userCache = CacheService.getUserCache();
-  let cachedUuid = userCache.get("uuid");
-  let spreadsheetId = "";
-  let sheetId = 0;
-  [spreadsheurl_hostetId, sheetId] = getSsid();
-  let url = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId;
-  let urlString = HtmlService.createHtmlOutput("<a href='" + url + "' target='_blank'>Index of SVG Images</a>").getContent();
-  return urlString;
-}
 
 function getSsid() {
   let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();

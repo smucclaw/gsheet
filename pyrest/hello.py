@@ -1,5 +1,5 @@
 from flask import Flask, request, send_from_directory, render_template, send_file
-import sys, string, os, datetime, glob, shutil, subprocess, re
+import sys, string, os, datetime, glob, shutil, subprocess, re, json
 from pathlib import Path
 
 template_dir = "/home/mengwong/pyrest/template/"
@@ -52,14 +52,11 @@ def getWorkdirFile(uuid, ssid, sid, channel, filename):
 
 @app.route("/aasvg/<uuid>/<ssid>/<sid>/<image>")
 def showAasvgImage(uuid, ssid, sid, image):
+  print("showAasvgImage: handling /aasvg/ url", file=sys.stderr);
   aasvgFolder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/aasvg/LATEST/"
   imagePath = aasvgFolder + image
-  cutPathToStaticImage = "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + image
-  newImagePath = static_dir + cutPathToStaticImage
-  newImageFolderPath = static_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/"
-  Path(newImageFolderPath).mkdir(parents=True, exist_ok=True)
-  shutil.copy(imagePath, newImagePath)
-  return render_template("aasvg.html", image = cutPathToStaticImage, image_title = image[:-4])
+  print("showAasvgImage: sending path " + imagePath, file=sys.stderr)
+  return send_file(imagePath)
 
 @app.route("/aasvg/<uuid>/<ssid>/<sid>")
 def getAasvgHtml(uuid, ssid, sid):
@@ -87,6 +84,8 @@ def getAasvgHtml(uuid, ssid, sid):
 def processCsv():
   data = request.form.to_dict()
 
+  response = {}
+
   uuid = data['uuid']
   spreadsheetId = data['spreadsheetId']
   sheetId = data['sheetId']
@@ -112,6 +111,15 @@ def processCsv():
     print (nl4exe.stderr.decode('utf-8'))
   nl4_out = nl4exe.stdout.decode('utf-8')
     
+  print("hello.py main: back from natural4-exe", file=sys.stderr)
+  print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
+  print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+   
+  nl4_out = nl4exe.stdout.decode('utf-8')
+
+  response['nl4_stderr'] = nl4exe.stderr.decode('utf-8')[:20000]
+  response['nl4_stdout'] = nl4exe.stdout.decode('utf-8')[:20000]
+
   # 
   # postprocessing after running natural4-exe:
   #   postprocessing for petri nets:
@@ -129,7 +137,7 @@ def processCsv():
     smallPetriPath = petriFolder + timestamp + "-small.png"
     print("hello.py main: running: dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &", file=sys.stderr)
     os.system("dot -Tpng -Gdpi=24  " + dotPath + " -o " + smallPetriPath + " &")
-    os.system("dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &")
+    os.system("dot -Tpng -Gdpi=72 " + dotPath + " -o " + petriPath + " &")
     try:
       if os.path.isfile(petriFolder + "LATEST.png"):       os.unlink(                 petriFolder + "LATEST.png")
       if os.path.isfile(petriFolder + "LATEST-small.png"): os.unlink(                 petriFolder + "LATEST-small.png")
@@ -164,19 +172,22 @@ def processCsv():
     if re.match(r':\d+', v8k_out): # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
       v8k_url = v8k_out
       print("v8k up succeeded with: " + v8k_url, file=sys.stderr)
+      response['v8k_url'] = v8k_url
     else:
       v8k_url = ""
-#      v8k_error = v8k.stderr.decode('utf-8')
-#      print("hello.py main: v8k up stderr: " + v8k_error,                  file=sys.stderr)
-#      print("hello.py main: v8k up stdout: " + v8k.stdout.decode('utf-8'), file=sys.stderr)
+      response['v8k_url'] = None
+      #      v8k_error = v8k.stderr.decode('utf-8')
+      #      print("hello.py main: v8k up stderr: " + v8k_error,                  file=sys.stderr)
+      #      print("hello.py main: v8k up stdout: " + v8k.stdout.decode('utf-8'), file=sys.stderr)
       
-  # [TODO]: return a JSON object instead from which the sidebar can construct prettier links and thumbnails
+    with open(uuidssfolder + "/aasvg/LATEST/index.html", "r") as read_file:
+      response['aasvg_index'] = read_file.read();
+
+  response['timestamp'] = timestamp;
   
-  textStr = ("v8k_url=" + v8k_url +
-             "\ntimestamp=" + timestamp +
-             "\n\n" + nl4_out)
   print("hello.py main: returning", file=sys.stderr)
-  return textStr
+  # print(json.dumps(response), file=sys.stderr)
+  return json.dumps(response)
 
 @app.route("/you/<name>")
 def user(name):
