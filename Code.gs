@@ -51,7 +51,8 @@ function showSidebar() {
   }
 
   let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
-  sidebar.fromFlask.aasvg_index = sidebar.fromFlask.aasvg_index.replace(/href="(\S+)(\.svg">)/g, "href=\"" + aasvgUrl + "$1-full$2"); # <img src=\"" + aasvgUrl + "$1-tiny$2 won't work beause https
+  sidebar.fromFlask.aasvg_index = sidebar.fromFlask.aasvg_index.replace(/href="(\S+)(\.svg">)/g, "href=\"" + aasvgUrl + "$1-full$2");
+  // <img src=\"" + aasvgUrl + "$1-tiny$2 won't work beause https
   Logger.log("rewrote aasvg_index = ")
   Logger.log(sidebar.fromFlask.aasvg_index)
   Logger.log("drawing sidebar");
