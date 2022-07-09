@@ -58,27 +58,6 @@ def showAasvgImage(uuid, ssid, sid, image):
   print("showAasvgImage: sending path " + imagePath, file=sys.stderr)
   return send_file(imagePath)
 
-@app.route("/aasvg/<uuid>/<ssid>/<sid>")
-def getAasvgHtml(uuid, ssid, sid):
-  aasvgFolder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/aasvg/LATEST/"
-  aasvgHtml = aasvgFolder + "index.html"
-  f = []
-  textStr = ""
-  for (dirpath, dirnames, filenames) in os.walk(aasvgFolder):
-    f.extend(filenames)
-    break
-  print(f)
-  cutPathToIndexDir = "aasvgindexdir/" + uuid + "/" + ssid + "/" + sid + "/"
-  Path(template_dir + cutPathToIndexDir).mkdir(parents=True, exist_ok=True)
-  cutPathToIndex = cutPathToIndexDir + "aasvg_index.html"
-  for fileName in f:
-    if (fileName != "index.html") and (fileName[-3:] == 'svg'):
-      textStr = textStr + '<li> <a href="/aasvg/' + uuid + '/' + ssid + '/' + sid + '/' + fileName + '">' + fileName[:-4] + '</a></li>\n'
-  with open(aasvgHtml, "w") as fout:
-    fout.write(textStr)
-  shutil.copy(aasvgHtml, template_dir + cutPathToIndex)
-  # return render_template(cutPathToIndex)
-  return textStr
 
 @app.route("/post", methods=['GET', 'POST'])
 def processCsv():
@@ -105,16 +84,11 @@ def processCsv():
   print("hello.py main: calling natural4-exe", file=sys.stderr)
   nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   print("hello.py main: back from natural4-exe", file=sys.stderr)
-  print("hello.py main: natural4-exe stdout length = ", len(nl4exe.stdout.decode('utf-8')))
-  print("hello.py main: natural4-exe stderr length = ", len(nl4exe.stderr.decode('utf-8')))
-  if len(nl4exe.stderr.decode('utf-8')) < 2000:
-    print (nl4exe.stderr.decode('utf-8'))
-  nl4_out = nl4exe.stdout.decode('utf-8')
-    
-  print("hello.py main: back from natural4-exe", file=sys.stderr)
   print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
   print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
    
+  if len(nl4exe.stderr.decode('utf-8')) < 2000:
+    print (nl4exe.stderr.decode('utf-8'))
   nl4_out = nl4exe.stdout.decode('utf-8')
 
   response['nl4_stderr'] = nl4exe.stderr.decode('utf-8')[:20000]
