@@ -145,7 +145,7 @@ def processCsv():
     # v8k_out = v8k.stdout.decode('utf-8')
     
     if re.match(r':\d+', v8k_out): # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
-      v8k_url = v8k_out
+      v8k_url = v8k_out.strip()
       print("v8k up succeeded with: " + v8k_url, file=sys.stderr)
       response['v8k_url'] = v8k_url
     else:
