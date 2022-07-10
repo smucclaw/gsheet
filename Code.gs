@@ -14,7 +14,7 @@ function loadDev() {
   let range = sheet.getRange("A1:Z10").getDisplayValues();
 
   port = devPort(range) || "8080";
-  liveUpdates = devScan(range, /live updates: (true|false)/i) || true; if (liveUpdates == "false") { liveUpdates = false }
+  liveUpdates = devScan(range, /live updates (true|false)/i) || true; if (liveUpdates.toLowerCase() == "false") { liveUpdates = false }
   Logger.log("setting port to " + port);
   Logger.log("setting liveUpdates to " + liveUpdates);
 }
@@ -153,18 +153,17 @@ function url_wd() { return `${url_hp()}/workdir/`; }
 
 function devScan(range, scanregex) {
   for (let i = 0; i < range.length; i++) {
-    for (let j = 0; j < range[i].length; j++) {
-      if (scan = range[i][j].match(scanregex)) {
-        Logger.log(`devScan hit: ${range[i][j]} matched ${scan}`);
-        return scan[1];
-      }
+    let asOneLine = range[i].join(" ");
+    if (scan = asOneLine.match(scanregex)) {
+      Logger.log(`devScan hit: ${asOneLine} matched ${scan}`);
+      return scan[1];
     }
   }
   return null;
 }
 
 function devPort(range) {
-  let mymatch = devScan(range, /devMode port: (\d+)/i);
+  let mymatch = devScan(range, /devMode port (\d+)/i);
   if (mymatch) { return mymatch }
   return "8080";
 }
