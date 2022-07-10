@@ -1,6 +1,6 @@
 Logger.log("global top");
 var port       = "8080";
-const url_host = "http://18.139.62.80";
+const url_host = "https://cclaw.legalese.com";
 var liveUpdates = true;
 
 function onOpen() {
@@ -51,8 +51,15 @@ function showSidebar() {
   }
 
   let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
-  sidebar.fromFlask.aasvg_index = sidebar.fromFlask.aasvg_index.replace(/href="(\S+)(\.svg">)/g, "href=\"" + aasvgUrl + "$1-full$2");
-  // <img src=\"" + aasvgUrl + "$1-tiny$2 won't work beause https
+
+  sidebar.fromFlask.aasvg_index = 
+    sidebar.fromFlask.aasvg_index
+    .replace(/href="(\S+)(\.svg">)(.+)<\/a>/g,
+             "href=\"" + aasvgUrl + "$1-full$2<br/>$3" +
+             "<img src=\"" + aasvgUrl + "$1-tiny.svg\"></a>");
+  
+
+
   Logger.log("rewrote aasvg_index = ")
   Logger.log(sidebar.fromFlask.aasvg_index)
   Logger.log("drawing sidebar");
@@ -74,7 +81,7 @@ function getSsid() {
   return [spreadsheetId, sheetId];
 }
 function exportCSV(uuid, spreadsheetId, sheetId) {
-    let sheet = SpreadsheetApp.getActiveSheet();
+  let sheet = SpreadsheetApp.getActiveSheet();
   Logger.log("exportCSV: initialized. constructing CSV.");
   let cellArraysOfText = sheet.getDataRange().getDisplayValues();
   let csvStr = cellArraysToCsv(cellArraysOfText);

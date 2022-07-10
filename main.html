@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <p id="native"><a target="native" href="<?= native_url ?>">Native Haskell parsing</a></p>
-    <p id="corel4"><a target="corel4" href="<?= corel4url ?>">CoreL4</a></p>
-    <p id="petri"><a target="petri" href="<?= petri_url ?>">Petri Net</a></p>
-<? //    <img src="<?= petri_thumbnail_img ?>" width="150"> ?>
-    <p id="json"><a target="json" href="<?= json_url ?>">JSON</a></p>
-    <p id="v8k"><a target="v8k" href="<?= v8k_url ?>">web app</a></p>
-    <p id="aasvg"><ul><?!= fromFlask.aasvg_index ?></ul></p>
+    <ol>
+    <li id="petri"><a target="petri" href="<?= petri_url ?>">Flowchart (Dynamics)
+      <img src="<?= petri_thumbnail_img ?>" width="120"></a>
+    </li>
+    <li id="aasvg">True/False Logic (Statics)<ul><?!= fromFlask.aasvg_index ?></ul></li>
+    <li id="v8k"><a target="v8k" href="<?= v8k_url ?>">Export as web app</a></li>
+    <li id="json"><a target="json" href="<?= json_url ?>">Export as JSON</a></li>
+    <li id="corel4"><a target="corel4" href="<?= corel4url ?>">Export as CoreL4</a></li>
+    <li id="native"><a target="native" href="<?= native_url ?>">Export as Haskell</a></li>
+    </ol>
 
     <p>port: <?= port ?></p>
     <p>live updates: <?= liveUpdates ? "on" : "off" ?></p>

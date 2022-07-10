@@ -1,0 +1,33 @@
+
+* Invocation
+
+#+begin_example
+┌─[20220710-14:18:20]   [mengwong@cclaw:~/pyrest]
+└─[0] <> gunicorn --certfile /etc/letsencrypt/live/cclaw.legalese.com/cert.pem --keyfile /etc/letsencrypt/live/cclaw.legalese.com/privkey.pem --workers=5 --bind 0.0.0.0:8080 wsgi:app --pythonpath /home/mengwong/pyrest/lib/python3.8/site-packages/
+#+end_example
+
+* DevMode
+
+If you want to run a dev version of the Google Apps Script and pyrest codebase, you can launch a new gunicorn instance on, say, port 8081.
+
+If somewhere in the top ten lines of the spreadsheet you have something like this, it will use that port instead
+
+#+begin_example
+// live updates TRUE      devMode port 8081
+#+end_example
+
+If you're actively editing the spreadsheet and the redraws are slowing you
+down, set live updates to FALSE.
+
+* SSL background
+
+1. did Let's Encrypt with CertBot [2022-07-10 Sun] https://certbot.eff.org/instructions?ws=other&os=ubuntufocal
+
+2. set up a cname from cclaw.legalese.com to the AWS instance
+
+3. run gunicorn with certfile and keyfile
+   https://stackoverflow.com/questions/7406805/running-gunicorn-on-https
+
+4. now the SVG and PNG should work in the sidebar main.html
+   
+
