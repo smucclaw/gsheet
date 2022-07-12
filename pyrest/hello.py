@@ -136,9 +136,9 @@ def processCsv():
 #                            stdout=subprocess.PIPE,
 #                            stderr=subprocess.PIPE
 #    )
-    os.system(" ".join(v8kargs) + "> " + uuidssfolder + "v8k.out");
+    os.system(" ".join(v8kargs) + "> " + uuidssfolder + "/v8k.out");
     print("hello.py main: v8k up returned", file=sys.stderr)
-    with open(uuidssfolder + "v8k.out", "r") as read_file:
+    with open(uuidssfolder + "/v8k.out", "r") as read_file:
       v8k_out = read_file.readline();
     print("v8k.out: %s" % (v8k_out), file=sys.stderr)
 
