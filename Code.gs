@@ -56,7 +56,7 @@ function showSidebar() {
     sidebar.fromFlask.aasvg_index
     .replace(/href="(\S+)(\.svg">)(.+)<\/a>/g,
              "href=\"" + aasvgUrl + "$1-full$2<br/>$3" +
-             "<img src=\"" + aasvgUrl + "$1-tiny.svg\"></a>");
+             "<br><img src=\"" + aasvgUrl + "$1-tiny.svg\"></a>");
   
 
 
@@ -225,6 +225,9 @@ function scanDocIF(sheet) {
   }
 }
 function onEdit(e) {
+   if (c.getBackground() != "#ffffff") {
+    return false;
+  }
   loadDev();  
 
   // Respond to Edit events on spreadsheet.

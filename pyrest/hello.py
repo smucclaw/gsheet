@@ -61,6 +61,7 @@ def showAasvgImage(uuid, ssid, sid, image):
 
 @app.route("/post", methods=['GET', 'POST'])
 def processCsv():
+  print("processCsv: running")
   data = request.form.to_dict()
 
   response = {}
@@ -88,13 +89,24 @@ def processCsv():
   print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
   print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
    
-  if len(nl4exe.stderr.decode('utf-8')) < 2000:
-    print (nl4exe.stderr.decode('utf-8'))
   nl4_out = nl4exe.stdout.decode('utf-8')
+  nl4_err = nl4exe.stderr.decode('utf-8')
+  if len(nl4_err) < 2000:
+    print (nl4_err)
 
-  response['nl4_stderr'] = nl4exe.stderr.decode('utf-8')[:20000]
-  response['nl4_stdout'] = nl4exe.stdout.decode('utf-8')[:20000]
+  response['nl4_stderr'] = nl4_err[:20000]
+  response['nl4_stdout'] = nl4_out[:20000]
 
+  # save natural4-exe stdout and stderr
+  with open(targetPath.replace("csv","stdout"), "w") as fout: fout.write(nl4_out)
+  with open(targetPath.replace("csv","stderr"), "w") as fout: fout.write(nl4_err)
+  print("hello.py main: natural4-exe stdout written to %s" % targetPath.replace("csv","stdout"))
+  print("hello.py main: natural4-exe stderr written to %s" % targetPath.replace("csv","stderr"))
+  if os.path.isfile(targetFolder + "LATEST.stdout"): os.unlink(targetFolder + "LATEST.stdout")
+  os.symlink(targetPath.replace("csv","stdout"), targetFolder + "LATEST.stdout")
+  if os.path.isfile(targetFolder + "LATEST.stderr"): os.unlink(targetFolder + "LATEST.stderr")
+  os.symlink(targetPath.replace("csv","stderr"), targetFolder + "LATEST.stderr")
+  
   # 
   # postprocessing after running natural4-exe:
   #   postprocessing for petri nets:
