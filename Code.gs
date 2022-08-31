@@ -225,26 +225,27 @@ function scanDocIF(sheet) {
   }
 }
 function onEdit(e) {
-   if (c.getBackground() != "#ffffff") {
-    return false;
-  }
   loadDev();  
 
   // Respond to Edit events on spreadsheet.
   if (! liveUpdates) { return }
-  let c = e.range;
-  const sheet = SpreadsheetApp.getActiveSheet();
-  const h = new ElementHistory();
-  if (goodLayout(c) && !c.isBlank()) {
-    drawWords(c);
-    c = startProcessing(c, h, sheet);
-  }
-  else if (c.isBlank()) {
-    if (e.oldValue=="IF" || e.oldValue=="WHEN"
-	|| e.oldValue=="IS" || e.oldValue=="MEANS") {
-      c.offset(-1,0).clear();
+
+  if (c.getBackground() == "#ffffff") {
+    let c = e.range;
+    const sheet = SpreadsheetApp.getActiveSheet();
+    const h = new ElementHistory();
+    if (goodLayout(c) && !c.isBlank()) {
+      drawWords(c);
+      c = startProcessing(c, h, sheet);
+    }
+    else if (c.isBlank()) {
+      if (e.oldValue=="IF" || e.oldValue=="WHEN"
+          || e.oldValue=="IS" || e.oldValue=="MEANS") {
+        c.offset(-1,0).clear();
+      }
     }
   }
+
   showSidebar();
 }
 function startProcessing(c, h, sheet) {
