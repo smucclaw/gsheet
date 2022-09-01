@@ -122,9 +122,9 @@ def processCsv():
   else:
     petriPath = petriFolder + timestamp + ".png"
     smallPetriPath = petriFolder + timestamp + "-small.png"
-    print("hello.py main: running: dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &", file=sys.stderr)
-    os.system("dot -Tpng -Gdpi=24  " + dotPath + " -o " + smallPetriPath + " &")
-    os.system("dot -Tpng -Gdpi=72 " + dotPath + " -o " + petriPath + " &")
+    print("hello.py main: running: dot -Tpng " + dotPath + " -o " + petriPath + " &", file=sys.stderr)
+    os.system("dot -Tpng -Gdpi=72  " + dotPath + " -o " + smallPetriPath + " &")
+    os.system("dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &")
     try:
       if os.path.isfile(petriFolder + "LATEST.png"):       os.unlink(                 petriFolder + "LATEST.png")
       if os.path.isfile(petriFolder + "LATEST-small.png"): os.unlink(                 petriFolder + "LATEST-small.png")
