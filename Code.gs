@@ -35,6 +35,7 @@ function showSidebar() {
   sidebar.corel4url           = workDirUrl + "corel4/LATEST.l4";
   sidebar.petri_url           = workDirUrl + "petri/LATEST.png"
   sidebar.json_url            = workDirUrl + "json/LATEST.json"
+  sidebar.epilog_url          = workDirUrl + "epilog/LATEST.epilog"
   sidebar.purs_url            = workDirUrl + "purs/LATEST.purs"
   sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
   sidebar.port                = port;

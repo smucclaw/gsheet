@@ -43,7 +43,7 @@ def getWorkdirFile(uuid, ssid, sid, channel, filename):
     print("getWorkdirFile: unable to find file %s/%s"  % (workdirFolder, filename), file=sys.stderr)
     return;
   (fn,ext) = os.path.splitext(filename)
-  if ext == ".l4" or ext == ".purs":
+  if ext == ".l4" or ext == ".epilog":
     print("getWorkdirFile: returning text/plain %s/%s" % (workdirFolder, filename), file=sys.stderr)
     return send_file(workdirFolder + "/" + filename, mimetype="text/plain")
   else:
@@ -61,7 +61,6 @@ def showAasvgImage(uuid, ssid, sid, image):
 
 @app.route("/post", methods=['GET', 'POST'])
 def processCsv():
-  print("processCsv: running")
   data = request.form.to_dict()
 
   response = {}
@@ -71,7 +70,8 @@ def processCsv():
   sheetId = data['sheetId']
   targetFolder = "/home/mengwong/pyrest/temp/workdir/"+uuid+"/"+spreadsheetId+"/"+sheetId+"/"
   print(targetFolder)
-  targetFile = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ") + ".csv"
+  timeNow = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
+  targetFile = timeNow + ".csv"
   targetPath = targetFolder + targetFile
   # if not os.path.exists(targetFolder):
   Path(targetFolder).mkdir(parents=True, exist_ok=True)
@@ -89,24 +89,13 @@ def processCsv():
   print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
   print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
    
+  if len(nl4exe.stderr.decode('utf-8')) < 2000:
+    print (nl4exe.stderr.decode('utf-8'))
   nl4_out = nl4exe.stdout.decode('utf-8')
-  nl4_err = nl4exe.stderr.decode('utf-8')
-  if len(nl4_err) < 2000:
-    print (nl4_err)
 
-  response['nl4_stderr'] = nl4_err[:20000]
-  response['nl4_stdout'] = nl4_out[:20000]
+  response['nl4_stderr'] = nl4exe.stderr.decode('utf-8')[:20000]
+  response['nl4_stdout'] = nl4exe.stdout.decode('utf-8')[:20000]
 
-  # save natural4-exe stdout and stderr
-  with open(targetPath.replace("csv","stdout"), "w") as fout: fout.write(nl4_out)
-  with open(targetPath.replace("csv","stderr"), "w") as fout: fout.write(nl4_err)
-  print("hello.py main: natural4-exe stdout written to %s" % targetPath.replace("csv","stdout"))
-  print("hello.py main: natural4-exe stderr written to %s" % targetPath.replace("csv","stderr"))
-  if os.path.isfile(targetFolder + "LATEST.stdout"): os.unlink(targetFolder + "LATEST.stdout")
-  os.symlink(targetPath.replace("csv","stdout"), targetFolder + "LATEST.stdout")
-  if os.path.isfile(targetFolder + "LATEST.stderr"): os.unlink(targetFolder + "LATEST.stderr")
-  os.symlink(targetPath.replace("csv","stderr"), targetFolder + "LATEST.stderr")
-  
   # 
   # postprocessing after running natural4-exe:
   #   postprocessing for petri nets:
@@ -122,9 +111,9 @@ def processCsv():
   else:
     petriPath = petriFolder + timestamp + ".png"
     smallPetriPath = petriFolder + timestamp + "-small.png"
-    print("hello.py main: running: dot -Tpng " + dotPath + " -o " + petriPath + " &", file=sys.stderr)
-    os.system("dot -Tpng -Gdpi=72  " + dotPath + " -o " + smallPetriPath + " &")
-    os.system("dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &")
+    print("hello.py main: running: dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &", file=sys.stderr)
+    os.system("dot -Tpng -Gdpi=24  " + dotPath + " -o " + smallPetriPath + " &")
+    os.system("dot -Tpng -Gdpi=72 " + dotPath + " -o " + petriPath + " &")
     try:
       if os.path.isfile(petriFolder + "LATEST.png"):       os.unlink(                 petriFolder + "LATEST.png")
       if os.path.isfile(petriFolder + "LATEST-small.png"): os.unlink(                 petriFolder + "LATEST-small.png")
@@ -134,6 +123,19 @@ def processCsv():
       print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking", file=sys.stderr);
       print("hello.py main: %s" % (e), file=sys.stderr);
     
+    #   postprocessing for the babyl4 downstream transpilations
+    #     call l4 epilog corel4/LATEST.l4
+
+    corel4Path = uuidssfolder + "/corel4/LATEST.l4"
+    epilogPath = uuidssfolder + "/epilog"
+    Path(epilogPath).mkdir(parents=True, exist_ok=True)
+    epilogFile = epilogPath + "/" + timeNow + ".epilog"
+
+    print("hello.py main: running: l4 epilog " + corel4Path + " > " + epilogFile, file=sys.stderr)
+    os.system("l4 epilog " + corel4Path + " > " + epilogFile + " &")
+    if os.path.isfile(epilogPath + "/LATEST.epilog"): os.unlink( epilogPath + "/LATEST.epilog")
+    os.symlink(timeNow + ".epilog", epilogPath + "/LATEST.epilog")
+
     #   postprocessing for the vue web server
     #     call v8k up
 
