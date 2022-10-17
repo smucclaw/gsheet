@@ -43,7 +43,8 @@ def getWorkdirFile(uuid, ssid, sid, channel, filename):
     print("getWorkdirFile: unable to find file %s/%s"  % (workdirFolder, filename), file=sys.stderr)
     return;
   (fn,ext) = os.path.splitext(filename)
-  if ext == ".l4" or ext == ".epilog":
+  if ext == ".l4" or ext == ".epilog" or ext == ".purs" or ext == ".org":
+
     print("getWorkdirFile: returning text/plain %s/%s" % (workdirFolder, filename), file=sys.stderr)
     return send_file(workdirFolder + "/" + filename, mimetype="text/plain")
   else:
@@ -112,8 +113,8 @@ def processCsv():
     petriPath = petriFolder + timestamp + ".png"
     smallPetriPath = petriFolder + timestamp + "-small.png"
     print("hello.py main: running: dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &", file=sys.stderr)
-    os.system("dot -Tpng -Gdpi=24  " + dotPath + " -o " + smallPetriPath + " &")
-    os.system("dot -Tpng -Gdpi=72 " + dotPath + " -o " + petriPath + " &")
+    os.system("dot -Tpng -Gdpi=72  " + dotPath + " -o " + smallPetriPath + " &")
+    os.system("dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &")
     try:
       if os.path.isfile(petriFolder + "LATEST.png"):       os.unlink(                 petriFolder + "LATEST.png")
       if os.path.isfile(petriFolder + "LATEST-small.png"): os.unlink(                 petriFolder + "LATEST-small.png")
