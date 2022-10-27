@@ -1,9 +1,11 @@
 digraph {
+  hello [label="gsheet/pyrest/hello.py"];
+
   "legalSS spreadsheet onEdit()" -> "Code.gs" [label="parse CSV"];
-  "Code.gs" -> "gsheet/pyrest/hello.py" [label="ships CSV to"];
-  "Code.gs" -> "main.html\nsidebar" [label="produce HTML output"];
+  "Code.gs" -> hello [label="11\nships CSV (port :808x) to;\nand returns JSON from"];
+  "Code.gs" -> "main.html\nsidebar" [label="61\nfills HTML template\nwith various urls"];
   "main.html\nsidebar" -> "various export links";
-  "various export links" -> "gsheet/pyrest/hello.py";
+  "various export links" -> hello;
 
   subgraph cluster_natural4 {
    style=filled;
@@ -12,13 +14,11 @@ digraph {
    "static files";
    "natural4-exe";
   }
-  "gsheet/pyrest/hello.py" -> "static files" [label="serves"];
+  hello -> "static files" [label="serves"];
   "various export links" -> "static files" [label="to"];
   "natural4-exe" -> "static files" [label="produces"];
-  "gsheet/pyrest/hello.py" -> "natural4-exe" [label="1\ncalls"];
-  "natural4-exe" -> "gsheet/pyrest/hello.py" [label="returns after succeeding"];
-
-  "static files" -> "dmn xml" [label="includes"];
+  hello -> "natural4-exe" [label="21\ncalls"];
+  "natural4-exe" -> hello [label="41returns after succeeding"];
 
   subgraph cluster_vue {
    style=filled;
@@ -37,7 +37,7 @@ digraph {
   "the latest purescript" -> "purs file on disk" [label="to"];
   "vue's npm run serve" -> "in dev mode\nwith hot reloading" [style="dotted"];
   "in dev mode\nwith hot reloading" -> "purs file on disk" [label="reads"];
-  "gsheet/pyrest/hello.py" -> "v8k script" [label="calls"];
+  hello -> "v8k script" [label="53\ncalls"];
   "main.html\nsidebar" -> "vue web app" [label="link to"];
 
   subgraph cluster_dmn {
@@ -45,11 +45,15 @@ digraph {
    color=lightgrey;
    node [style=filled,color=hotpink];
 
-   "corel4";
-   "corel4" -> "dmn xml" [label="generates"];   
+   "corel4 file";
+   "babyl4 executable"
+   "babyl4 executable" -> "dmn xml" [label="generates"];
+   "corel4 file" -> "babyl4 executable" [label="input to"];
   }
-  "natural4-exe" -> "corel4" [label="2\noutputs"];
-  "gsheet/pyrest/hello.py" -> "corel4" [label="3\nruns"];
+  "natural4-exe" -> "corel4 file" [label="31\noutputs"];
+  hello -> "babyl4 executable" [label="54\nruns"];
+
+  "static files" -> "dmn xml" [label="includes", style="dotted", arrowhead = none];
 
   subgraph cluster_new {
    style=filled;
@@ -58,13 +62,14 @@ digraph {
    "rules";
    "rules" -> "clara format" [label="to"];
    "shadow-cljs watch app";
-   "shadow-cljs watch app" -> "clara format" [label="monitors"];
+   "shadow-cljs watch app" -> "clara format" [label="watches"];
+   "shadow-cljs watch app" -> "clara engine" [label="manages"];
    "clara engine";
    "clara engine" -> "clara format" [label="reads"];
    "web front-end (clara)" -> "clara engine" [label="4\nserved by"];
   }
-  "gsheet/pyrest/hello.py" -> "rules" [label="1\nconvert"];
-  "gsheet/pyrest/hello.py" -> "shadow-cljs watch app" [label="2\n(re)launches"];
-  "main.html\nsidebar" -> "web front-end (clara)" [label="3\nlinks to"];
+  hello -> "rules" [label="51\nconvert"];
+  hello -> "shadow-cljs watch app" [label="52\n(re)launches"];
+  "main.html\nsidebar" -> "web front-end (clara)" [label="53\nlinks to"];
 }
   
