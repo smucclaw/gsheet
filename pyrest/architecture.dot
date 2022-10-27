@@ -15,7 +15,7 @@ digraph {
   "gsheet/pyrest/hello.py" -> "static files" [label="serves"];
   "various export links" -> "static files" [label="to"];
   "natural4-exe" -> "static files" [label="produces"];
-  "gsheet/pyrest/hello.py" -> "natural4-exe" [label="calls"];
+  "gsheet/pyrest/hello.py" -> "natural4-exe" [label="1\ncalls"];
   "natural4-exe" -> "gsheet/pyrest/hello.py" [label="returns after succeeding"];
 
   subgraph cluster_vue {
@@ -37,6 +37,17 @@ digraph {
   "in dev mode\nwith hot reloading" -> "purs file on disk" [label="reads"];
   "gsheet/pyrest/hello.py" -> "v8k script" [label="calls"];
   "main.html\nsidebar" -> "vue web app" [label="link to"];
+
+  subgraph cluster_dmn {
+   style=filled;
+   color=lightgrey;
+   node [style=filled,color=hotpink];
+
+   "corel4";
+   "corel4" -> "dmn xml" [label="generates"];   
+  }
+  "natural4-exe" -> "corel4" [label="2\noutputs"];
+  "gsheet/pyrest/hello.py" -> "corel4" [label="3\nruns"];
 
   subgraph cluster_new {
    style=filled;
