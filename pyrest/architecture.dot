@@ -1,7 +1,7 @@
 digraph {
   "legalSS spreadsheet onEdit()" -> "Code.gs" [label="parse CSV"];
   "Code.gs" -> "gsheet/pyrest/hello.py" [label="ships CSV to"];
-  "Code.gs" -> "main.html" [label="produce HTML output"];
+  "Code.gs" -> "main.html\nsidebar" [label="produce HTML output"];
   "main.html\nsidebar" -> "various export links";
   "various export links" -> "gsheet/pyrest/hello.py";
 
