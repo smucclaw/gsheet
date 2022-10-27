@@ -31,3 +31,7 @@ down, set live updates to FALSE.
 4. now the SVG and PNG should work in the sidebar main.html
    
 
+* The User Experience, Broken Down Step By Step
+
+see architecture.dot for illustration
+

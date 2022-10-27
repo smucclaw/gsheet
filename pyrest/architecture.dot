@@ -1,0 +1,57 @@
+digraph {
+  "legalSS spreadsheet onEdit()" -> "Code.gs" [label="parse CSV"];
+  "Code.gs" -> "gsheet/pyrest/hello.py" [label="ships CSV to"];
+  "Code.gs" -> "main.html" [label="produce HTML output"];
+  "main.html\nsidebar" -> "various export links";
+  "various export links" -> "gsheet/pyrest/hello.py";
+
+  subgraph cluster_natural4 {
+   style=filled;
+   color=lightgrey;
+   node [style=filled,color=lightblue];
+   "static files";
+   "natural4-exe";
+  }
+  "gsheet/pyrest/hello.py" -> "static files" [label="serves"];
+  "various export links" -> "static files" [label="to"];
+  "natural4-exe" -> "static files" [label="produces"];
+  "gsheet/pyrest/hello.py" -> "natural4-exe" [label="calls"];
+  "natural4-exe" -> "gsheet/pyrest/hello.py" [label="returns after succeeding"];
+
+  subgraph cluster_vue {
+   style=filled;
+   color=lightgrey;
+   node [style=filled,color=lightgreen];
+  "vue web app";
+  "v8k script";
+  "vue's npm run serve";
+  "in dev mode\nwith hot reloading";
+  "the latest purescript";
+  "purs file on disk";
+  }
+  "vue web app" -> "vue's npm run serve" [label="served by"];
+  "v8k script" -> "vue's npm run serve" [label="manages"];
+  "v8k script" -> "the latest purescript" [label="copies"];
+  "the latest purescript" -> "purs file on disk" [label="to"];
+  "vue's npm run serve" -> "in dev mode\nwith hot reloading" [style="dotted"];
+  "in dev mode\nwith hot reloading" -> "purs file on disk" [label="reads"];
+  "gsheet/pyrest/hello.py" -> "v8k script" [label="calls"];
+  "main.html\nsidebar" -> "vue web app" [label="link to"];
+
+  subgraph cluster_new {
+   style=filled;
+   color=lightgrey;
+   node [style=filled,color=pink];
+   "rules";
+   "rules" -> "clara format" [label="to"];
+   "shadow-cljs watch app";
+   "shadow-cljs watch app" -> "clara format" [label="monitors"];
+   "clara engine";
+   "clara engine" -> "clara format" [label="reads"];
+   "web front-end (clara)" -> "clara engine" [label="4\nserved by"];
+  }
+  "gsheet/pyrest/hello.py" -> "rules" [label="1\nconvert"];
+  "gsheet/pyrest/hello.py" -> "shadow-cljs watch app" [label="2\n(re)launches"];
+  "main.html\nsidebar" -> "web front-end (clara)" [label="3\nlinks to"];
+}
+  
