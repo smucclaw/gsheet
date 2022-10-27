@@ -38,7 +38,7 @@ digraph {
   "vue's npm run serve" -> "in dev mode\nwith hot reloading" [style="dotted"];
   "in dev mode\nwith hot reloading" -> "purs file on disk" [label="reads"];
   hello -> "v8k script" [label="53\ncalls"];
-  "main.html\nsidebar" -> "vue web app" [label="link to"];
+  "main.html\nsidebar" -> "vue web app" [label="links to"];
 
   subgraph cluster_dmn {
    style=filled;
@@ -66,10 +66,10 @@ digraph {
    "shadow-cljs watch app" -> "clara engine" [label="manages"];
    "clara engine";
    "clara engine" -> "clara format" [label="reads"];
-   "web front-end (clara)" -> "clara engine" [label="4\nserved by"];
+   "web front-end (clara)" -> "clara engine" [label="served by"];
   }
   hello -> "rules" [label="51\nconvert"];
   hello -> "shadow-cljs watch app" [label="52\n(re)launches"];
-  "main.html\nsidebar" -> "web front-end (clara)" [label="53\nlinks to"];
+  "main.html\nsidebar" -> "web front-end (clara)" [label="links to"];
 }
   
