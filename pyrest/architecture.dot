@@ -18,6 +18,8 @@ digraph {
   "gsheet/pyrest/hello.py" -> "natural4-exe" [label="1\ncalls"];
   "natural4-exe" -> "gsheet/pyrest/hello.py" [label="returns after succeeding"];
 
+  "static files" -> "dmn xml" [label="includes"];
+
   subgraph cluster_vue {
    style=filled;
    color=lightgrey;
