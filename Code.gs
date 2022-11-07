@@ -38,6 +38,7 @@ function showSidebar() {
   sidebar.epilog_url          = workDirUrl + "epilog/LATEST.epilog"
   sidebar.org_url             = workDirUrl + "org/LATEST.org"
   sidebar.purs_url            = workDirUrl + "purs/LATEST.purs"
+  sidebar.ts_url              = workDirUrl + "ts/LATEST.ts"
   sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
   sidebar.port                = port;
   sidebar.liveUpdates         = liveUpdates;

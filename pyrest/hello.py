@@ -43,7 +43,12 @@ def getWorkdirFile(uuid, ssid, sid, channel, filename):
     print("getWorkdirFile: unable to find file %s/%s"  % (workdirFolder, filename), file=sys.stderr)
     return;
   (fn,ext) = os.path.splitext(filename)
-  if ext == ".l4" or ext == ".epilog" or ext == ".purs" or ext == ".org":
+  if (ext == ".l4"
+      or ext == ".epilog"
+      or ext == ".purs"
+      or ext == ".org"
+      or ext == ".ts"
+      ):
 
     print("getWorkdirFile: returning text/plain %s/%s" % (workdirFolder, filename), file=sys.stderr)
     return send_file(workdirFolder + "/" + filename, mimetype="text/plain")
