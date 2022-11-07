@@ -47,6 +47,7 @@ def getWorkdirFile(uuid, ssid, sid, channel, filename):
       or ext == ".epilog"
       or ext == ".purs"
       or ext == ".org"
+      or ext == ".hs"
       or ext == ".ts"
       ):
 
