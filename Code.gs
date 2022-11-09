@@ -179,23 +179,24 @@ function onChange(e) {
   if (! liveUpdates) { return }
 
   Logger.log(`onChange running. liveUpdates=${liveUpdates}; port=${port}`);
-  const sheet = SpreadsheetApp.getActiveSheet();
-  if (e.changeType=="INSERT_ROW") {
-    testWait();
-    // sheet.getRange(1, 4).setValue("row inserted");
-    scanDocIF(sheet);
-    // sheet.getRange(1, 5).setValue("insert complete");
-  }
-  else if (e.changeType=="REMOVE_ROW") {
-    testWait();
-    // sheet.getRange(1, 4).setValue("row deleted");
-    scanDocIF(sheet);
-    // sheet.getRange(1, 5).setValue("delete complete");
-  }
-  else if (e.changeType=="EDIT") {
-    // sheet.getRange(1, 4).setValue("cell edited");
-    sheet.getRange(1, 5).setValue("");
-  }
+//  const sheet = SpreadsheetApp.getActiveSheet();
+//  if (e.changeType=="INSERT_ROW") {
+//    testWait();
+//    // sheet.getRange(1, 4).setValue("row inserted");
+//    scanDocIF(sheet);
+//    // sheet.getRange(1, 5).setValue("insert complete");
+//  }
+//  else if (e.changeType=="REMOVE_ROW") {
+//    testWait();
+//    // sheet.getRange(1, 4).setValue("row deleted");
+//    scanDocIF(sheet);
+//    // sheet.getRange(1, 5).setValue("delete complete");
+//  }
+//  else if (e.changeType=="EDIT") {
+//    // sheet.getRange(1, 4).setValue("cell edited");
+//    sheet.getRange(1, 5).setValue("");
+//  }
+//
 }
 function testWait(){
   const lock = LockService.getScriptLock();
@@ -234,24 +235,27 @@ function onEdit(e) {
   // Respond to Edit events on spreadsheet.
   if (! liveUpdates) { return }
 
-  if (c.getBackground() == "#ffffff") {
-    let c = e.range;
-    const sheet = SpreadsheetApp.getActiveSheet();
-    const h = new ElementHistory();
-    if (goodLayout(c) && !c.isBlank()) {
-      drawWords(c);
-      c = startProcessing(c, h, sheet);
-    }
-    else if (c.isBlank()) {
-      if (e.oldValue=="IF" || e.oldValue=="WHEN"
-          || e.oldValue=="IS" || e.oldValue=="MEANS") {
-        c.offset(-1,0).clear();
-      }
-    }
+  let c = e.range;
+  if (c.getBackground() != "#ffffff") {
+    return;
   }
+
+// const sheet = SpreadsheetApp.getActiveSheet();
+// const h = new ElementHistory();
+// if (goodLayout(c) && !c.isBlank()) {
+//   drawWords(c);
+//   c = startProcessing(c, h, sheet);
+// }
+// else if (c.isBlank()) {
+//   if (e.oldValue=="IF" || e.oldValue=="WHEN"
+//       || e.oldValue=="IS" || e.oldValue=="MEANS") {
+//     c.offset(-1,0).clear();
+//   }
+// }
 
   showSidebar();
 }
+
 function startProcessing(c, h, sheet) {
   const startCell = findStart(c);
   // sheet.getRange(1, 1).setValue(startCell.getValue());
