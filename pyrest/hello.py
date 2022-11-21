@@ -7,6 +7,11 @@ temp_dir = "/home/mengwong/pyrest/temp/"
 static_dir = "/home/mengwong/pyrest/static/"
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
+# [TODO] we need a better way to pass this argument into hello.py itself
+# presumably there is some interaction with gunicorn that will work
+# maybe we need to put argparse into the wsgi.py app?
+startport = 8020
+
 @app.route("/corel4/<uuid>/<ssid>/<sid>")
 def getCorel4File(uuid, ssid, sid):
   textStr = ""
@@ -150,6 +155,7 @@ def processCsv():
                "--uuid="    + uuid,
                "--ssid="    + spreadsheetId,
                "--sheetid=" + sheetId,
+               "--startport=" + str(startport),
                uuidssfolder + "/purs/LATEST.purs"]
     
     print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
