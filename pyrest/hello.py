@@ -155,7 +155,7 @@ def processCsv():
                "--uuid="    + uuid,
                "--ssid="    + spreadsheetId,
                "--sheetid=" + sheetId,
-               "--startport=" + startport,
+               "--startport=" + str(startport),
                uuidssfolder + "/purs/LATEST.purs"]
     
     print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
