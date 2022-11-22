@@ -5,11 +5,13 @@ from pathlib import Path
 if "basedir"       in os.environ: basedir       = os.environ["basedir"]
 if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
 if "v8k_startport" in os.environ: v8k_startport = os.environ["v8k_startport"]
+if "v8k_path"      in os.environ: v8k_path      = os.environ["v8k_path"]
 
 # see gunicorn.conf.py for basedir, workdir, startport
 template_dir = basedir + "/template/"
 temp_dir     = basedir + "/temp/"
 static_dir   = basedir + "/static/"
+natural4_dir = temp_dir + "workdir"
 
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
@@ -81,7 +83,7 @@ def processCsv():
   uuid = data['uuid']
   spreadsheetId = data['spreadsheetId']
   sheetId = data['sheetId']
-  targetFolder = "/home/mengwong/pyrest/temp/workdir/"+uuid+"/"+spreadsheetId+"/"+sheetId+"/"
+  targetFolder = natural4_dir + "/"+uuid+"/"+spreadsheetId+"/"+sheetId+"/"
   print(targetFolder)
   timeNow = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
   targetFile = timeNow + ".csv"
@@ -93,8 +95,7 @@ def processCsv():
     fout.write(data['csvString'])
 
   # targetPath is for CSV data
-  createFiles = "natural4-exe --workdir=/home/mengwong/pyrest/temp/workdir --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
-  # createFiles = "natural4-exe --workdir=/home/mengwong/pyrest/temp/workdir --uuiddir=" + uuid + " --topetri=petri --tojson=json --toaasvg=aasvg --tonative=native --tocorel4=corel4 --tocheckl=checklist  --tots=typescript " + targetPath
+  createFiles = "natural4-exe --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
   print("hello.py main: calling natural4-exe", file=sys.stderr)
   print("hello.py main: %s" % (createFiles), file=sys.stderr)
   nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -152,8 +153,7 @@ def processCsv():
     #   postprocessing for the vue web server
     #     call v8k up
 
-    v8kargs = ["/home/mengwong/pyrest/bin/python",
-               "/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k",
+    v8kargs = ["python", v8k_path,
                "--workdir=" + v8k_workdir,
                "up",
                "--uuid="    + uuid,
