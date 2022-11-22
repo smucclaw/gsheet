@@ -2,15 +2,16 @@ from flask import Flask, request, send_from_directory, render_template, send_fil
 import sys, string, os, datetime, glob, shutil, subprocess, re, json
 from pathlib import Path
 
-template_dir = "/home/mengwong/pyrest/template/"
-temp_dir = "/home/mengwong/pyrest/temp/"
-static_dir = "/home/mengwong/pyrest/static/"
-app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+if "basedir"       in os.environ: basedir       = os.environ["basedir"]
+if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
+if "v8k_startport" in os.environ: v8k_startport = os.environ["v8k_startport"]
 
-# [TODO] we need a better way to pass this argument into hello.py itself
-# presumably there is some interaction with gunicorn that will work
-# maybe we need to put argparse into the wsgi.py app?
-startport = 8020
+# see gunicorn.conf.py for basedir, workdir, startport
+template_dir = basedir + "/template/"
+temp_dir     = basedir + "/temp/"
+static_dir   = basedir + "/static/"
+
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 @app.route("/corel4/<uuid>/<ssid>/<sid>")
 def getCorel4File(uuid, ssid, sid):
@@ -151,11 +152,14 @@ def processCsv():
     #   postprocessing for the vue web server
     #     call v8k up
 
-    v8kargs = ["/home/mengwong/pyrest/bin/python", "/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k", "up",
+    v8kargs = ["/home/mengwong/pyrest/bin/python",
+               "/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k",
+               "--workdir=" + v8k_workdir,
+               "up",
                "--uuid="    + uuid,
                "--ssid="    + spreadsheetId,
                "--sheetid=" + sheetId,
-               "--startport=" + str(startport),
+               "--startport=" + v8k_startport,
                uuidssfolder + "/purs/LATEST.purs"]
     
     print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
