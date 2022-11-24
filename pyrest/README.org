@@ -25,11 +25,13 @@ Suppose you configure your ~gunicorn.conf.py~ to run with
 - startport :: 8000
 - bind :: 0.0.0.0:8888
 
+hello.py will call v8k, and v8k will launch ~npm run serve~ clones of the ~[[../vue-pure-pdpa/][vue-pure-pdpa]]~ repo.
+
 This will set up the following listening servers:
 
 | port | listener                  | description                                                                                         |
 |------+---------------------------+-----------------------------------------------------------------------------------------------------|
-| 8888 | gunicorn running hello.py | If your spreadsheet has devMode port, Code.gs will try to hit the pyrest API endpoing on this port. |
+| 8888 | gunicorn running hello.py | If your spreadsheet has devMode port, Code.gs will try to hit the pyrest API endpoint on this port. |
 | 8000 | npm run serve             | managed by v8k                                                                                      |
 | 8001 | npm run serve             | managed by v8k                                                                                      |
 | 8002 | npm run serve             | managed by v8k                                                                                      |
