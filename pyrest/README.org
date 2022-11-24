@@ -2,8 +2,7 @@
 * Invocation
 
 #+begin_example
-┌─[20220710-14:18:20]   [mengwong@cclaw:~/pyrest]
-└─[0] <> gunicorn --certfile /etc/letsencrypt/live/cclaw.legalese.com/cert.pem --keyfile /etc/letsencrypt/live/cclaw.legalese.com/privkey.pem --workers=5 --bind 0.0.0.0:8080 wsgi:app --pythonpath /home/mengwong/pyrest/lib/python3.8/site-packages/
+~/src/smucclaw/gsheet/pyrest$ gunicorn wsgi:app -c gunicorn.conf.py
 #+end_example
 
 * DevMode
