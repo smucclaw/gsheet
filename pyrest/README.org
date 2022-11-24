@@ -19,6 +19,46 @@ If somewhere in the top ten lines of the spreadsheet you have something like thi
 If you're actively editing the spreadsheet and the redraws are slowing you
 down, set live updates to FALSE.
 
+* How Slots Work
+
+Suppose you configure your ~gunicorn.conf.py~ to run with
+- startport :: 8000
+- bind :: 0.0.0.0:8888
+
+This will set up the following listening servers:
+
+| port | listener                  | description                                                                                         |
+|------+---------------------------+-----------------------------------------------------------------------------------------------------|
+| 8888 | gunicorn running hello.py | If your spreadsheet has devMode port, Code.gs will try to hit the pyrest API endpoing on this port. |
+| 8000 | npm run serve             | managed by v8k                                                                                      |
+| 8001 | npm run serve             | managed by v8k                                                                                      |
+| 8002 | npm run serve             | managed by v8k                                                                                      |
+| 8003 | npm run serve             | managed by v8k                                                                                      |
+| 8004 | npm run serve             | managed by v8k                                                                                      |
+| 8005 | npm run serve             | managed by v8k                                                                                      |
+| 8006 | npm run serve             | managed by v8k                                                                                      |
+| 8007 | npm run serve             | managed by v8k                                                                                      |
+| 8008 | npm run serve             | managed by v8k                                                                                      |
+
+If the spreadsheet does not have a ~devMode port~ the default is 8080.
+
+The AWS instance is configured to open ports 8000 to 9000 so you can pick your own combination of ~bind~ port and ~startport~.
+
+The convention is to have the ~bind~ port immediately below the ~startport~, i.e.
+
+| port | listener                                     |
+|------+----------------------------------------------|
+| 8200 | gunicorn's bind port                         |
+| 8201 | the startport configured in gunicorn.conf.py |
+
+If there are multiple users on the server, you can each agree amongst yourselves to each squat on a different set of 10 ports.
+
+By default, the v8k poolsize is 9.
+
+If you need a poolsize greater than 9, we will need to tweak the source code:
+- in gunicorn.conf.py to set a ~poolsize~ parameter
+- in hello.py to pass that parameter to v8k.
+
 * SSL background
 
 1. did Let's Encrypt with CertBot [2022-07-10 Sun] https://certbot.eff.org/instructions?ws=other&os=ubuntufocal
