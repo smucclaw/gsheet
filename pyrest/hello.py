@@ -1,6 +1,7 @@
 from flask import Flask, request, send_from_directory, render_template, send_file
 import sys, string, os, datetime, glob, shutil, subprocess, re, json
 from pathlib import Path
+import datetime
 
 if "basedir"       in os.environ: basedir       = os.environ["basedir"]
 if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
@@ -76,6 +77,9 @@ def showAasvgImage(uuid, ssid, sid, image):
 
 @app.route("/post", methods=['GET', 'POST'])
 def processCsv():
+  startTime = datetime.datetime.now()
+  print("hello.py processCsv() starting at ", startTime, file=sys.stderr)
+
   data = request.form.to_dict()
 
   response = {}
@@ -95,11 +99,12 @@ def processCsv():
     fout.write(data['csvString'])
 
   # targetPath is for CSV data
+  # one can leave out the markdown by adding the --tomd option
   createFiles = "natural4-exe --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
   print("hello.py main: calling natural4-exe", file=sys.stderr)
   print("hello.py main: %s" % (createFiles), file=sys.stderr)
   nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  print("hello.py main: back from natural4-exe", file=sys.stderr)
+  print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
   print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
   print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
    
@@ -191,7 +196,10 @@ def processCsv():
 
   response['timestamp'] = timestamp;
   
-  print("hello.py main: returning", file=sys.stderr)
+  endTime = datetime.datetime.now()
+  elapsedT = endTime.timestamp() - startTime.timestamp()
+
+  print("hello.py processCsv returning at", endTime, "(total", elapsedT, ")", file=sys.stderr)
   # print(json.dumps(response), file=sys.stderr)
   return json.dumps(response)
 
