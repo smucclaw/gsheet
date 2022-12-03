@@ -147,7 +147,7 @@ def processCsv():
     petriPathsvg = petriFolder + timestamp + ".svg"
     petriPathpng = petriFolder + timestamp + ".png"
     smallPetriPath = petriFolder + timestamp + "-small.png"
-    print("hello.py main: running: dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPath + " &", file=sys.stderr)
+    print("hello.py main: running: dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPathpng + " &", file=sys.stderr)
     os.system("dot -Tpng -Gdpi=72  " + dotPath + " -o " + smallPetriPath + " &")
     os.system("dot -Tpng -Gdpi=150 " + dotPath + " -o " + petriPathpng + " &")
     os.system("dot -Tsvg           " + dotPath + " -o " + petriPathsvg + " &")
