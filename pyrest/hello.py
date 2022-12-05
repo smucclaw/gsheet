@@ -121,7 +121,7 @@ def processCsv():
   print("hello.py main: calling natural4-exe", file=sys.stderr)
   print("hello.py main: %s" % (createFiles), file=sys.stderr)
   nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+  print("hello.py main: back from fast natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
   print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
   print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
    
@@ -223,28 +223,40 @@ def processCsv():
   response['timestamp'] = timestamp;
   
   endTime = datetime.datetime.now()
-  elapsedT = endTime.timestamp() - startTime.timestamp()
+  elapsedT = endTime - startTime
 
-  print("hello.py processCsv returning at", endTime, "(total", elapsedT, ")", file=sys.stderr)
+  print("hello.py processCsv ready to return at", endTime, "(total", elapsedT, ")", file=sys.stderr)
 
   # ---------------------------------------------
   # call natural4-exe; this is the SECOND RUN for any slow transpilers
   # ---------------------------------------------
 
-  createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath + " &"
-  print("hello.py main: calling natural4-exe a second time, more slowly", file=sys.stderr)
-  print("hello.py main: %s" % (createFiles), file=sys.stderr)
-  nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
-  print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
-  print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+  childpid = os.fork()
+  # if this leads to trouble we may need to double-fork with grandparent-wait
+  if childpid > 0: # in the parent
+    print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+    # print(json.dumps(response), file=sys.stderr)
+    return json.dumps(response)
+  else:         # in the child
+    print ("hello.py processCsv: fork(child): continuing to run", file=sys.stderr);
+
+    createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
+    print("hello.py child: calling natural4-exe a second time, more slowly", file=sys.stderr)
+    print("hello.py child: %s" % (createFiles), file=sys.stderr)
+    nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("hello.py child: back from slow natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+    print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
+    print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+    print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+
+    # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
+    return json.dumps(response)
 
   # ---------------------------------------------
   # return to sidebar caller
   # ---------------------------------------------
 
-  # print(json.dumps(response), file=sys.stderr)
-  return json.dumps(response)
+
 
 # ################################################
 # run when not launched via gunicorn
