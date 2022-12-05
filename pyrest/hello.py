@@ -112,7 +112,7 @@ def processCsv():
   # targetPath is for CSV data
 
   # ---------------------------------------------
-  # call natural4-exe, wait for it to complete
+  # call natural4-exe, wait for it to complete. see SECOND RUN below.
   # ---------------------------------------------
 
   # one can leave out the markdown by adding the --tomd option
@@ -226,6 +226,18 @@ def processCsv():
   elapsedT = endTime.timestamp() - startTime.timestamp()
 
   print("hello.py processCsv returning at", endTime, "(total", elapsedT, ")", file=sys.stderr)
+
+  # ---------------------------------------------
+  # call natural4-exe; this is the SECOND RUN for any slow transpilers
+  # ---------------------------------------------
+
+  createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath + " &"
+  print("hello.py main: calling natural4-exe a second time, more slowly", file=sys.stderr)
+  print("hello.py main: %s" % (createFiles), file=sys.stderr)
+  nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+  print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
+  print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
 
   # ---------------------------------------------
   # return to sidebar caller
