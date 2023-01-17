@@ -36,6 +36,7 @@ app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 @app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
 def getWorkdirFile(uuid, ssid, sid, channel, filename):
+  print("getWorkdirFile: handling request for %s/%s/%s/%s/%s" % (uuid,ssid,sid,channel,filename), file=sys.stderr);
   workdirFolder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + channel
   if not os.path.exists(workdirFolder):
     print("getWorkdirFile: unable to find workdirFolder " + workdirFolder, file=sys.stderr)
@@ -71,7 +72,7 @@ def getWorkdirFile(uuid, ssid, sid, channel, filename):
 
 @app.route("/aasvg/<uuid>/<ssid>/<sid>/<image>")
 def showAasvgImage(uuid, ssid, sid, image):
-  print("showAasvgImage: handling /aasvg/ url", file=sys.stderr);
+  print("showAasvgImage: handling request for /aasvg/ url", file=sys.stderr);
   aasvgFolder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/aasvg/LATEST/"
   imagePath = aasvgFolder + image
   print("showAasvgImage: sending path " + imagePath, file=sys.stderr)
@@ -117,7 +118,7 @@ def processCsv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  createFiles = "natural4-exe --tomd --toasp --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
+  createFiles = "natural4-exe --tomd --toasp --topurs --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
   print("hello.py main: calling natural4-exe", file=sys.stderr)
   print("hello.py main: %s" % (createFiles), file=sys.stderr)
   nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -247,12 +248,24 @@ def processCsv():
       print ("hello.py processCsv: fork(child): continuing to run", file=sys.stderr);
 
       createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
-      print("hello.py child: calling natural4-exe a second time, more slowly", file=sys.stderr)
+      print("hello.py child: calling natural4-exe (slowly) for tomd", file=sys.stderr)
       print("hello.py child: %s" % (createFiles), file=sys.stderr)
       nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      print("hello.py child: back from slow natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+      print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
       print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
       print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+
+      createFiles = "natural4-exe --only topurs --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
+      print("hello.py child: calling natural4-exe (slowly) for purs", file=sys.stderr)
+      print("hello.py child: %s" % (createFiles), file=sys.stderr)
+      nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      print("hello.py child: back from slow natural4-exe 2 (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+      print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
+      print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+
+
+
+
       print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
 
       # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
