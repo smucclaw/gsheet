@@ -20,6 +20,8 @@ if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
 if "v8k_startport" in os.environ: v8k_startport = os.environ["v8k_startport"]
 if "v8k_path"      in os.environ: v8k_path      = os.environ["v8k_path"]
 
+if "maudedir" in os.environ: maudedir = os.environ["maudedir"]
+
 # see gunicorn.conf.py for basedir, workdir, startport
 template_dir = basedir + "/template/"
 temp_dir     = basedir + "/temp/"
@@ -45,14 +47,7 @@ def getWorkdirFile(uuid, ssid, sid, channel, filename):
     print("getWorkdirFile: unable to find file %s/%s"  % (workdirFolder, filename), file=sys.stderr)
     return;
   (fn,ext) = os.path.splitext(filename)
-  if (ext == ".l4"
-      or ext == ".epilog"
-      or ext == ".purs"
-      or ext == ".org"
-      or ext == ".hs"
-      or ext == ".ts"
-      ):
-
+  if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
     print("getWorkdirFile: returning text/plain %s/%s" % (workdirFolder, filename), file=sys.stderr)
     return send_file(workdirFolder + "/" + filename, mimetype="text/plain")
   else:

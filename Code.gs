@@ -40,6 +40,7 @@ function showSidebar() {
   sidebar.purs_url            = workDirUrl + "purs/LATEST.purs"
   sidebar.ts_url              = workDirUrl + "ts/LATEST.ts"
   sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
+  sidebar.maude_natural4_url  = workDirUrl + "maude/LATEST.natural4"
   sidebar.port                = port;
   sidebar.liveUpdates         = liveUpdates;
   Logger.log("returned from exportCSV()");
