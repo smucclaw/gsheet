@@ -9,7 +9,7 @@ raw_env = ["basedir="       + ".",
            "v8k_path="      + "/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k",
            # "maudedir="      + ""
            ]
-bind     = "0.0.0.0:8081"
+bind     = "0.0.0.0:8082"
 
 certfile   = "/etc/letsencrypt/live/cclaw.legalese.com/cert.pem"
 keyfile    = "/etc/letsencrypt/live/cclaw.legalese.com/privkey.pem"
