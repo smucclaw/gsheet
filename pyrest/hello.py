@@ -15,7 +15,7 @@ import sys, string, os, datetime, glob, shutil, subprocess, re, json
 from pathlib import Path
 import datetime
 
-from maude.visualise import main_file_term_strat_to_html_file
+import maude.visualise as maude_vis
 
 if "basedir"       in os.environ: basedir       = os.environ["basedir"]
 if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
@@ -75,8 +75,8 @@ def showAasvgImage(uuid, ssid, sid, image):
   print("showAasvgImage: sending path " + imagePath, file=sys.stderr)
   return send_file(imagePath)
 
-
-
+maude_main_file = Path('maude') / 'main.maude'
+maude_main_mod = maude_vis.init_maude_n_load_main_file(maude_main_file)
 
 # ################################################
 #                      main
@@ -157,8 +157,8 @@ def processCsv():
       os.symlink(os.path.basename(petriPathpng),   petriFolder + "LATEST.png")
       os.symlink(os.path.basename(smallPetriPath), petriFolder + "LATEST-small.png")
     except Exception as e:
-      print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking", file=sys.stderr);
-      print("hello.py main: %s" % (e), file=sys.stderr);
+      print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking", file=sys.stderr)
+      print("hello.py main: %s" % (e), file=sys.stderr)
 
   # ---------------------------------------------
   # Postprocessing:
@@ -166,11 +166,16 @@ def processCsv():
   # HTML visualizations of the state space.
   # ---------------------------------------------
   uuids_path = Path(uuidssfolder)
-  maude_main_file = uuids_path / 'maude' / 'main.maude'
-  textual_natural4_file = Path('')
-  html_file = ''
-  # main_file_term_strat_to_html_file(maude_main_file, textual_natural4_file, html_file)
-    
+  maude_path = uuids_path / 'maude'
+  textual_natural4_file = maude_path / 'LATEST.natural4'
+  html_file = maude_path / 'LATEST.html'
+  transpiled_term = maude_vis.natural4_file_to_transpiled_term(
+    maude_main_mod, textual_natural4_file
+  )
+  maude_vis.transpiled_term_to_html_file(
+      maude_main_mod, transpiled_term, 'all *', html_file
+  )
+
   # ---------------------------------------------
   # postprocessing: for the babyl4 downstream transpilations
   # - call l4 epilog corel4/LATEST.l4
