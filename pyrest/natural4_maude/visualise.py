@@ -288,7 +288,7 @@ def transpiled_term_to_html_file(main_mod, transpiled_term, strat, html_file_pat
 
   # html_file = workdir / f'{natural4_file.stem}.html'
   html_file_path = str(html_file_path)
-  print(html_file_path)
+  print(f'Writing html to file: {html_file_path}')
   netwk.write_html(html_file_path)
 
 def main_file_term_strat_to_html_file(main_file, natural4_file, html_file_path, strat = 'all *'):
