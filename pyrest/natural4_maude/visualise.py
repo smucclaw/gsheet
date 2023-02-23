@@ -241,7 +241,9 @@ def rewrite_graph_to_nx_graph(mod, rewrite_graph):
   return nx_graph
 
 def term_strat_to_nx_graph(mod, term, strat):
-  print('doing stuff', file=sys.stderr)
+  print(mod, file=sys.stderr)
+  print(term, file=sys.stderr)
+  print(strat, file=sys.stderr)
   graph = create_graph(
     term = term, strategy = strat,
     purge_fails = 'yes',
