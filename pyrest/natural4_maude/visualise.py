@@ -242,20 +242,11 @@ def rewrite_graph_to_nx_graph(mod, rewrite_graph):
 
 def term_strat_to_nx_graph(mod, term, strat):
   # This part is not being run for some reason.
-  print(mod, file=sys.stderr)
-  print(term, file=sys.stderr)
-  print(strat, file=sys.stderr)
-  graph = maude.StrategyRewriteGraph(term, strat, (), False)
-  print(111, file=sys.stderr)
-  graph = FailFreeGraph(graph)
-  print(222, file=sys.stderr)
-  graph.expand()
-  print(333, file=sys.stderr)
-  # graph = create_graph(
-  #   term = term, strategy = strat,
-  #   purge_fails = 'yes',
-  #   logic = '', merge_states = 'no'
-  # )
+  graph = create_graph(
+    term = term, strategy = strat,
+    purge_fails = 'yes',
+    logic = ''
+  )
   nx_graph = rewrite_graph_to_nx_graph(mod, graph)
   return nx_graph
 
