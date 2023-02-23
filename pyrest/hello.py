@@ -241,12 +241,13 @@ def processCsv():
     if childpid > 0: # in the parent
       print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
       # print(json.dumps(response), file=sys.stderr)
-      return json.dumps(response)
-    else:         # in the child
-      print ("hello.py processCsv: fork(child): continuing to run", file=sys.stderr);
 
       with open(Path('/home') / 'joe' / 'test.txt', "w+") as fout:
         fout.write('abcde')
+
+      return json.dumps(response)
+    else:         # in the child
+      print ("hello.py processCsv: fork(child): continuing to run", file=sys.stderr);
 
       # ---------------------------------------------
       # Postprocessing:
