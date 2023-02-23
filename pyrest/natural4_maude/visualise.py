@@ -270,7 +270,7 @@ def term_strat_to_pyvis_netwk(mod, term, strat):
 def init_maude_n_load_main_file(main_file):
   maude.init(loadPrelude = False)
   with open(main_file) as f:
-      maude.input(f.read())
+    maude.input(f.read())
   main_mod = maude.getModule('MAIN')
   return main_mod
 
@@ -288,7 +288,7 @@ def transpiled_term_to_html_file(main_mod, transpiled_term, strat, html_file_pat
 
   # html_file = workdir / f'{natural4_file.stem}.html'
   html_file_path = str(html_file_path)
-  netwk.show(html_file_path)
+  netwk.write_html(html_file_path)
 
 def main_file_term_strat_to_html_file(main_file, natural4_file, html_file_path, strat = 'all *'):
   main_mod = init_maude_n_load_main_file(main_file)

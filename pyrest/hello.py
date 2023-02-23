@@ -174,9 +174,14 @@ def processCsv():
   transpiled_term = maude_vis.natural4_file_to_transpiled_term(
     maude_main_mod, textual_natural4_file
   )
-  # maude_vis.transpiled_term_to_html_file(
-  #   maude_main_mod, transpiled_term, 'all *', html_file
-  # )
+
+  write_maude_html = (lambda:
+    maude_vis.transpiled_term_to_html_file(
+      maude_main_mod, transpiled_term, 'all *', html_file
+    )
+  )
+
+  threading.Thread(target = write_maude_html).start()
 
   # ---------------------------------------------
   # postprocessing: for the babyl4 downstream transpilations
