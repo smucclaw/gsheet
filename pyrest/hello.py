@@ -240,6 +240,7 @@ def processCsv():
     # if this leads to trouble we may need to double-fork with grandparent-wait
     if childpid > 0: # in the parent
       print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+      print("hello.py processCsv parent returning at 1234", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
       # print(json.dumps(response), file=sys.stderr)
 
       print('GOING TO WRITE', file=sys.stderr)
