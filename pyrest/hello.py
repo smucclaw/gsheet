@@ -181,7 +181,9 @@ def processCsv():
     )
   )
 
-  threading.Thread(target = write_maude_html).start()
+  t = threading.Thread(target = write_maude_html)
+  print('Running thread to write html')
+  t.start()
 
   # ---------------------------------------------
   # postprocessing: for the babyl4 downstream transpilations
