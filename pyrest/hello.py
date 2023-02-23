@@ -262,21 +262,21 @@ def processCsv():
       maude_main_mod, textual_natural4_file
     )
     print(555, file=sys.stderr)
-    # maude_vis.transpiled_term_to_html_file(
-    #   maude_main_mod, transpiled_term, 'all *', maude_html_file
-    # )
-    strat = maude_main_mod.parseStrategy('all *')
-    print(strat, file=sys.stderr)
-    print(transpiled_term, file=sys.stderr)
-    netwk = maude_vis.term_strat_to_pyvis_netwk(maude_main_mod, transpiled_term, strat)
-    print(777, file=sys.stderr)
-    netwk.show_buttons()
-    print(888, file=sys.stderr)
-    html_str = netwk.generate_html()
-    print('WRITING HTML:', file=sys.stderr)
-    print(html_str, file=sys.stderr)
-    with open(maude_html_file, 'w+') as fout:
-      fout.write(html_str)
+    maude_vis.transpiled_term_to_html_file(
+      maude_main_mod, transpiled_term, 'all *', maude_html_file
+    )
+    # strat = maude_main_mod.parseStrategy('all *')
+    # print(strat, file=sys.stderr)
+    # print(transpiled_term, file=sys.stderr)
+    # netwk = maude_vis.term_strat_to_pyvis_netwk(maude_main_mod, transpiled_term, strat)
+    # print(777, file=sys.stderr)
+    # netwk.show_buttons()
+    # print(888, file=sys.stderr)
+    # html_str = netwk.generate_html()
+    # print('WRITING HTML:', file=sys.stderr)
+    # print(html_str, file=sys.stderr)
+    # with open(maude_html_file, 'w+') as fout:
+    #   fout.write(html_str)
 
     createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
     print("hello.py child: calling natural4-exe (slowly) for tomd", file=sys.stderr)

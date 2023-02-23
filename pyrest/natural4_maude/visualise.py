@@ -241,15 +241,14 @@ def rewrite_graph_to_nx_graph(mod, rewrite_graph):
   return nx_graph
 
 def term_strat_to_nx_graph(mod, term, strat):
-  print(mod, file=sys.stderr)
-  print(term, file=sys.stderr)
-  print(strat, file=sys.stderr)
+  # This part is not being run for some reason.
+  print(123, file=sys.stderr)
   graph = create_graph(
     term = term, strategy = strat,
     purge_fails = 'yes',
     logic = '', merge_states = 'no'
   )
-  print(1234, file=sys.stderr)
+  print(234, file=sys.stderr)
   nx_graph = rewrite_graph_to_nx_graph(mod, graph)
   return nx_graph
 
