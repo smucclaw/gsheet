@@ -15,7 +15,7 @@ import sys, string, os, datetime, glob, shutil, subprocess, re, json
 from pathlib import Path
 import datetime
 
-import maude.visualise as maude_vis
+import natural4_maude.visualise as maude_vis
 
 if "basedir"       in os.environ: basedir       = os.environ["basedir"]
 if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
