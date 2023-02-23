@@ -266,9 +266,7 @@ def nx_graph_to_pyvis_netwk(nx_graph):
 def term_strat_to_pyvis_netwk(mod, term, strat):
   print(999, file=sys.stderr)
   nx_graph = term_strat_to_nx_graph(mod, term, strat)
-  print(nx_graph, file=sys.stderr)
   pyvis_netwk = nx_graph_to_pyvis_netwk(nx_graph)
-  print(pyvis_netwk, file=sys.stderr)
   return pyvis_netwk
 
 def init_maude_n_load_main_file(main_file):
