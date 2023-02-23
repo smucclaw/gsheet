@@ -68,10 +68,9 @@ class Graph(pyrs.PRecord):
 
 def node_to_colour(node):
   colour = None
-  match node.contract_status:
-    case 'Active': colour = 'blue'
-    case 'Fulfilled': colour = 'green'
-    case 'Breached': colour = 'red'
+  if node.contract_status == 'Active': colour = 'blue'
+  if node.contract_status == 'Fulfilled': colour = 'green'
+  if node.contract_state == 'Breached': colour = 'red'
   return colour
 
 def edge_to_colour(graph, edge):
@@ -102,8 +101,8 @@ def get_state_term_str(graph, node_id):
 def node_id_to_node(mod, rewrite_graph, node_id):
   node_term = get_state_term_str(rewrite_graph, node_id)
   contract_status = apply_fn_to_str(mod, 'configToStatus', node_term)
-  match contract_status:
-    case '(Fulfilled).ContractStatus': contract_status = 'Fulfilled'
+  if contract_status == '(Fulfilled).ContractStatus':
+    contract_status = 'Fulfilled'
   node_term = apply_fn_to_str(mod, 'pretty', node_term)
   node = Node(term_str = node_term, contract_status = contract_status)
   return node
