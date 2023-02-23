@@ -88,7 +88,7 @@ maude_main_mod = maude_vis.init_maude_n_load_main_file(maude_main_file)
 @app.route("/post", methods=['GET', 'POST'])
 def processCsv():
   startTime = datetime.datetime.now()
-  print("hello.py processCsv() starting at 123 ", startTime, file=sys.stderr)
+  print("hello.py processCsv() starting at 1234 ", startTime, file=sys.stderr)
 
   data = request.form.to_dict()
 
