@@ -266,7 +266,7 @@ def processCsv():
     #   maude_main_mod, transpiled_term, 'all *', maude_html_file
     # )
     strat = maude_main_mod.parseStrategy('all *')
-    print(666, file=sys.stderr)
+    print(strat, file=sys.stderr)
     netwk = maude_vis.term_strat_to_pyvis_netwk(maude_main_mod, transpiled_term, strat)
     print(777, file=sys.stderr)
     netwk.show_buttons()
