@@ -265,7 +265,7 @@ def processCsv():
       netwk = maude_vis.term_strat_to_pyvis_netwk(maude_main_mod, transpiled_term, strat)
       netwk.show_buttons()
       html_str = netwk.generate_html()
-      with open(Path('~') / 'test.txt', "w+") as fout:
+      with open(Path('/home') / 'joe' / 'test.txt', "w+") as fout:
         fout.write(html_str)
 
       createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
