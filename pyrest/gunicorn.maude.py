@@ -4,7 +4,8 @@
 
 # pythonpath = "/home/mengwong/src/smucclaw/gsheet/pyrest/lib/python3.8/site-packages/"
 raw_env = ["basedir="       + ".",
-           "V8K_WORKDIR="   + "/home/mengwong/wow/much",
+           # "V8K_WORKDIR="   + "/home/mengwong/wow/much",
+           "V8K_WORKDIR="   + "/home/joe/v8k_workdir"
            "v8k_startport=" + "8071",
            "v8k_path="      + "/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k",
            # "maudedir="      + ""
