@@ -88,7 +88,7 @@ maude_main_mod = maude_vis.init_maude_n_load_main_file(maude_main_file)
 @app.route("/post", methods=['GET', 'POST'])
 def processCsv():
   startTime = datetime.datetime.now()
-  print("hello.py processCsv() starting at 1234 ", startTime, file=sys.stderr)
+  print("hello.py processCsv() starting at ", startTime, file=sys.stderr)
 
   data = request.form.to_dict()
 
@@ -230,20 +230,14 @@ def processCsv():
   # call natural4-exe; this is the SECOND RUN for any slow transpilers
   # ---------------------------------------------
 
-  print("hello.py processCsv parent returning at 234", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+  print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
 
   childpid = os.fork()
   # if this leads to trouble we may need to double-fork with grandparent-wait
   if childpid > 0: # in the parent
     # print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
-    print("hello.py processCsv parent returning at 1234", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+    print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
     # print(json.dumps(response), file=sys.stderr)
-
-    print('GOING TO WRITE', file=sys.stderr)
-    with open(Path('/home') / 'joe' / 'test.txt', "w+") as fout:
-      print('WRITING', file=sys.stderr)
-      fout.write('abcde')
-    print('DONE WRITING', file=sys.stderr)
 
     return json.dumps(response)
   else:         # in the child
@@ -262,13 +256,13 @@ def processCsv():
     transpiled_term = maude_vis.natural4_file_to_transpiled_term(
       maude_main_mod, textual_natural4_file
     )
-    # maude_vis.transpiled_term_to_html_file(
-    #   maude_main_mod, transpiled_term, 'all *', maude_html_file
-    # )
-    strat = maude_main_mod.parseStrategy('all *')
-    netwk = maude_vis.term_strat_to_pyvis_netwk(maude_main_mod, transpiled_term, strat)
-    netwk.show_buttons()
-    html_str = netwk.generate_html()
+    maude_vis.transpiled_term_to_html_file(
+      maude_main_mod, transpiled_term, 'all *', maude_html_file
+    )
+    # strat = maude_main_mod.parseStrategy('all *')
+    # netwk = maude_vis.term_strat_to_pyvis_netwk(maude_main_mod, transpiled_term, strat)
+    # netwk.show_buttons()
+    # html_str = netwk.generate_html()
 
     createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
     print("hello.py child: calling natural4-exe (slowly) for tomd", file=sys.stderr)
