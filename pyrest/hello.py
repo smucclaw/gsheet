@@ -169,12 +169,12 @@ def processCsv():
   maude_path = uuids_path / 'maude'
   textual_natural4_file = maude_path / 'LATEST.natural4'
   html_file = maude_path / 'LATEST.html'
-  transpiled_term = maude_vis.natural4_file_to_transpiled_term(
-    maude_main_mod, textual_natural4_file
-  )
-  maude_vis.transpiled_term_to_html_file(
-      maude_main_mod, transpiled_term, 'all *', html_file
-  )
+  # transpiled_term = maude_vis.natural4_file_to_transpiled_term(
+  #   maude_main_mod, textual_natural4_file
+  # )
+  # maude_vis.transpiled_term_to_html_file(
+  #     maude_main_mod, transpiled_term, 'all *', html_file
+  # )
 
   # ---------------------------------------------
   # postprocessing: for the babyl4 downstream transpilations
