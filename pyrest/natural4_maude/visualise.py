@@ -246,6 +246,7 @@ def term_strat_to_nx_graph(mod, term, strat):
     purge_fails = 'yes',
     logic = ''
   )
+  print(graph, file=sys.stderr)
   nx_graph = rewrite_graph_to_nx_graph(mod, graph)
   return nx_graph
 
