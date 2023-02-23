@@ -266,7 +266,7 @@ def processCsv():
       netwk.show_buttons()
       html_str = netwk.generate_html()
       with open(Path('/home') / 'joe' / 'test.txt', "w+") as fout:
-        fout.write(html_str)
+        fout.write('abcde')
 
       createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
       print("hello.py child: calling natural4-exe (slowly) for tomd", file=sys.stderr)
