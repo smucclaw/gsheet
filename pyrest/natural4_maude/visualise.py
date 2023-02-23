@@ -35,7 +35,7 @@ import subprocess
 import sys
 
 import maude
-from umaudemc.wrappers import create_graph
+from umaudemc.wrappers import create_graph, FailFreeGraph
 
 import pyrsistent as pyrs
 
@@ -245,12 +245,17 @@ def term_strat_to_nx_graph(mod, term, strat):
   print(mod, file=sys.stderr)
   print(term, file=sys.stderr)
   print(strat, file=sys.stderr)
-  graph = create_graph(
-    term = term, strategy = strat,
-    purge_fails = 'yes',
-    logic = '', merge_states = 'no'
-  )
-  print(234, file=sys.stderr)
+  graph = maude.StrategyRewriteGraph(term, strat, (), False)
+  print(111, file=sys.stderr)
+  graph = FailFreeGraph(graph)
+  print(222, file=sys.stderr)
+  graph.expand()
+  print(333, file=sys.stderr)
+  # graph = create_graph(
+  #   term = term, strategy = strat,
+  #   purge_fails = 'yes',
+  #   logic = '', merge_states = 'no'
+  # )
   nx_graph = rewrite_graph_to_nx_graph(mod, graph)
   return nx_graph
 
