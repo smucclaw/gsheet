@@ -75,7 +75,7 @@ def showAasvgImage(uuid, ssid, sid, image):
   print("showAasvgImage: sending path " + imagePath, file=sys.stderr)
   return send_file(imagePath)
 
-maude_main_file = Path('maude') / 'main.maude'
+maude_main_file = Path('natural4_maude') / 'main.maude'
 maude_main_mod = maude_vis.init_maude_n_load_main_file(maude_main_file)
 
 # ################################################
