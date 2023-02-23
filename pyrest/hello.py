@@ -271,6 +271,8 @@ def processCsv():
       print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
       print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
 
+      print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+
       maude_html_file = maude_path / 'LATEST.html'
       print('WRITING HTML NOW')
       transpiled_term = maude_vis.natural4_file_to_transpiled_term(
@@ -279,8 +281,6 @@ def processCsv():
       maude_vis.transpiled_term_to_html_file(
         maude_main_mod, transpiled_term, 'all *', maude_html_file
       )
-
-      print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
 
       # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
       return json.dumps(response)
