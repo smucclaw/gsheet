@@ -255,13 +255,18 @@ def processCsv():
       textual_natural4_file = maude_path / 'LATEST.natural4'
 
       maude_html_file = maude_path / 'LATEST.html'
-      print('WRITING HTML NOW')
       transpiled_term = maude_vis.natural4_file_to_transpiled_term(
         maude_main_mod, textual_natural4_file
       )
-      maude_vis.transpiled_term_to_html_file(
-        maude_main_mod, transpiled_term, 'all *', maude_html_file
-      )
+      # maude_vis.transpiled_term_to_html_file(
+      #   maude_main_mod, transpiled_term, 'all *', maude_html_file
+      # )
+      strat = maude_main_mod.parseStrategy('all *')
+      netwk = maude_vis.term_strat_to_pyvis_netwk(maude_main_mod, transpiled_term, strat)
+      netwk.show_buttons()
+      html_str = netwk.generate_html()
+      with open(maude_html_file, "w+") as fout:
+        fout.write(html_str)
 
       createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
       print("hello.py child: calling natural4-exe (slowly) for tomd", file=sys.stderr)
