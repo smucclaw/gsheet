@@ -70,7 +70,7 @@ def node_to_colour(node):
   colour = None
   if node.contract_status == 'Active': colour = 'blue'
   if node.contract_status == 'Fulfilled': colour = 'green'
-  if node.contract_state == 'Breached': colour = 'red'
+  if node.contract_status == 'Breached': colour = 'red'
   return colour
 
 def edge_to_colour(graph, edge):
