@@ -242,11 +242,11 @@ def processCsv():
       print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
       # print(json.dumps(response), file=sys.stderr)
 
-      print('GOING TO WRITE')
+      print('GOING TO WRITE', file=sys.stderr)
       with open(Path('/home') / 'joe' / 'test.txt', "w+") as fout:
-        print('WRITING')
+        print('WRITING', file=sys.stderr)
         fout.write('abcde')
-      print('DONE WRITING')
+      print('DONE WRITING', file=sys.stderr)
 
       return json.dumps(response)
     else:         # in the child
