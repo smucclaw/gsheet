@@ -245,6 +245,7 @@ def term_strat_to_nx_graph(mod, term, strat):
   graph = create_graph(
     term = term, strategy = strat,
     purge_fails = 'yes',
+    logic = '', merge_states = 'default'
   )
   print(1234, file=sys.stderr)
   nx_graph = rewrite_graph_to_nx_graph(mod, graph)
