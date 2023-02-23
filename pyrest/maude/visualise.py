@@ -128,10 +128,8 @@ def rewrite_graph_to_graph(mod, rewrite_graph):
       rule = rewrite_graph.getTransition(node_id, succ_id).getRule()
       if rule:
         rule_label = rule.getLabel()
-        match rule_label:
-          case 'tick':
-            rule_label = 'tick'
-          case 'action':
+        if rule_label == 'tick': rule_label = 'tick'
+        if rule_label == 'action':
             # Get the term corresponding to the succ_id node and get the
             # action transition.
             new_node_term = get_state_term_str(rewrite_graph, succ_id)
