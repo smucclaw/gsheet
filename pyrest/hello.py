@@ -185,6 +185,8 @@ def processCsv():
   print('Running thread to write html')
   t.start()
 
+  raise Exception()
+
   # ---------------------------------------------
   # postprocessing: for the babyl4 downstream transpilations
   # - call l4 epilog corel4/LATEST.l4
