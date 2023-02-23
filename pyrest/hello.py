@@ -272,6 +272,7 @@ def processCsv():
       print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
 
       maude_html_file = maude_path / 'LATEST.html'
+      print('WRITING HTML NOW')
       transpiled_term = maude_vis.natural4_file_to_transpiled_term(
         maude_main_mod, textual_natural4_file
       )
