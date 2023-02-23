@@ -263,8 +263,8 @@ def processCsv():
     netwk = maude_vis.term_strat_to_pyvis_netwk(maude_main_mod, transpiled_term, strat)
     netwk.show_buttons()
     html_str = netwk.generate_html()
-    print('WRITING HTML:', file=os.stderr)
-    print(html_str, file=os.stderr)
+    print('WRITING HTML:', file=sys.stderr)
+    print(html_str, file=sys.stderr)
     with open(maude_html_file, 'w+') as fout:
       fout.write(html_str)
 
