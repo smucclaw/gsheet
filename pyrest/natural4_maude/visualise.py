@@ -35,7 +35,7 @@ import subprocess
 import sys
 
 import maude
-from umaudemc.wrappers import create_graph, FailFreeGraph
+from umaudemc.wrappers import create_graph
 
 import pyrsistent as pyrs
 
@@ -128,7 +128,7 @@ def rewrite_graph_to_graph(mod, rewrite_graph):
       rule = rewrite_graph.getTransition(node_id, succ_id).getRule()
       if rule:
         rule_label = rule.getLabel()
-        if rule_label == 'tick': rule_label = '1 day'
+        if rule_label == 'tick': rule_label = 'tick'
         if rule_label == 'action':
             # Get the term corresponding to the succ_id node and get the
             # action transition.
@@ -241,7 +241,6 @@ def rewrite_graph_to_nx_graph(mod, rewrite_graph):
   return nx_graph
 
 def term_strat_to_nx_graph(mod, term, strat):
-  # This part is not being run for some reason.
   graph = create_graph(
     term = term, strategy = strat,
     purge_fails = 'yes',
@@ -264,7 +263,6 @@ def nx_graph_to_pyvis_netwk(nx_graph):
   return netwk
 
 def term_strat_to_pyvis_netwk(mod, term, strat):
-  print(999, file=sys.stderr)
   nx_graph = term_strat_to_nx_graph(mod, term, strat)
   pyvis_netwk = nx_graph_to_pyvis_netwk(nx_graph)
   return pyvis_netwk
@@ -276,16 +274,16 @@ def init_maude_n_load_main_file(main_file):
   main_mod = maude.getModule('MAIN')
   return main_mod
 
-def natural4_file_to_transpiled_term(main_mod, natural4_file):
+def natural4_file_to_config(main_mod, natural4_file):
   natural4_rules = ''
   with open(natural4_file) as f:
     natural4_rules = f.read()
-  transpiled_term = apply_fn(main_mod, 'transpile', natural4_rules)
+  transpiled_term = apply_fn(main_mod, 'init', natural4_rules)
   return transpiled_term
 
-def transpiled_term_to_html_file(main_mod, transpiled_term, strat, html_file_path):
+def config_to_html_file(main_mod, config, strat, html_file_path):
   strat = main_mod.parseStrategy(strat)
-  netwk = term_strat_to_pyvis_netwk(main_mod, transpiled_term, strat)
+  netwk = term_strat_to_pyvis_netwk(main_mod, config, strat)
   netwk.show_buttons()
 
   # html_file = workdir / f'{natural4_file.stem}.html'
@@ -294,8 +292,8 @@ def transpiled_term_to_html_file(main_mod, transpiled_term, strat, html_file_pat
 
 def main_file_term_strat_to_html_file(main_file, natural4_file, html_file_path, strat = 'all *'):
   main_mod = init_maude_n_load_main_file(main_file)
-  transpiled_term = natural4_file_to_transpiled_term(main_mod, natural4_file)
-  transpiled_term_to_html_file(main_mod, transpiled_term, strat, html_file_path)
+  config = natural4_file_to_config(main_mod, natural4_file)
+  config_to_html_file(main_mod, config, strat, html_file_path)
 
 if __name__ == '__main__':
   natural4_file = Path(sys.argv[1])

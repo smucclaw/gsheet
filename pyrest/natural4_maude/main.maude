@@ -84,6 +84,8 @@ smod MAIN is
   op getAllActions_ : Set{Rule}-> Set{ActionEvent}.
   op getClass : Object -> Cid .
   op getRulesWithNames__ : Set{Rule}Set{Qid}-> Set{Rule}.
+  op initAux__ : Set{Rule}Configuration -> Configuration .
+  op init_ : Set{Rule}-> Configuration .
   op insert : ActionEvent Set{ActionEvent}-> Set{ActionEvent}.
   op insert : Qid Set{Qid}-> Set{Qid}.
   op insert : Rule Set{Rule}-> Set{Rule}.
@@ -91,8 +93,6 @@ smod MAIN is
   op intersection : Set{Qid}Set{Qid}-> Set{Qid}.
   op intersection : Set{Rule}Set{Rule}-> Set{Rule}.
   op pretty_ : Configuration -> Configuration .
-  op transpileAux__ : Set{Rule}Configuration -> Configuration .
-  op transpile_ : Set{Rule}-> Configuration .
   op union : NeSet{ActionEvent}Set{ActionEvent}-> NeSet{ActionEvent}.
   op union : NeSet{Qid}Set{Qid}-> NeSet{Qid}.
   op union : NeSet{Rule}Set{Rule}-> NeSet{Rule}.
@@ -670,12 +670,12 @@ smod MAIN is
   eq []f:Formula
     = False R f:Formula .
   eq configToStatus(config:Configuration
-< coordinator:Qid : V#0:Coordinator |
-  time : V#2:Nat,
-  rules : V#1:Set{Rule},
+< coordinator:Qid : V#2:Coordinator |
+  time : V#4:Nat,
+  rules : V#3:Set{Rule},
   contractState : contractState:ContractState,
   none,
-  V#3:AttributeSet >)
+  V#5:AttributeSet >)
     = contractStateToStatus contractState:ContractState .
   eq contractStateToStatus Fulfilled
     = (Fulfilled).ContractStatus .
@@ -736,6 +736,21 @@ smod MAIN is
     = RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
     deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid}, getRulesWithNames
     rules:Set{Rule}ruleNames:Set{Qid} .
+  eq initAux empty config:Configuration
+    = tau config:Configuration .
+  eq initAux(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic
+    actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid},
+    rules:Set{Rule})config:Configuration
+    = initAux rules:Set{Rule}config:Configuration if config:Configuration
+    containsActor actorName:Qid then none else
+< actorName:Qid : Actor |
+  none > fi .
+  eq init rules:Set{Rule}
+    = initAux rules:Set{Rule}
+< 'coordinator : Coordinator |
+  rules : rules:Set{Rule},
+  time : 0,
+  contractState : Active(getRulesWithNames rules:Set{Rule}'START)> .
   eq insert(E:ActionEvent,S:Set{ActionEvent})
     = E:ActionEvent, S:Set{ActionEvent} .
   eq insert(E:Qid,S:Set{Qid})
@@ -758,30 +773,15 @@ smod MAIN is
   eq not A:Bool
     = true xor A:Bool .
   eq pretty(config:Configuration event:Event
-< coordinator:Qid : V#4:Coordinator |
-  time : V#6:Nat,
-  rules : V#5:Set{Rule},
+< coordinator:Qid : V#6:Coordinator |
+  time : V#8:Nat,
+  rules : V#7:Set{Rule},
   contractState : contractState:ContractState,
   none,
-  V#7:AttributeSet >)
+  V#9:AttributeSet >)
     = config:Configuration
 < coordinator:Qid : PreCoordinator |
   contractState : contractState:ContractState > .
-  eq transpileAux empty config:Configuration
-    = tau config:Configuration .
-  eq transpileAux(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic
-    actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid},
-    rules:Set{Rule})config:Configuration
-    = transpileAux rules:Set{Rule}config:Configuration if config:Configuration
-    containsActor actorName:Qid then none else
-< actorName:Qid : Actor |
-  none > fi .
-  eq transpile rules:Set{Rule}
-    = transpileAux rules:Set{Rule}
-< 'coordinator : Coordinator |
-  rules : rules:Set{Rule},
-  time : 0,
-  contractState : Active(getRulesWithNames rules:Set{Rule}'START)> .
   eq union(S:Set{ActionEvent},S':Set{ActionEvent})
     = S:Set{ActionEvent}, S':Set{ActionEvent} .
   eq union(S:Set{Qid},S':Set{Qid})

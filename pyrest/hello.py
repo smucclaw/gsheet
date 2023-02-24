@@ -263,12 +263,19 @@ def processCsv():
     textual_natural4_file = maude_path / 'LATEST.natural4'
 
     maude_html_file = maude_path / 'LATEST.html'
-    transpiled_term = maude_vis.natural4_file_to_transpiled_term(
+    config = maude_vis.natural4_file_to_config(
       maude_main_mod, textual_natural4_file
     )
-    maude_vis.transpiled_term_to_html_file(
-      maude_main_mod, transpiled_term, 'all *', maude_html_file
+    # graph.expand() in FailFreeGraph may take forever because the state space
+    # may be infinite.
+    # Hence, we fork this into a separate thread so that we can quickly return
+    # a response.
+    target = (lambda:
+      maude_vis.config_to_html_file(
+        maude_main_mod, config, 'all *', maude_html_file
+      )
     )
+    threading.Thread(target = target).start()
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
