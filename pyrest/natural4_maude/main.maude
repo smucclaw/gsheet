@@ -861,7 +861,7 @@ smod MAIN is
   V#1:AttributeSet >
     => 
 < coordinator:Qid : V#0:Coordinator |
-  time : if contractStateToStatus contractState:ContractState == Active then s
+  time : if contractStateToStatus contractState:ContractState == Active then
     time:Nat else time:Nat fi,
   contractState : deltaTick rules:Set{Rule}contractState:ContractState,
   rules : rules:Set{Rule},
