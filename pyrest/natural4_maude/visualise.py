@@ -172,12 +172,12 @@ def graph_to_nx_graph(graph):
   # edge_data_fn = lambda edges : (
   #   nx_graph.edges()[next(iter(edges))]
   # )
-  # nx_graph = nx.quotient_graph(
-  #   nx_graph, equiv_rel,
-  #   node_data = node_data_fn,
-  #   create_using = nx.MultiDiGraph
-  #   # edge_data = edge_data_fn
-  # )
+  nx_graph = nx.quotient_graph(
+    nx_graph, equiv_rel,
+    node_data = node_data_fn,
+    create_using = nx.MultiDiGraph
+    # edge_data = edge_data_fn
+  )
 
   # for node, title in nx_node_titles:
   #   for other_node, other_title in nx_node_titles:

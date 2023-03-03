@@ -74,7 +74,9 @@ smod MAIN is
   op _subset_ : Set{Rule}Set{Rule}-> Bool .
   op configToStatus_ : Configuration -> ContractStatus .
   op contractStateToStatus_ : ContractState -> ContractStatus .
+  op deadlineAllowsAction_ : Deadline -> Bool .
   op deadlock : -> RuleName .
+  op decTimer_ : Deadline -> Deadline .
   op delete : ActionEvent Set{ActionEvent}-> Set{ActionEvent}.
   op delete : Qid Set{Qid}-> Set{Qid}.
   op delete : Rule Set{Rule}-> Set{Rule}.
@@ -86,13 +88,16 @@ smod MAIN is
   op getRulesWithNames__ : Set{Rule}Set{Qid}-> Set{Rule}.
   op initAux__ : Set{Rule}Configuration -> Configuration .
   op init_ : Set{Rule}-> Configuration .
+  op initialConfig : -> Configuration .
   op insert : ActionEvent Set{ActionEvent}-> Set{ActionEvent}.
   op insert : Qid Set{Qid}-> Set{Qid}.
   op insert : Rule Set{Rule}-> Set{Rule}.
   op intersection : Set{ActionEvent}Set{ActionEvent}-> Set{ActionEvent}.
   op intersection : Set{Qid}Set{Qid}-> Set{Qid}.
   op intersection : Set{Rule}Set{Rule}-> Set{Rule}.
+  op isTimerZero_ : Deadline -> Bool .
   op pretty_ : Configuration -> Configuration .
+  op rules : -> Set{Rule}.
   op union : NeSet{ActionEvent}Set{ActionEvent}-> NeSet{ActionEvent}.
   op union : NeSet{Qid}Set{Qid}-> NeSet{Qid}.
   op union : NeSet{Rule}Set{Rule}-> NeSet{Rule}.
@@ -154,6 +159,8 @@ smod MAIN is
   op MAY : -> Deontic
     [ctor] .
   op MUST : -> Deontic
+    [ctor] .
+  op ON_ : Duration -> Deadline
     [ctor] .
   op O_ : Formula -> Formula
     [prec 53 format(r o d)ctor] .
@@ -457,6 +464,14 @@ smod MAIN is
     [prec 53 format(r o d)ctor] .
   eq NOTHING
     = (empty).Set{Qid} .
+  eq initialConfig
+    = init rules .
+  eq rules
+    = RULE 'START WITHIN 1 DAY PARTY 'party0 SHANT DO 'action0 LEST 'rule2
+    HENCE('rule1 AND 'rule3), RULE 'rule0 PARTY 'party0 SHANT WITHIN 1 DAY
+    'action0, RULE 'rule1 PARTY 'party1 MUST DO 'action1 WITHIN 2 DAY HENCE
+    'rule0, RULE 'rule2 WITHIN 2 DAY PARTY 'party2 MUST 'action2 LEST 'rule0,
+    RULE 'rule3 PARTY 'party3 MUST WITHIN 4 DAY DO 'action3 .
   eq $card((empty).Set{ActionEvent},C:Nat)
     = C:Nat .
   eq $card((empty).Set{Qid},C:Nat)
@@ -683,6 +698,14 @@ smod MAIN is
     = Active .
   eq contractStateToStatus Breached actorNames:Set{Qid}
     = Breached .
+  eq deadlineAllowsAction ON 0 DAY
+    = true .
+  eq deadlineAllowsAction WITHIN time:Nat DAY
+    = true .
+  eq decTimer ON(s time:Nat)DAY
+    = ON time:Nat DAY .
+  eq decTimer WITHIN(s time:Nat)DAY
+    = WITHIN time:Nat DAY .
   eq delete(E:ActionEvent,(E:ActionEvent, S:Set{ActionEvent}))
     = delete(E:ActionEvent,S:Set{ActionEvent}) .
   eq delete(E:Qid,(E:Qid, S:Set{Qid}))
@@ -694,26 +717,8 @@ smod MAIN is
   eq deltaAction rules:Set{Rule}actionEvent:ActionEvent Breached
     actorNames:Set{Qid}
     = Breached actorNames:Set{Qid} .
-  eq deltaAction rules:Set{Rule}actorName:Qid does actionName:Qid Active(RULE
-    ruleName:Qid PARTY actorName:Qid SHANT actionName:Qid WITHIN time:Nat DAY
-    HENCE hence:Set{Qid}LEST lest:Set{Qid}, activeRules:Set{Rule})
-    = if lest:Set{Qid}==(empty).Set{Qid}then Breached actorName:Qid else
-    Active(getRulesWithNames rules:Set{Rule}lest:Set{Qid})fi ^ deltaAction
-    rules:Set{Rule}actorName:Qid does actionName:Qid Active activeRules:Set{
-    Rule} .
   eq deltaTick rules:Set{Rule}Fulfilled
     = (Fulfilled).ContractState .
-  eq deltaTick rules:Set{Rule}Active(RULE ruleName:Qid PARTY actorName:Qid
-    SHANT actionName:Qid WITHIN 0 DAY HENCE hence:Set{Qid}LEST lest:Set{Qid},
-    activeRules:Set{Rule})
-    = Active(getRulesWithNames rules:Set{Rule}hence:Set{Qid})^ deltaTick
-    rules:Set{Rule}Active activeRules:Set{Rule} .
-  eq deltaTick rules:Set{Rule}Active(RULE ruleName:Qid PARTY actorName:Qid
-    deontic:Deontic actionName:Qid WITHIN(s time:Nat)DAY HENCE hence:Set{
-    Qid}LEST lest:Set{Qid}, activeRules:Set{Rule})
-    = Active(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic
-    actionName:Qid WITHIN time:Nat DAY HENCE hence:Set{Qid}LEST lest:Set{Qid})^
-    deltaTick rules:Set{Rule}Active activeRules:Set{Rule} .
   eq deltaTick rules:Set{Rule}Breached actorName:Qid
     = Breached actorName:Qid .
   eq getAction((actorName:Qid does actionName:Qid)config:Configuration)
@@ -770,6 +775,10 @@ smod MAIN is
     = $intersect(S:Set{Rule},N:NeSet{Rule},(empty).Set{Rule}) .
   eq intersection(S:Set{Rule},(empty).Set{Rule})
     = (empty).Set{Rule} .
+  eq isTimerZero ON 0 DAY
+    = true .
+  eq isTimerZero WITHIN 0 DAY
+    = true .
   eq not A:Bool
     = true xor A:Bool .
   eq pretty(config:Configuration event:Event
@@ -811,19 +820,43 @@ smod MAIN is
   eq ~ ~ f:Formula
     = f:Formula .
   ceq deltaAction rules:Set{Rule}actorName:Qid does actionName:Qid Active(RULE
-    ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid WITHIN
-    time:Nat DAY HENCE hence:Set{Qid}LEST lest:Set{Qid}, activeRules:Set{Rule})
+    ruleName:Qid PARTY actorName:Qid SHANT actionName:Qid deadline:Deadline
+    HENCE hence:Set{Qid}LEST lest:Set{Qid}, activeRules:Set{Rule})
+    = if lest:Set{Qid}==(empty).Set{Qid}then Breached actorName:Qid else
+    Active(getRulesWithNames rules:Set{Rule}lest:Set{Qid})fi ^ deltaAction
+    rules:Set{Rule}actorName:Qid does actionName:Qid Active activeRules:Set{
+    Rule}
+    if deadlineAllowsAction deadline:Deadline = true .
+  ceq deltaAction rules:Set{Rule}actorName:Qid does actionName:Qid Active(RULE
+    ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
+    deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid}, activeRules:Set{
+    Rule})
     = Active(getRulesWithNames rules:Set{Rule}hence:Set{Qid})^ deltaAction
     rules:Set{Rule}actorName:Qid does actionName:Qid Active activeRules:Set{
     Rule}
-    if deontic:Deontic == MUST or deontic:Deontic == MAY = true .
+    if deadlineAllowsAction deadline:Deadline = true /\ deontic:Deontic == MUST
+    or deontic:Deontic == MAY = true .
   ceq deltaTick rules:Set{Rule}Active(RULE ruleName:Qid PARTY actorName:Qid
-    deontic:Deontic actionName:Qid WITHIN 0 DAY HENCE hence:Set{Qid}LEST
+    SHANT actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{
+    Qid}, activeRules:Set{Rule})
+    = Active(getRulesWithNames rules:Set{Rule}hence:Set{Qid})^ deltaTick
+    rules:Set{Rule}Active activeRules:Set{Rule}
+    if isTimerZero deadline:Deadline = true .
+  ceq deltaTick rules:Set{Rule}Active(RULE ruleName:Qid PARTY actorName:Qid
+    deontic:Deontic actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST
+    lest:Set{Qid}, activeRules:Set{Rule})
+    = Active(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic
+    actionName:Qid decTimer deadline:Deadline HENCE hence:Set{Qid}LEST
+    lest:Set{Qid})^ deltaTick rules:Set{Rule}Active activeRules:Set{Rule}
+    if not isTimerZero deadline:Deadline = true .
+  ceq deltaTick rules:Set{Rule}Active(RULE ruleName:Qid PARTY actorName:Qid
+    deontic:Deontic actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST
     lest:Set{Qid}, activeRules:Set{Rule})
     = if deontic:Deontic == MAY or lest:Set{Qid}=/=(empty).Set{Qid}then Active(
     getRulesWithNames rules:Set{Rule}lest:Set{Qid})else Breached actorName:Qid
     fi ^ deltaTick rules:Set{Rule}Active activeRules:Set{Rule}
-    if deontic:Deontic == MUST or deontic:Deontic == MAY = true .
+    if isTimerZero deadline:Deadline = true /\ deontic:Deontic == MUST or
+    deontic:Deontic == MAY = true .
   eq $card((E:ActionEvent, S:Set{ActionEvent}),C:Nat)
     = $card(S:Set{ActionEvent},C:Nat + 1) [owise] .
   eq $card((E:Qid, S:Set{Qid}),C:Nat)
@@ -840,6 +873,10 @@ smod MAIN is
     = false [owise] .
   eq E:Rule in S:Set{Rule}
     = false [owise] .
+  eq deadlineAllowsAction deadline:Deadline
+    = false [owise] .
+  eq decTimer deadline:Deadline
+    = deadline:Deadline [owise] .
   eq delete(E:ActionEvent,S:Set{ActionEvent})
     = S:Set{ActionEvent} [owise] .
   eq delete(E:Qid,S:Set{Qid})
@@ -852,6 +889,8 @@ smod MAIN is
     Rule}actionEvent:ActionEvent Active activeRules:Set{Rule} [owise] .
   eq getRulesWithNames rules:Set{Rule}(ruleName:Qid, ruleNames:Set{Qid})
     = getRulesWithNames rules:Set{Rule}ruleNames:Set{Qid} [owise] .
+  eq isTimerZero deadline:Deadline
+    = false [owise] .
   rl 
 < coordinator:Qid : V#0:Coordinator |
   contractState : contractState:ContractState,
@@ -873,7 +912,7 @@ smod MAIN is
 < coordinator:Qid : V#4:Coordinator |
   time : V#5:Nat,
   contractState : Active(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic
-    actionName:Qid WITHIN time:Nat DAY HENCE hence:Set{Qid}LEST lest:Set{Qid},
+    actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid},
     activeRules:Set{Rule}),
   rules : rules:Set{Rule},
   none,
@@ -884,21 +923,18 @@ smod MAIN is
 < coordinator:Qid : V#4:Coordinator |
   contractState : deltaAction rules:Set{Rule}actorName:Qid does actionName:Qid
     Active(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
-    WITHIN time:Nat DAY HENCE hence:Set{Qid}LEST lest:Set{Qid},
-    activeRules:Set{Rule}),
+    deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid}, activeRules:Set{
+    Rule}),
   rules : rules:Set{Rule},
   time : V#5:Nat,
   V#6:AttributeSet > actorName:Qid does actionName:Qid [label action] .
-  strat raceCond : @ Configuration .
+  strat raceCond : Set{Rule}@ Configuration .
   strat raceCondActionEvent : ActionEvent @ Configuration .
   strat raceCondAux : Set{ActionEvent}@ Configuration .
   strat rewriteEvent : Event @ Configuration .
   strat rewriteTrace : EventTrace @ Configuration .
-  sd raceCond
-    := matchrew config:Configuration
-< coordinator:Qid : Coordinator |
-  rules : rules:Set{Rule}> by rules:Set{Rule}using raceCondAux(getAllActions
-    rules:Set{Rule}) .
+  sd raceCond(rules:Set{Rule})
+    := raceCondAux(getAllActions rules:Set{Rule}) .
   sd raceCondActionEvent(actorName:Qid does actionName:Qid)
     := all * ; match config:Configuration s.t. config:Configuration |=
     actorName:Qid allowedToDo actionName:Qid = true ; rewriteEvent(
@@ -913,7 +949,7 @@ smod MAIN is
   sd rewriteEvent(tick)
     := tick .
   sd rewriteEvent(actorName:Oid does actionName:Oid)
-    := all ; match config:Configuration s.t. config:Configuration |=
+    := action ; match config:Configuration s.t. config:Configuration |=
     actorName:Oid does actionName:Oid = true .
   sd rewriteTrace(emptyEventTrace)
     := idle .
