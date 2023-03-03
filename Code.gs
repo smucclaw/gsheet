@@ -40,7 +40,7 @@ function showSidebar() {
   sidebar.purs_url            = workDirUrl + "purs/LATEST.purs"
   sidebar.ts_url              = workDirUrl + "ts/LATEST.ts"
   sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
-  sidebar.maude_textual_natural4_url  = workDirUrl + "maude/LATEST.natural4"
+  sidebar.maude_plaintext_url  = workDirUrl + "maude/LATEST.natural4"
   sidebar.maude_visualisation_url = workDirUrl + "maude/LATEST.html"
   sidebar.port                = port;
   sidebar.liveUpdates         = liveUpdates;
