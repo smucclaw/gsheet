@@ -15,10 +15,15 @@ import sys, string, os, datetime, glob, shutil, subprocess, re, json
 from pathlib import Path
 import datetime
 
+import threading
+import natural4_maude.visualise as maude_vis
+
 if "basedir"       in os.environ: basedir       = os.environ["basedir"]
 if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
 if "v8k_startport" in os.environ: v8k_startport = os.environ["v8k_startport"]
 if "v8k_path"      in os.environ: v8k_path      = os.environ["v8k_path"]
+
+# if "maudedir" in os.environ: maudedir = os.environ["maudedir"]
 
 # see gunicorn.conf.py for basedir, workdir, startport
 template_dir = basedir + "/template/"
@@ -45,14 +50,7 @@ def getWorkdirFile(uuid, ssid, sid, channel, filename):
     print("getWorkdirFile: unable to find file %s/%s"  % (workdirFolder, filename), file=sys.stderr)
     return;
   (fn,ext) = os.path.splitext(filename)
-  if (ext == ".l4"
-      or ext == ".epilog"
-      or ext == ".purs"
-      or ext == ".org"
-      or ext == ".hs"
-      or ext == ".ts"
-      ):
-
+  if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
     print("getWorkdirFile: returning text/plain %s/%s" % (workdirFolder, filename), file=sys.stderr)
     return send_file(workdirFolder + "/" + filename, mimetype="text/plain")
   else:
@@ -78,8 +76,8 @@ def showAasvgImage(uuid, ssid, sid, image):
   print("showAasvgImage: sending path " + imagePath, file=sys.stderr)
   return send_file(imagePath)
 
-
-
+maude_main_file = Path('natural4_maude') / 'main.maude'
+maude_main_mod = maude_vis.init_maude_n_load_main_file(maude_main_file)
 
 # ################################################
 #                      main
@@ -118,7 +116,7 @@ def processCsv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  createFiles = "natural4-exe --tomd --toasp --topurs --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
+  createFiles = "natural4-exe --tomd --toasp --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
   print("hello.py main: calling natural4-exe", file=sys.stderr)
   print("hello.py main: %s" % (createFiles), file=sys.stderr)
   nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -232,44 +230,68 @@ def processCsv():
   # call natural4-exe; this is the SECOND RUN for any slow transpilers
   # ---------------------------------------------
 
-  if "skip launching the tomd run of natural4":
-    print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+  print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+
+  childpid = os.fork()
+  # if this leads to trouble we may need to double-fork with grandparent-wait
+  if childpid > 0: # in the parent
+    # print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+    print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
     # print(json.dumps(response), file=sys.stderr)
+
     return json.dumps(response)
-    
-  else:
-    childpid = os.fork()
-    # if this leads to trouble we may need to double-fork with grandparent-wait
-    if childpid > 0: # in the parent
-      print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
-      # print(json.dumps(response), file=sys.stderr)
-      return json.dumps(response)
-    else:         # in the child
-      print ("hello.py processCsv: fork(child): continuing to run", file=sys.stderr);
+  else:         # in the child
+    print ("hello.py processCsv: fork(child): continuing to run", file=sys.stderr);
 
-      createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
-      print("hello.py child: calling natural4-exe (slowly) for tomd", file=sys.stderr)
-      print("hello.py child: %s" % (createFiles), file=sys.stderr)
-      nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
-      print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
-      print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+    createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
+    print("hello.py child: calling natural4-exe (slowly) for tomd", file=sys.stderr)
+    print("hello.py child: %s" % (createFiles), file=sys.stderr)
+    nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
+    print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
+    print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
 
-      createFiles = "natural4-exe --only topurs --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
-      print("hello.py child: calling natural4-exe (slowly) for purs", file=sys.stderr)
-      print("hello.py child: %s" % (createFiles), file=sys.stderr)
-      nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      print("hello.py child: back from slow natural4-exe 2 (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
-      print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
-      print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+    print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
 
+    # ---------------------------------------------
+    # Postprocessing:
+    # Turn textual natural4 files generated by Maude transpiler into interactive
+    # HTML visualizations of the state space.
+    # ---------------------------------------------
+    maude_path = Path(uuidssfolder) / 'maude'
+    natural4_file = maude_path / 'LATEST.natural4'
+    natural4_rules = None
+    with open(natural4_file) as f:
+      natural4_rules = f.read()
 
+    config = maude_vis.natural4_rules_to_config(
+      maude_main_mod, natural4_rules
+    )
+    # graph.expand() in FailFreeGraph may take forever because the state space
+    # may be infinite.
+    # Hence, we fork this into a separate thread so that we can quickly return
+    # a response.
+    threading.Thread(
+      target = maude_vis.config_to_html_file,
+      args = (
+        maude_main_mod,
+        config,
+        'all *',
+        maude_path / 'LATEST_state_space.html'
+      )
+    ).start()
 
+    threading.Thread(
+      target = maude_vis.natural4_rules_to_race_cond_htmls,
+      args = (
+        maude_main_mod,
+        maude_path / 'LATEST_race_cond.html',
+        natural4_rules
+      )
+    ).start()
 
-      print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - startTime, ")", file=sys.stderr)
-
-      # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
-      return json.dumps(response)
+    # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
+    return json.dumps(response)
 
     
   # ---------------------------------------------
