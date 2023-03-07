@@ -522,9 +522,6 @@ def race_cond_path_to_graph(mod, race_cond_path):
     pyrs.pmap
   )
 
-  if len(node_id_to_term_map) == 1:
-    return None
-
   node_term_to_id_map = pipe(
     node_id_to_term_map.items(),
     map(reversed),
@@ -574,8 +571,8 @@ def natural4_rules_to_race_cond_graphs(main_mod, natural4_rules, max_traces = 1)
     take(max_traces),
     # https://fadoss.github.io/maude-bindings/#maude.StrategySequenceSearch.pathTo
     map(lambda soln: soln[2]()),
+    filter(lambda path: len(path) > 1),
     map(race_cond_path_to_graph(main_mod)),
-    filter(lambda x: x != None),
     pyrs.pvector
   )
 
