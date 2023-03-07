@@ -41,7 +41,8 @@ function showSidebar() {
   sidebar.ts_url              = workDirUrl + "ts/LATEST.ts"
   sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
   sidebar.maude_plaintext_url  = workDirUrl + "maude/LATEST.natural4"
-  sidebar.maude_visualisation_url = workDirUrl + "maude/LATEST.html"
+  sidebar.maude_vis_url = workDirUrl + "maude/LATEST_state_space.html"
+  sidebar.maude_race_cond_url = workDirUrl + "maude/LATEST_race_cond_0.html"
   sidebar.port                = port;
   sidebar.liveUpdates         = liveUpdates;
   Logger.log("returned from exportCSV()");

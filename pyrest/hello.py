@@ -261,10 +261,12 @@ def processCsv():
     uuids_path = Path(uuidssfolder)
     maude_path = uuids_path / 'maude'
     textual_natural4_file = maude_path / 'LATEST.natural4'
+    natural4_rules = None
+    with open(textual_natural4_file) as f:
+      natural4_rules = f.read()
 
-    maude_html_file = maude_path / 'LATEST.html'
-    config = maude_vis.natural4_file_to_config(
-      maude_main_mod, textual_natural4_file
+    config = maude_vis.natural4_rules_to_config(
+      maude_main_mod, natural4_rules
     )
     # graph.expand() in FailFreeGraph may take forever because the state space
     # may be infinite.
@@ -272,7 +274,14 @@ def processCsv():
     # a response.
     target = (lambda:
       maude_vis.config_to_html_file(
-        maude_main_mod, config, 'all *', maude_html_file
+        maude_main_mod, config, 'all *', maude_path / 'LATEST_state_space.html'
+      )
+    )
+    threading.Thread(target = target).start()
+
+    target = (lambda:
+      maude_vis.natural4_rules_to_race_cond_htmls(
+        maude_main_mod, maude_path / 'LATEST_race_cond.html', natural4_rules
       )
     )
     threading.Thread(target = target).start()
