@@ -2,6 +2,6 @@ cytoolz==0.12.1
 Flask==2.2.3
 maude==1.2.2
 networkx==3.0
-pyrsistent==0.15.5
+pyrsistent==0.19.3
 pyvis==0.3.2
 umaudemc==0.12.1
