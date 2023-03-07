@@ -57,6 +57,7 @@ smod MAIN is
   op Coordinator : -> Coordinator .
   op NOTHING : -> Names .
   op PreCoordinator : -> PreCoordinator .
+  op _MEANS_ : Qid Set{Qid}-> Rule .
   op _allowedToDo_ : Qid Qid -> Prop .
   op _containsActor_ : Configuration Qid -> Bool .
   op _containsRuleWithEvent_ : Set{Rule}ActionEvent -> Bool .
@@ -578,6 +579,18 @@ smod MAIN is
     = N:NeSet{Qid} .
   eq N:NeSet{Rule}, N:NeSet{Rule}
     = N:NeSet{Rule} .
+  eq ruleName':Qid MEANS ruleNames':Set{Qid}, RULE ruleName:Qid PARTY
+    actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline HENCE
+    hence:Set{Qid}LEST(ruleName':Qid, ruleNames:Set{Qid})
+    = ruleName':Qid MEANS ruleNames':Set{Qid}, RULE ruleName:Qid PARTY
+    actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline HENCE
+    hence:Set{Qid}LEST(ruleNames':Set{Qid}, ruleNames:Set{Qid}) .
+  eq ruleName':Qid MEANS ruleNames':Set{Qid}, RULE ruleName:Qid PARTY
+    actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline HENCE
+    ruleName':Qid, ruleNames:Set{Qid}LEST lest:Set{Qid}
+    = ruleName':Qid MEANS ruleNames':Set{Qid}, RULE ruleName:Qid PARTY
+    actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline HENCE
+    ruleNames':Set{Qid}, ruleNames:Set{Qid}LEST lest:Set{Qid} .
   eq false and-then B:[Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action]
     = false .
   eq true and-then B:[Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action]
@@ -741,8 +754,6 @@ smod MAIN is
     = RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
     deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid}, getRulesWithNames
     rules:Set{Rule}ruleNames:Set{Qid} .
-  eq initAux empty config:Configuration
-    = tau config:Configuration .
   eq initAux(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic
     actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid},
     rules:Set{Rule})config:Configuration
@@ -887,8 +898,12 @@ smod MAIN is
     activeRules:Set{Rule})
     = Active activeRule:Rule ^ deltaAction rules:Set{
     Rule}actionEvent:ActionEvent Active activeRules:Set{Rule} [owise] .
+  eq getAllActions(rule:Rule, rules:Set{Rule})
+    = getAllActions rules:Set{Rule} [owise] .
   eq getRulesWithNames rules:Set{Rule}(ruleName:Qid, ruleNames:Set{Qid})
     = getRulesWithNames rules:Set{Rule}ruleNames:Set{Qid} [owise] .
+  eq initAux rules:Set{Rule}config:Configuration
+    = tau config:Configuration [owise] .
   eq isTimerZero deadline:Deadline
     = false [owise] .
   rl 
