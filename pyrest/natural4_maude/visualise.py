@@ -522,6 +522,9 @@ def race_cond_path_to_graph(mod, race_cond_path):
     pyrs.pmap
   )
 
+  if len(node_id_to_term_map) == 1:
+    return None
+
   node_term_to_id_map = pipe(
     node_id_to_term_map.items(),
     map(reversed),
@@ -562,7 +565,6 @@ def natural4_rules_to_race_cond_graphs(main_mod, natural4_rules, max_traces = 1)
 
   target_config = main_mod.parseTerm('c:Configuration')
 
-  # https://fadoss.github.io/maude-bindings/#maude.StrategySequenceSearch.pathTo
   return pipe(
     natural4_rules,
     apply_fn(main_mod, 'init'),
@@ -570,8 +572,10 @@ def natural4_rules_to_race_cond_graphs(main_mod, natural4_rules, max_traces = 1)
       maude.NORMAL_FORM, target_config, strategy = race_cond_strat
     ),
     take(max_traces),
+    # https://fadoss.github.io/maude-bindings/#maude.StrategySequenceSearch.pathTo
     map(lambda soln: soln[2]()),
     map(race_cond_path_to_graph(main_mod)),
+    filter(lambda x: x != None),
     pyrs.pvector
   )
 
