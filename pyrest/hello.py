@@ -158,8 +158,8 @@ def processCsv():
       os.symlink(os.path.basename(petriPathpng),   petriFolder + "LATEST.png")
       os.symlink(os.path.basename(smallPetriPath), petriFolder + "LATEST-small.png")
     except Exception as e:
-      print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking", file=sys.stderr)
-      print("hello.py main: %s" % (e), file=sys.stderr)
+      print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking", file=sys.stderr);
+      print("hello.py main: %s" % (e), file=sys.stderr);
 
   # ---------------------------------------------
   # postprocessing: for the babyl4 downstream transpilations
