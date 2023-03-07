@@ -1,15 +1,17 @@
 smod MAIN is
   sorts Action ActionEvent ActiveRule Actor ActorDeonticActionDeadline
-    ActorState Attribute AttributeSet Bool Char Cid Configuration ContractState
-    ContractStatus Coordinator Date Deadline Deontic Duration Event EventTrace
-    FindResult Formula HenceLest Id Message ModelCheckResult Msg Names Nat
-    NeSet{ActionEvent}NeSet{Qid}NeSet{Rule}NzNat Object Oid Portal
-    PreCoordinator Prop Qid Rule RuleName Set{ActionEvent}Set{Qid}Set{
-    Rule}Situation State String TickEvent Transition TransitionList Zero .
+    ActorState Aka Attribute AttributeSet Bool Char Cid Configuration
+    ContractState ContractStatus Coordinator Date Deadline Deontic Duration
+    Event EventTrace FindResult Formula HenceLest Id Message ModelCheckResult
+    Msg Names Nat NeSet{ActionEvent}NeSet{Qid}NeSet{Rule}NzNat Object Oid
+    Portal PreCoordinator Prop Qid QidAka RKeyword Rule RuleName Set{
+    ActionEvent}Set{Qid}Set{Rule}Situation State String TickEvent Transition
+    TransitionList Zero .
   subsort ActionEvent < Event .
   subsort ActionEvent < NeSet{ActionEvent}.
   subsort ActionEvent < Prop .
   subsort Actor < Cid .
+  subsort Aka < QidAka .
   subsort Attribute < AttributeSet .
   subsort Bool < ModelCheckResult .
   subsort Bool < Situation .
@@ -36,6 +38,7 @@ smod MAIN is
   subsort Qid < Names .
   subsort Qid < NeSet{Qid}.
   subsort Qid < Oid .
+  subsort Qid < QidAka .
   subsort Qid < RuleName .
   subsort Qid < Situation .
   subsort Rule < NeSet{Rule}.
@@ -55,9 +58,20 @@ smod MAIN is
   op $intersect : Set{Rule}Set{Rule}Set{Rule}-> Set{Rule}.
   op Actor : -> Actor .
   op Coordinator : -> Coordinator .
+  op EVERY : -> RKeyword .
   op NOTHING : -> Names .
+  op PARTY : -> RKeyword .
   op PreCoordinator : -> PreCoordinator .
+  op _AKA_ : Qid Qid -> Aka .
   op _MEANS_ : Qid Set{Qid}-> Rule .
+  op _____ : Deadline RKeyword QidAka Deontic Action ->
+    ActorDeonticActionDeadline .
+  op _____ : RKeyword QidAka Deadline Deontic Action ->
+    ActorDeonticActionDeadline .
+  op _____ : RKeyword QidAka Deontic Action Deadline ->
+    ActorDeonticActionDeadline .
+  op _____ : RKeyword QidAka Deontic Deadline Action ->
+    ActorDeonticActionDeadline .
   op _allowedToDo_ : Qid Qid -> Prop .
   op _containsActor_ : Configuration Qid -> Bool .
   op _containsRuleWithEvent_ : Set{Rule}ActionEvent -> Bool .
@@ -165,12 +179,6 @@ smod MAIN is
     [ctor] .
   op O_ : Formula -> Formula
     [prec 53 format(r o d)ctor] .
-  op PARTY____ : Qid Deadline Deontic Action -> ActorDeonticActionDeadline
-    [ctor] .
-  op PARTY____ : Qid Deontic Action Deadline -> ActorDeonticActionDeadline
-    [ctor] .
-  op PARTY____ : Qid Deontic Deadline Action -> ActorDeonticActionDeadline
-    [ctor] .
   op RULE__ : Qid ActorDeonticActionDeadline -> Rule
     [ctor] .
   op RULE___ : Qid ActorDeonticActionDeadline HenceLest -> Rule
@@ -252,8 +260,6 @@ smod MAIN is
   op _DAY : Nat -> Duration
     [ctor] .
   op _MONTH : Nat -> Duration
-    [ctor] .
-  op _PARTY___ : Deadline Qid Deontic Action -> ActorDeonticActionDeadline
     [ctor] .
   op _R_ : Formula Formula -> Formula
     [prec 63 format(d r o d)ctor] .
@@ -463,6 +469,8 @@ smod MAIN is
     ~> Char))] .
   op ~_ : Formula -> Formula
     [prec 53 format(r o d)ctor] .
+  eq EVERY
+    = PARTY .
   eq NOTHING
     = (empty).Set{Qid} .
   eq initialConfig
@@ -533,14 +541,15 @@ smod MAIN is
     = HENCE NOTHING LEST lest:Set{Qid} .
   eq LEST lest:Set{Qid}HENCE hence:Set{Qid}
     = HENCE hence:Set{Qid}LEST lest:Set{Qid} .
-  eq PARTY actorName:Qid deadline:Deadline deontic:Deontic actionName:Qid
-    = PARTY actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline .
-  eq PARTY actorName:Qid deontic:Deontic deadline:Deadline actionName:Qid
-    = PARTY actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline .
-  eq RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
+  eq RULE ruleName:Qid PARTY actorName:QidAka deontic:Deontic actionName:Qid
     deadline:Deadline
-    = RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
+    = RULE ruleName:Qid PARTY actorName:QidAka deontic:Deontic actionName:Qid
     deadline:Deadline HENCE NOTHING LEST NOTHING .
+  eq RULE ruleName:Qid PARTY actorName:Qid AKA actorName':Qid deontic:Deontic
+    actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid}
+    = actorName':Qid MEANS actorName:Qid, RULE ruleName:Qid PARTY actorName:Qid
+    deontic:Deontic actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST
+    lest:Set{Qid} .
   eq f:Formula -> g:Formula
     = g:Formula \/ ~ f:Formula .
   eq f:Formula <-> g:Formula
@@ -551,8 +560,6 @@ smod MAIN is
     = [](f:Formula -> g:Formula) .
   eq names:Names AND names':Names
     = names:Names, names':Names .
-  eq deadline:Deadline PARTY actorName:Qid deontic:Deontic actionName:Qid
-    = PARTY actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline .
   eq f:Formula W g:Formula
     = []f:Formula \/(f:Formula U g:Formula) .
   eq S:Set{ActionEvent}\ N:NeSet{ActionEvent}
@@ -573,12 +580,24 @@ smod MAIN is
     = Breached actorNames:Set{Qid} .
   eq Breached actorNames:Set{Qid}^ Breached actorNames':Set{Qid}
     = Breached(actorNames:Set{Qid}, actorNames':Set{Qid}) .
+  eq PARTY actorName:QidAka deadline:Deadline deontic:Deontic actionName:Qid
+    = PARTY actorName:QidAka deontic:Deontic actionName:Qid deadline:Deadline .
+  eq PARTY actorName:QidAka deontic:Deontic deadline:Deadline actionName:Qid
+    = PARTY actorName:QidAka deontic:Deontic actionName:Qid deadline:Deadline .
+  eq deadline:Deadline PARTY actorName:QidAka deontic:Deontic actionName:Qid
+    = PARTY actorName:QidAka deontic:Deontic actionName:Qid deadline:Deadline .
   eq N:NeSet{ActionEvent}, N:NeSet{ActionEvent}
     = N:NeSet{ActionEvent} .
   eq N:NeSet{Qid}, N:NeSet{Qid}
     = N:NeSet{Qid} .
   eq N:NeSet{Rule}, N:NeSet{Rule}
     = N:NeSet{Rule} .
+  eq actorName':Qid MEANS actorName:Qid, RULE ruleName:Qid PARTY actorName':Qid
+    deontic:Deontic actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST
+    lest:Set{Qid}
+    = actorName':Qid MEANS actorName:Qid, RULE ruleName:Qid PARTY actorName:Qid
+    deontic:Deontic actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST
+    lest:Set{Qid} .
   eq ruleName':Qid MEANS ruleNames':Set{Qid}, RULE ruleName:Qid PARTY
     actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline HENCE
     hence:Set{Qid}LEST(ruleName':Qid, ruleNames:Set{Qid})
@@ -591,10 +610,12 @@ smod MAIN is
     = ruleName':Qid MEANS ruleNames':Set{Qid}, RULE ruleName:Qid PARTY
     actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline HENCE
     ruleNames':Set{Qid}, ruleNames:Set{Qid}LEST lest:Set{Qid} .
-  eq false and-then B:[Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action]
+  eq false and-then B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,
+    Action]
     = false .
-  eq true and-then B:[Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action]
-    = B:[Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action] .
+  eq true and-then B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,
+    Action]
+    = B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,Action] .
   eq A:Bool and A:Bool
     = A:Bool .
   eq A:Bool and(B:Bool xor C:Bool)
@@ -625,9 +646,11 @@ smod MAIN is
     = true .
   eq E:Rule in(E:Rule, S:Set{Rule})
     = true .
-  eq false or-else B:[Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action]
-    = B:[Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action] .
-  eq true or-else B:[Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action]
+  eq false or-else B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,
+    Action]
+    = B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,Action] .
+  eq true or-else B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,
+    Action]
     = true .
   eq A:Bool or B:Bool
     = A:Bool and B:Bool xor A:Bool xor B:Bool .
@@ -754,6 +777,8 @@ smod MAIN is
     = RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
     deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid}, getRulesWithNames
     rules:Set{Rule}ruleNames:Set{Qid} .
+  eq initAux empty config:Configuration
+    = tau config:Configuration .
   eq initAux(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic
     actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid},
     rules:Set{Rule})config:Configuration
@@ -902,8 +927,8 @@ smod MAIN is
     = getAllActions rules:Set{Rule} [owise] .
   eq getRulesWithNames rules:Set{Rule}(ruleName:Qid, ruleNames:Set{Qid})
     = getRulesWithNames rules:Set{Rule}ruleNames:Set{Qid} [owise] .
-  eq initAux rules:Set{Rule}config:Configuration
-    = tau config:Configuration [owise] .
+  eq initAux(rule:Rule, rules:Set{Rule})config:Configuration
+    = initAux rules:Set{Rule}config:Configuration [owise] .
   eq isTimerZero deadline:Deadline
     = false [owise] .
   rl 
