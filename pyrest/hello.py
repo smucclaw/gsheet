@@ -212,8 +212,8 @@ def processCsv():
   # load in the aasvg index HTML to pass back to sidebar
   # ---------------------------------------------
 
-  with open(uuidssfolder + "/aasvg/LATEST/index.html", "r") as read_file:
-    response['aasvg_index'] = read_file.read();
+  # with open(uuidssfolder + "/aasvg/LATEST/index.html", "r") as read_file:
+  #   response['aasvg_index'] = read_file.read();
 
   # ---------------------------------------------
   # construct other response elements and log run-timings.
