@@ -259,6 +259,7 @@ def processCsv():
     # HTML visualizations of the state space.
     # ---------------------------------------------
     maude_path = Path(uuidssfolder) / 'maude'
+    maude_path.mkdir(parents=True, exist_ok=True)
     natural4_file = maude_path / 'LATEST.natural4'
     natural4_rules = None
     with open(natural4_file) as f:
