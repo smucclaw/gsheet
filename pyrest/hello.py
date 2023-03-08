@@ -127,6 +127,10 @@ def processCsv():
   if len(nl4exe.stderr.decode('utf-8')) < 2000:
     print (nl4exe.stderr.decode('utf-8'))
   nl4_out = nl4exe.stdout.decode('utf-8')
+  with open(targetFolder + timeNow + ".err", "w") as fout:
+    fout.write(nl4exe.stderr.decode('utf-8'));
+  with open(targetFolder + timeNow + ".out", "w") as fout:
+    fout.write(nl4exe.stdout.decode('utf-8'));
 
   response['nl4_stderr'] = nl4exe.stderr.decode('utf-8')[:20000]
   response['nl4_stdout'] = nl4exe.stdout.decode('utf-8')[:20000]
