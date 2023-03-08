@@ -100,6 +100,7 @@ smod MAIN is
   op getAllActions_ : Set{Rule}-> Set{ActionEvent}.
   op getClass : Object -> Cid .
   op getRulesWithNames__ : Set{Rule}Set{Qid}-> Set{Rule}.
+  op getStartRule_ : Set{Rule}-> Rule .
   op initAux__ : Set{Rule}Configuration -> Configuration .
   op init_ : Set{Rule}-> Configuration .
   op initialConfig : -> Configuration .
@@ -183,6 +184,8 @@ smod MAIN is
   op RULE___ : Qid ActorDeonticActionDeadline HenceLest -> Rule
     [ctor] .
   op SHANT : -> Deontic
+    [ctor] .
+  op START_ : Qid -> Rule
     [ctor] .
   op True : -> Formula
     [format(g o)ctor] .
@@ -776,6 +779,11 @@ smod MAIN is
     = RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
     deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid}, getRulesWithNames
     rules:Set{Rule}ruleNames:Set{Qid} .
+  eq getStartRule(START ruleName:Qid, RULE ruleName:Qid PARTY actorName:Qid
+    deontic:Deontic actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST
+    lest:Set{Qid}, rules:Set{Rule})
+    = RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic actionName:Qid
+    deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid} .
   eq initAux empty config:Configuration
     = tau config:Configuration .
   eq initAux(RULE ruleName:Qid PARTY actorName:Qid deontic:Deontic
@@ -790,7 +798,7 @@ smod MAIN is
 < 'coordinator : Coordinator |
   rules : rules:Set{Rule},
   time : 0,
-  contractState : Active(getRulesWithNames rules:Set{Rule}'START)> .
+  contractState : Active getStartRule rules:Set{Rule}> .
   eq insert(E:ActionEvent,S:Set{ActionEvent})
     = E:ActionEvent, S:Set{ActionEvent} .
   eq insert(E:Qid,S:Set{Qid})
