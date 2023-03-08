@@ -11,7 +11,6 @@ smod MAIN is
   subsort ActionEvent < NeSet{ActionEvent}.
   subsort ActionEvent < Prop .
   subsort Actor < Cid .
-  subsort Aka < QidAka .
   subsort Attribute < AttributeSet .
   subsort Bool < ModelCheckResult .
   subsort Bool < Situation .
@@ -35,10 +34,10 @@ smod MAIN is
   subsort PreCoordinator < Cid .
   subsort Prop < Formula .
   subsort Qid < Action .
+  subsort Qid < Aka .
   subsort Qid < Names .
   subsort Qid < NeSet{Qid}.
   subsort Qid < Oid .
-  subsort Qid < QidAka .
   subsort Qid < RuleName .
   subsort Qid < Situation .
   subsort Rule < NeSet{Rule}.
@@ -64,14 +63,14 @@ smod MAIN is
   op PreCoordinator : -> PreCoordinator .
   op _AKA_ : Qid Qid -> Aka .
   op _MEANS_ : Qid Set{Qid}-> Rule .
-  op _____ : Deadline RKeyword QidAka Deontic Action ->
-    ActorDeonticActionDeadline .
-  op _____ : RKeyword QidAka Deadline Deontic Action ->
-    ActorDeonticActionDeadline .
-  op _____ : RKeyword QidAka Deontic Action Deadline ->
-    ActorDeonticActionDeadline .
-  op _____ : RKeyword QidAka Deontic Deadline Action ->
-    ActorDeonticActionDeadline .
+  op _____ : Deadline RKeyword Aka Deontic Action -> ActorDeonticActionDeadline
+    .
+  op _____ : RKeyword Aka Deadline Deontic Action -> ActorDeonticActionDeadline
+    .
+  op _____ : RKeyword Aka Deontic Action Deadline -> ActorDeonticActionDeadline
+    .
+  op _____ : RKeyword Aka Deontic Deadline Action -> ActorDeonticActionDeadline
+    .
   op _allowedToDo_ : Qid Qid -> Prop .
   op _containsActor_ : Configuration Qid -> Bool .
   op _containsRuleWithEvent_ : Set{Rule}ActionEvent -> Bool .
@@ -541,9 +540,9 @@ smod MAIN is
     = HENCE NOTHING LEST lest:Set{Qid} .
   eq LEST lest:Set{Qid}HENCE hence:Set{Qid}
     = HENCE hence:Set{Qid}LEST lest:Set{Qid} .
-  eq RULE ruleName:Qid PARTY actorName:QidAka deontic:Deontic actionName:Qid
+  eq RULE ruleName:Qid PARTY actorName:Aka deontic:Deontic actionName:Qid
     deadline:Deadline
-    = RULE ruleName:Qid PARTY actorName:QidAka deontic:Deontic actionName:Qid
+    = RULE ruleName:Qid PARTY actorName:Aka deontic:Deontic actionName:Qid
     deadline:Deadline HENCE NOTHING LEST NOTHING .
   eq RULE ruleName:Qid PARTY actorName:Qid AKA actorName':Qid deontic:Deontic
     actionName:Qid deadline:Deadline HENCE hence:Set{Qid}LEST lest:Set{Qid}
@@ -580,12 +579,12 @@ smod MAIN is
     = Breached actorNames:Set{Qid} .
   eq Breached actorNames:Set{Qid}^ Breached actorNames':Set{Qid}
     = Breached(actorNames:Set{Qid}, actorNames':Set{Qid}) .
-  eq PARTY actorName:QidAka deadline:Deadline deontic:Deontic actionName:Qid
-    = PARTY actorName:QidAka deontic:Deontic actionName:Qid deadline:Deadline .
-  eq PARTY actorName:QidAka deontic:Deontic deadline:Deadline actionName:Qid
-    = PARTY actorName:QidAka deontic:Deontic actionName:Qid deadline:Deadline .
-  eq deadline:Deadline PARTY actorName:QidAka deontic:Deontic actionName:Qid
-    = PARTY actorName:QidAka deontic:Deontic actionName:Qid deadline:Deadline .
+  eq PARTY actorName:Aka deadline:Deadline deontic:Deontic actionName:Qid
+    = PARTY actorName:Aka deontic:Deontic actionName:Qid deadline:Deadline .
+  eq PARTY actorName:Aka deontic:Deontic deadline:Deadline actionName:Qid
+    = PARTY actorName:Aka deontic:Deontic actionName:Qid deadline:Deadline .
+  eq deadline:Deadline PARTY actorName:Aka deontic:Deontic actionName:Qid
+    = PARTY actorName:Aka deontic:Deontic actionName:Qid deadline:Deadline .
   eq N:NeSet{ActionEvent}, N:NeSet{ActionEvent}
     = N:NeSet{ActionEvent} .
   eq N:NeSet{Qid}, N:NeSet{Qid}
@@ -610,12 +609,12 @@ smod MAIN is
     = ruleName':Qid MEANS ruleNames':Set{Qid}, RULE ruleName:Qid PARTY
     actorName:Qid deontic:Deontic actionName:Qid deadline:Deadline HENCE
     ruleNames':Set{Qid}, ruleNames:Set{Qid}LEST lest:Set{Qid} .
-  eq false and-then B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,
+  eq false and-then B:[Aka,Set{Qid},Id,RuleName,ModelCheckResult,Situation,
     Action]
     = false .
-  eq true and-then B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,
+  eq true and-then B:[Aka,Set{Qid},Id,RuleName,ModelCheckResult,Situation,
     Action]
-    = B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,Action] .
+    = B:[Aka,Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action] .
   eq A:Bool and A:Bool
     = A:Bool .
   eq A:Bool and(B:Bool xor C:Bool)
@@ -646,10 +645,10 @@ smod MAIN is
     = true .
   eq E:Rule in(E:Rule, S:Set{Rule})
     = true .
-  eq false or-else B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,
+  eq false or-else B:[Aka,Set{Qid},Id,RuleName,ModelCheckResult,Situation,
     Action]
-    = B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,Action] .
-  eq true or-else B:[Set{Qid},Id,QidAka,RuleName,ModelCheckResult,Situation,
+    = B:[Aka,Set{Qid},Id,RuleName,ModelCheckResult,Situation,Action] .
+  eq true or-else B:[Aka,Set{Qid},Id,RuleName,ModelCheckResult,Situation,
     Action]
     = true .
   eq A:Bool or B:Bool
