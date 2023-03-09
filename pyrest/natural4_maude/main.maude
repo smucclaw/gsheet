@@ -566,8 +566,8 @@ smod MAIN is
     = false .
   eq f:Formula => g:Formula
     = [](f:Formula -> g:Formula) .
-  eq INF > n:Nat
-    = n:Nat < INF .
+  eq m:Nat > n:Nat
+    = n:Nat < m:Nat .
   eq names:Names AND names':Names
     = names:Names, names':Names .
   eq f:Formula W g:Formula
@@ -590,8 +590,6 @@ smod MAIN is
     = Breached actorNames:Set{Qid} .
   eq Breached actorNames:Set{Qid}^ Breached actorNames':Set{Qid}
     = Breached(actorNames:Set{Qid}, actorNames':Set{Qid}) .
-  eq PARTY actorName:Aka deontic:Deontic actionName:Qid
-    = PARTY actorName:Aka deontic:Deontic actionName:Qid WITHIN 7 DAY .
   eq PARTY actorName:Aka deadline:Deadline deontic:Deontic actionName:Qid
     = PARTY actorName:Aka deontic:Deontic actionName:Qid deadline:Deadline .
   eq PARTY actorName:Aka deontic:Deontic deadline:Deadline actionName:Qid
@@ -872,6 +870,9 @@ smod MAIN is
     = ~ g:Formula /\ ~ f:Formula .
   eq ~ ~ f:Formula
     = f:Formula .
+  ceq PARTY actorName:Aka deontic:Deontic actionName:Qid
+    = PARTY actorName:Aka deontic:Deontic actionName:Qid WITHIN INF DAY
+    if deontic:Deontic == MAY or deontic:Deontic == SHANT = true .
   ceq decTimer ON time:Nat DAY
     = ON(pred time:Nat)DAY
     if time:Nat > 0 = true .
