@@ -122,7 +122,7 @@ def processCsv():
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
   createFiles = natural4_exe + " --tomd --toasp --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
-  print("hello.py main: calling natural4-exe (%s)" % (natural_exe), file=sys.stderr)
+  print("hello.py main: calling natural4-exe (%s)" % (natural4_exe), file=sys.stderr)
   print("hello.py main: %s" % (createFiles), file=sys.stderr)
   nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   print("hello.py main: back from fast natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
