@@ -1,5 +1,5 @@
 #
-# this file is intended to be customized for each installation; change it as you wish
+# 8080 is a dev stable port which used to be production; here to support old spreadsheet clones.
 #
 
 pythonpath = "/home/mengwong/src/smucclaw/gsheet/pyrest/lib/python3.8/site-packages/"

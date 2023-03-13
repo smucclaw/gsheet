@@ -1,5 +1,5 @@
 #
-# 8080 is the production port which "stable" spreadsheets will point to.
+# 8010 is the production port which "stable" spreadsheets will point to.
 #
 
 pythonpath = "/home/mengwong/src/smucclaw/gsheet/pyrest/lib/python3.8/site-packages/"
