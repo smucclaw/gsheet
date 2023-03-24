@@ -2,10 +2,44 @@ Logger.log("global top");
 var port       = "8080";
 const url_host = "https://cclaw.legalese.com";
 var liveUpdates = true;
+let sidebarRefreshInterval = 60000;
+var properties = PropertiesService.getDocumentProperties();
+const key = "lastEditTime";
+let ui = SpreadsheetApp.getUi();
 
 function onOpen() {
-  loadDev();  
+  createSidebarMenu();
+  loadDev();
   showSidebar();
+  resetLastEditTime();
+}
+
+function resetLastEditTime() {
+  properties.setProperty(key, 0);
+}
+
+function createSidebarMenu() {
+  ui.createMenu('L4 Sidebar')
+    .addItem('Refresh', 'showSidebar')
+    .addToUi();
+}
+
+function testIP() {
+  let url = "https://l2.io/ip.js?var=userIP"
+  let response1 = UrlFetchApp.fetch(url);
+  Logger.log(response1.getContentText());
+  // testWindow = this.window.location.hostname;
+  // eval(UrlFetchApp.fetch('https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js').getContentText());
+  // const resolver = new doh.DohResolver('https://1.1.1.1/dns-query');
+  // resolver.query(testWindow, 'A')
+  //   .then(response => {
+  //     response.answers.forEach(ans => Logger.log(ans.data));
+  //   })
+  //   .catch(err => Logger.log(err));
+  // const execSync = require('child_process').execSync;
+  // const output = execSync('ls', { encoding: 'utf-8' });  // the default is 'buffer'
+  // Logger.log('Output was:\n', output);
+  return null;
 }
 
 function loadDev() {
@@ -14,7 +48,7 @@ function loadDev() {
   let range = sheet.getRange("A1:Z10").getDisplayValues();
 
   port = devPort(range) || "8080";
-  liveUpdates = devScan(range, /live updates (true|false)/i) || true; if (liveUpdates.toLowerCase() == "false") { liveUpdates = false }
+  liveUpdates = devScan(range, /live updates (true|false)/i) || true; if (liveUpdates.toString().toLowerCase() == "false") { liveUpdates = false }
   Logger.log("setting port to " + port);
   Logger.log("setting liveUpdates to " + liveUpdates);
 }
@@ -23,7 +57,7 @@ function showSidebar() {
   let cachedUuid = saveUuid();
   let [spreadsheetId, sheetId] = getSsid();
   let workDirUrl = (url_wd() + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/");
-  
+
   Logger.log("url_host = " + url_host);
   Logger.log("url_hp() = " + url_hp());
   Logger.log("url_wd() = " + url_wd());
@@ -31,6 +65,8 @@ function showSidebar() {
   let sidebar = HtmlService.createTemplateFromFile('main');
   Logger.log("calling exportCSV()");
   sidebar.fromFlask = JSON.parse(exportCSV(cachedUuid, spreadsheetId, sheetId));
+  Logger.log("fromFlask returned");
+  Logger.log(sidebar.fromFlask);
   sidebar.native_url          = workDirUrl + "native/LATEST.hs";
   sidebar.corel4url           = workDirUrl + "corel4/LATEST.l4";
   sidebar.petri_url           = workDirUrl + "petri/LATEST.png"
@@ -38,11 +74,12 @@ function showSidebar() {
   sidebar.epilog_url          = workDirUrl + "epilog/LATEST.epilog"
   sidebar.org_url             = workDirUrl + "org/LATEST.org"
   sidebar.purs_url            = workDirUrl + "purs/LATEST.purs"
-  sidebar.ts_url              = workDirUrl + "ts/LATEST.ts"
-  sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
+  sidebar.md_url              = workDirUrl + "md/LATEST.md"
   sidebar.maude_plaintext_url  = workDirUrl + "maude/LATEST.natural4"
   sidebar.maude_vis_url = workDirUrl + "maude/LATEST_state_space.html"
   sidebar.maude_race_cond_url = workDirUrl + "maude/LATEST_race_cond_0.html"
+  sidebar.ts_url              = workDirUrl + "ts/LATEST.ts"
+  sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
   sidebar.port                = port;
   sidebar.liveUpdates         = liveUpdates;
   Logger.log("returned from exportCSV()");
@@ -59,12 +96,12 @@ function showSidebar() {
 
   let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
 
-  sidebar.fromFlask.aasvg_index = 
+  sidebar.fromFlask.aasvg_index =
     sidebar.fromFlask.aasvg_index
     .replace(/href="(\S+)(\.svg">)(.+)<\/a>/g,
              "href=\"" + aasvgUrl + "$1-full$2<br/>$3" +
              "<br><img src=\"" + aasvgUrl + "$1-tiny.svg\"></a>");
-  
+
 
 
   Logger.log("rewrote aasvg_index = ")
@@ -74,7 +111,6 @@ function showSidebar() {
   SpreadsheetApp.getUi().showSidebar(sidebarOutput);
   Logger.log("drawn sidebar");
 }
-
 
 function getSsid() {
   let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -93,7 +129,7 @@ function exportCSV(uuid, spreadsheetId, sheetId) {
   let cellArraysOfText = sheet.getDataRange().getDisplayValues();
   let csvStr = cellArraysToCsv(cellArraysOfText);
   // ui.prompt(csvStr);
-  
+
   let formData = {
     'name': 'Max Loo',
     'email': 'maxloo@smu.edu.sg',
@@ -113,7 +149,6 @@ function exportCSV(uuid, spreadsheetId, sheetId) {
 }
 
 function cellArraysToCsv(rows) {
-  const ui = SpreadsheetApp.getUi();
   const regex = /"/g;
   let csvStr = "";
   for (let i = 0; i < rows.length; i++) {
@@ -178,7 +213,7 @@ function devPort(range) {
 
 
 function onChange(e) {
-  loadDev();  
+  loadDev();
   if (! liveUpdates) { return }
 
   Logger.log(`onChange running. liveUpdates=${liveUpdates}; port=${port}`);
@@ -233,7 +268,23 @@ function scanDocIF(sheet) {
   }
 }
 function onEdit(e) {
-  loadDev();  
+  var lastEditTime = properties.getProperty(key);
+  // ui.alert("after lastEditTime = properties.getProperty(key): " + lastEditTime)
+  var currentEditTime = new Date().getTime();
+  // set a new lastEditTime if one doesn't exist or if it's been more than 60 seconds since the last edit
+  if (lastEditTime == 0) {
+    lastEditTime = currentEditTime;
+    // ui.alert("inside if, lastEditTime: " + lastEditTime);
+    properties.setProperty(key, lastEditTime);
+  }
+  var timePassed = currentEditTime - lastEditTime;
+  // ui.alert("timePassed: " + timePassed);
+  if (lastEditTime && (timePassed < sidebarRefreshInterval)) {
+    // If less than 60 seconds have passed since the last edit, do nothing.
+    return null;
+  }
+
+  loadDev();
 
   // Respond to Edit events on spreadsheet.
   if (! liveUpdates) { return }
@@ -255,8 +306,25 @@ function onEdit(e) {
 //     c.offset(-1,0).clear();
 //   }
 // }
+  if (lastEditTime && (timePassed > sidebarRefreshInterval)) {
+    // If more than 60 seconds have passed since the last edit, refresh Sidebar.
+    showSidebar();
+    // Reset lastEditTime.
+    resetLastEditTime();
+    // ScriptApp.newTrigger("resetLastEditTime")
+    //   .timeBased()
+    //   .after(5000)
+    //   .create();
+  }
 
-  showSidebar();
+  // ui.prompt(lastEditTime);
+  // google.script.host.editor.focus();
+  // var triggers = ScriptApp.getProjectTriggers();
+  // for (var i = 0; i < triggers.length; i++) {
+  //   if (triggers[i].getHandlerFunction() == "onEdit") {
+  //     ScriptApp.deleteTrigger(triggers[i]);
+  //   }
+  // }
 }
 
 function startProcessing(c, h, sheet) {
