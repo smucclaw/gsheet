@@ -8,9 +8,10 @@ const key = "lastEditTime";
 let ui = SpreadsheetApp.getUi();
 
 function onOpen() {
+  let sidebar = HtmlService.createTemplateFromFile('main');
   createSidebarMenu();
   loadDev();
-  showSidebar();
+  showSidebar(sidebar);
   resetLastEditTime();
 }
 
@@ -53,7 +54,7 @@ function loadDev() {
   Logger.log("setting liveUpdates to " + liveUpdates);
 }
 
-function showSidebar() {
+function showSidebar(sidebar) {
   let cachedUuid = saveUuid();
   let [spreadsheetId, sheetId] = getSsid();
   let workDirUrl = (url_wd() + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/");
@@ -62,7 +63,6 @@ function showSidebar() {
   Logger.log("url_hp() = " + url_hp());
   Logger.log("url_wd() = " + url_wd());
   Logger.log(`workDirUrl = ` + workDirUrl);
-  let sidebar = HtmlService.createTemplateFromFile('main');
   Logger.log("calling exportCSV()");
   sidebar.fromFlask = JSON.parse(exportCSV(cachedUuid, spreadsheetId, sheetId));
   Logger.log("fromFlask returned");
