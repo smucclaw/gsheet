@@ -22,6 +22,8 @@ if "basedir"       in os.environ: basedir       = os.environ["basedir"]
 if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
 if "v8k_startport" in os.environ: v8k_startport = os.environ["v8k_startport"]
 if "v8k_path"      in os.environ: v8k_path      = os.environ["v8k_path"]
+if "natural4_ver"  in os.environ: natural4_ver  = os.environ["v8k_path"]
+else: natural4_ver = "natural4-exe"
 
 natural4_exe = "natural4-exe" # the default filename when you call `stack install`
 # but sometimes it is desirable to override it with a particular binary from a particular commit
