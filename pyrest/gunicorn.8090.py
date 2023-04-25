@@ -1,8 +1,9 @@
 #
-# 8081 is a dev unstable port running the latest build on main
+# 8090 is a dev unstable port running the latest build on main
+# it was previously on 8081 but that has been deprecated
 #
 
-bindport=8081
+bindport=8090
 
 pythonpath = "/home/mengwong/src/smucclaw/gsheet/pyrest/lib/python3.8/site-packages/"
 raw_env = ["basedir="       + ".",
