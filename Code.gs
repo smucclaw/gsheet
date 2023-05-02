@@ -10,7 +10,6 @@ let ui = SpreadsheetApp.getUi();
 function onOpen() {
   let sidebar = HtmlService.createTemplateFromFile('main');
   createSidebarMenu();
-  loadDev();
   showSidebar(sidebar);
   resetLastEditTime();
 }
@@ -48,6 +47,7 @@ function loadDev() {
   let sheet = SpreadsheetApp.getActiveSheet();
   let range = sheet.getRange("A1:Z10").getDisplayValues();
 
+  loadDev();
   port = devPort(range) || "8080";
   liveUpdates = devScan(range, /live updates (true|false)/i) || true; if (liveUpdates.toString().toLowerCase() == "false") { liveUpdates = false }
   Logger.log("setting port to " + port);
