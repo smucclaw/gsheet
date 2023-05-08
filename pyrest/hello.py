@@ -276,35 +276,36 @@ def processCsv():
     with open(natural4_file) as f:
       natural4_rules = f.read()
 
-    config = maude_vis.natural4_rules_to_config(
-      maude_main_mod, natural4_rules
-    )
+    if natural4_rules.strip():
+      config = maude_vis.natural4_rules_to_config(
+        maude_main_mod, natural4_rules
+      )
 
-    if config:
-      # Generate state space graph.
-      # graph.expand() in FailFreeGraph may take forever because the state space
-      # may be infinite.
-      # Hence, we fork this into a separate thread so that we can quickly return
-      # a response.
-      threading.Thread(
-        target = maude_vis.config_to_html_file,
-        args = (
-          maude_main_mod,
-          config,
-          'all *',
-          maude_path / 'LATEST_state_space.html'
-        )
-      ).start()
+      if config:
+        # Generate state space graph.
+        # graph.expand() in FailFreeGraph may take forever because the state space
+        # may be infinite.
+        # Hence, we fork this into a separate thread so that we can quickly return
+        # a response.
+        threading.Thread(
+          target = maude_vis.config_to_html_file,
+          args = (
+            maude_main_mod,
+            config,
+            'all *',
+            maude_path / 'LATEST_state_space.html'
+          )
+        ).start()
 
-      # Find a trace with race conditions and generate a graph.
-      threading.Thread(
-        target = maude_vis.natural4_rules_to_race_cond_htmls,
-        args = (
-          maude_main_mod,
-          maude_path / 'LATEST_race_cond.html',
-          natural4_rules
-        )
-      ).start()
+        # Find a trace with race conditions and generate a graph.
+        threading.Thread(
+          target = maude_vis.natural4_rules_to_race_cond_htmls,
+          args = (
+            maude_main_mod,
+            maude_path / 'LATEST_race_cond.html',
+            natural4_rules
+          )
+        ).start()
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
