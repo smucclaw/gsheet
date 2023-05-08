@@ -645,9 +645,10 @@ if __name__ == '__main__':
   natural4_rules = parse_natural4_file(main_mod, natural4_file)
   natural4_rules = escape_ansi(natural4_rules)
   config = natural4_rules_to_config(main_mod, natural4_rules)
-  config_to_html_file(main_mod, config, strat, html_file_path)
 
-  natural4_rules_to_race_cond_htmls(main_mod, workdir / 'race_cond', natural4_rules)
+  if config:
+    config_to_html_file(main_mod, config, strat, html_file_path)
+    natural4_rules_to_race_cond_htmls(main_mod, workdir / 'race_cond', natural4_rules)
 
   # main_file_term_strat_to_html_file(main_file, natural4_file, html_file_path, strat)
 
