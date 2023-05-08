@@ -334,7 +334,7 @@ def graph_to_nx_graph(mod, graph):
   node_to_nx_metadata = lambda node: {
     'title': pipe(
       node.term_str,
-      apply_fn_to_str(mod, 'configToStatus'),
+      apply_fn_to_str(mod, 'configToState'),
       parse_term_containing_qids
     ),
       # apply_fn_to_str(mod, 'pretty', node.term_str),
