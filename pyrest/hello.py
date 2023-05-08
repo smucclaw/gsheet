@@ -22,6 +22,13 @@ if "basedir"       in os.environ: basedir       = os.environ["basedir"]
 if "V8K_WORKDIR"   in os.environ: v8k_workdir   = os.environ["V8K_WORKDIR"]
 if "v8k_startport" in os.environ: v8k_startport = os.environ["v8k_startport"]
 if "v8k_path"      in os.environ: v8k_path      = os.environ["v8k_path"]
+if "natural4_ver"  in os.environ: natural4_ver  = os.environ["v8k_path"]
+else: natural4_ver = "natural4-exe"
+
+natural4_exe = "natural4-exe" # the default filename when you call `stack install`
+# but sometimes it is desirable to override it with a particular binary from a particular commit
+# in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
+if "natural4_exe"  in os.environ: natural4_exe  = os.environ["natural4_exe"]
 
 # if "maudedir" in os.environ: maudedir = os.environ["maudedir"]
 
@@ -116,8 +123,8 @@ def processCsv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  createFiles = "natural4-exe --tomd --toasp --toepilog --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
-  print("hello.py main: calling natural4-exe", file=sys.stderr)
+  createFiles = natural4_exe + " --tomd --toasp --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
+  print("hello.py main: calling natural4-exe (%s)" % (natural4_exe), file=sys.stderr)
   print("hello.py main: %s" % (createFiles), file=sys.stderr)
   nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   print("hello.py main: back from fast natural4-exe (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
@@ -247,8 +254,8 @@ def processCsv():
   else:         # in the child
     print ("hello.py processCsv: fork(child): continuing to run", file=sys.stderr);
 
-    createFiles = "natural4-exe --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
-    print("hello.py child: calling natural4-exe (slowly) for tomd", file=sys.stderr)
+    createFiles = natural4_exe + " --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheetId + "/" + sheetId + " " + targetPath
+    print("hello.py child: calling natural4-exe (%s) (slowly) for tomd" % (natural4_exe), file=sys.stderr)
     print("hello.py child: %s" % (createFiles), file=sys.stderr)
     nl4exe = subprocess.run([createFiles], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - startTime, ")", file=sys.stderr)
