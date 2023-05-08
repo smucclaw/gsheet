@@ -114,6 +114,20 @@ def apply_fn(mod, fn, arg):
     do(lambda term: term.reduce())
   )
 
+def parse_term_containing_qids(term):
+  replace_fn = lambda match: pipe(
+    match,
+    lambda x: x.group(0),
+    lambda x: x[1:],
+    lambda x: x.upper()
+  )
+  return pipe(
+    term,
+    escape_ansi,
+    lambda x: re.sub(r'`.', replace_fn, x),
+    lambda x: x.replace("'", '')
+  )
+
 @curry
 def apply_fn_to_str(mod, fn, arg):
   return pipe(
@@ -140,12 +154,19 @@ def node_term_to_contract_status(mod, node_term):
 
 @curry
 def node_term_to_node(mod, node_term):
-  return pipe(
+  contract_status = node_term_to_contract_status(mod, node_term)
+  term_str = pipe(
     node_term,
-    # juxt(apply_fn_to_str(mod, 'pretty'), node_term_to_contract_status),
-    juxt(escape_ansi, node_term_to_contract_status(mod)),
-    lambda x: Node(term_str = x[0], contract_status = x[1])
+    apply_fn_to_str(mod, 'configToState'),
+    parse_term_containing_qids
   )
+  return Node(term_str = term_str, contract_status = contract_status)
+  # return pipe(
+  #   node_term,
+  #   # juxt(apply_fn_to_str(mod, 'pretty'), node_term_to_contract_status),
+  #   juxt(escape_ansi, node_term_to_contract_status(mod)),
+  #   lambda x: Node(term_str = x[0], contract_status = x[1])
+  # )
 
 @curry
 def edges_to_node_map(mod, rewrite_graph, edges):
@@ -200,7 +221,8 @@ def to_rule_label(mod, dest_node, rule_label):
     return pipe(
       dest_node,
       # get_state_term_str(rewrite_graph),
-      apply_fn_to_str(mod, 'getAction')
+      apply_fn_to_str(mod, 'getAction'),
+      parse_term_containing_qids
     )
 
 @curry
