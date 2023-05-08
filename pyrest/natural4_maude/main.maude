@@ -88,6 +88,7 @@ smod MAIN is
   op _subset_ : Set{ActionEvent}Set{ActionEvent}-> Bool .
   op _subset_ : Set{Qid}Set{Qid}-> Bool .
   op _subset_ : Set{Rule}Set{Rule}-> Bool .
+  op configToState_ : Configuration -> ContractState .
   op configToStatus_ : Configuration -> ContractStatus .
   op contractStateToStatus_ : ContractState -> ContractStatus .
   op deadlineAllowsAction_ : Deadline -> Bool .
@@ -735,14 +736,16 @@ smod MAIN is
     = true .
   eq []f:Formula
     = False R f:Formula .
-  eq configToStatus(config:Configuration
+  eq configToState(config:Configuration
 < coordinator:Qid : V#2:Coordinator |
   time : V#4:Nat,
   rules : V#3:Set{Rule},
   contractState : contractState:ContractState,
   none,
   V#5:AttributeSet >)
-    = contractStateToStatus contractState:ContractState .
+    = contractState:ContractState .
+  eq configToStatus config:Configuration
+    = contractStateToStatus configToState config:Configuration .
   eq contractStateToStatus Fulfilled
     = (Fulfilled).ContractStatus .
   eq contractStateToStatus Active(activeRule:Rule, activeRules:Set{Rule})
