@@ -157,8 +157,7 @@ def node_term_to_node(mod, node_term):
   contract_status = node_term_to_contract_status(mod, node_term)
   term_str = pipe(
     node_term,
-    apply_fn_to_str(mod, 'configToState'),
-    parse_term_containing_qids
+    escape_ansi
   )
   return Node(term_str = term_str, contract_status = contract_status)
   # return pipe(
@@ -333,7 +332,12 @@ def rewrite_graph_to_graph(mod, rewrite_graph):
 @curry
 def graph_to_nx_graph(mod, graph):
   node_to_nx_metadata = lambda node: {
-    'title': apply_fn_to_str(mod, 'pretty', node.term_str),
+    'title': pipe(
+      node.term_str,
+      apply_fn_to_str(mod, 'configToStatus'),
+      parse_term_containing_qids
+    ),
+      # apply_fn_to_str(mod, 'pretty', node.term_str),
     'contract_state': node.contract_status,
     'color': node_to_colour(node)
   }
