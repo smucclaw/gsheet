@@ -115,17 +115,18 @@ def apply_fn(mod, fn, arg):
   )
 
 def parse_term_containing_qids(term):
-  replace_fn = lambda match: pipe(
-    match,
-    lambda x: x.group(0),
-    lambda x: x[1:],
-    lambda x: x.upper()
-  )
+  # replace_fn = lambda match: pipe(
+  #   match,
+  #   lambda x: x.group(0),
+  #   lambda x: x[1:],
+  #   lambda x: x.upper()
+  # )
   return pipe(
     term,
     escape_ansi,
-    lambda x: re.sub(r'`.', replace_fn, x),
-    lambda x: x.replace("'", '')
+    # lambda x: re.sub(r'`', replace_fn, x),
+    lambda x: x.replace("'", ''),
+    lambda x: x.replace('`',  ' ')
   )
 
 @curry
