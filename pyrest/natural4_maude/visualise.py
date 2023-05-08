@@ -336,7 +336,8 @@ def graph_to_nx_graph(mod, graph):
     'title': pipe(
       node.term_str,
       apply_fn_to_str(mod, 'configToState'),
-      parse_term_containing_qids
+      parse_term_containing_qids,
+      lambda x: 'Fulfilled' if x == '(Fulfilled).ContractState' else x
     ),
       # apply_fn_to_str(mod, 'pretty', node.term_str),
     'contract_state': node.contract_status,
