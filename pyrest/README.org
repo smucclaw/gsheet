@@ -76,3 +76,8 @@ If you need a poolsize greater than 9, we will need to tweak the source code:
 
 see architecture.dot for illustration
 
+* Invoke from command-line
+
+#+begin_src bash
+  curl localhost:8020/post -F uuid="23fcb41d-4438-45f4-976e-16174109df02" -F spreadsheetId="1GdDyNl6jWaeSwY_Ao2sA8yahQINPcnhRh9naGRIDGak" -F sheetId="1206725099" -F "csvString=<$filename.csv"
+#+end_src
