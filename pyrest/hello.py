@@ -15,7 +15,8 @@ import sys, string, os, datetime, glob, shutil, subprocess, re, json
 from pathlib import Path
 import datetime
 
-import threading
+# import threading
+import asyncio
 import natural4_maude.visualise as maude_vis
 
 if "basedir"       in os.environ: basedir       = os.environ["basedir"]
@@ -93,7 +94,7 @@ maude_main_mod = maude_vis.init_maude_n_load_main_file(maude_main_file)
 # This is the function that does all the heavy lifting.
 
 @app.route("/post", methods=['GET', 'POST'])
-def processCsv():
+async def processCsv():
   startTime = datetime.datetime.now()
   print("hello.py processCsv() starting at ", startTime, file=sys.stderr)
 
@@ -271,41 +272,59 @@ def processCsv():
     # ---------------------------------------------
     maude_path = Path(uuidssfolder) / 'maude'
     maude_path.mkdir(parents=True, exist_ok=True)
-    natural4_file = maude_path / 'LATEST.natural4'
-    natural4_rules = None
+    natural4_file = maude_path / 'LATEST.natural4'    
     with open(natural4_file) as f:
       natural4_rules = f.read()
 
+    # We don't proceed with post processing if the natural4 file is empty or
+    # contains only whitespaces.
     if natural4_rules.strip():
+      # Transform the set of rules into the initial configuration of the
+      # transition system.
       config = maude_vis.natural4_rules_to_config(
         maude_main_mod, natural4_rules
       )
-
       if config:
-        # Generate state space graph.
-        # graph.expand() in FailFreeGraph may take forever because the state space
-        # may be infinite.
-        # Hence, we fork this into a separate thread so that we can quickly return
-        # a response.
-        threading.Thread(
-          target = maude_vis.config_to_html_file,
-          args = (
-            maude_main_mod,
-            config,
-            'all *',
-            maude_path / 'LATEST_state_space.html'
-          )
-        ).start()
+        # Here we use asyncio to generate the state space graph and find a
+        # race condition trace in parallel, with a timeout of 30s.
+        async with asyncio.timeout(30):
+          await asyncio.gather(
+            # Generate state space graph.
+            # graph.expand() in FailFreeGraph may take forever because the state space
+            # may be infinite.
+            asyncio.to_thread(
+              maude_vis.config_to_html_file,
+              maude_main_mod, config, 'all *',
+              maude_path / 'LATEST_state_space.html'
+            ),
 
-        # Find a trace with race conditions and generate a graph.
-        threading.Thread(
-          target = maude_vis.natural4_rules_to_race_cond_htmls,
-          args = (
-            maude_main_mod,
-            maude_path / 'LATEST_race_cond.html',
-            natural4_rules
+            # Find a trace with race conditions and generate a graph.
+            asyncio.to_thread(
+              maude_vis.natural4_rules_to_race_cond_htmls,
+              maude_main_mod,
+              maude_path / 'LATEST_race_cond.html',
+              natural4_rules
+            )
           )
-        ).start()
+
+          # threading.Thread(
+          #   target = maude_vis.config_to_html_file,
+          #   args = (
+          #     maude_main_mod,
+          #     config,
+          #     'all *',
+          #     maude_path / 'LATEST_state_space.html'
+          #   )
+          # ).start()
+
+          # threading.Thread(
+          #   target = maude_vis.natural4_rules_to_race_cond_htmls,
+          #   args = (
+          #     maude_main_mod,
+          #     maude_path / 'LATEST_race_cond.html',
+          #     natural4_rules
+          #   )
+          # ).start()
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
