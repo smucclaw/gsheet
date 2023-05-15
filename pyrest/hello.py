@@ -186,21 +186,6 @@ def process_csv():
             print("hello.py main: %s" % (e), file=sys.stderr)
 
     # ---------------------------------------------
-    # postprocessing: for the babyl4 downstream transpilations
-    # - call l4 epilog corel4/LATEST.l4
-    # ---------------------------------------------
-
-    core_l4_path = uuid_ss_folder + "/corel4/LATEST.l4"
-    epilog_path = uuid_ss_folder + "/epilog"
-    Path(epilog_path).mkdir(parents=True, exist_ok=True)
-    epilog_file = epilog_path + "/" + time_now + ".epilog"
-
-    print("hello.py main: running: l4 epilog " + core_l4_path + " > " + epilog_file, "&", file=sys.stderr)
-    os.system("l4 epilog " + core_l4_path + " > " + epilog_file + " &")
-    if os.path.isfile(epilog_path + "/LATEST.epilog"): os.unlink(epilog_path + "/LATEST.epilog")
-    os.symlink(time_now + ".epilog", epilog_path + "/LATEST.epilog")
-
-    # ---------------------------------------------
     # postprocessing: (re-)launch the vue web server
     # - call v8k up
     # ---------------------------------------------
