@@ -22,24 +22,22 @@ from flask import Flask, request, send_file
 import natural4_maude 
 
 if "basedir" in os.environ:
-    basedir = os.environ["basedir"]
+  basedir = os.environ["basedir"]
 if "V8K_WORKDIR" in os.environ:
-    v8k_workdir = os.environ["V8K_WORKDIR"]
+  v8k_workdir = os.environ["V8K_WORKDIR"]
 if "v8k_startport" in os.environ:
-    v8k_startport = os.environ["v8k_startport"]
+  v8k_startport = os.environ["v8k_startport"]
 if "v8k_path" in os.environ:
-    v8k_path = os.environ["v8k_path"]
+  v8k_path = os.environ["v8k_path"]
 if "natural4_ver" in os.environ:
-    natural4_ver = os.environ["v8k_path"]
+  natural4_ver = os.environ["v8k_path"]
 else:
-    natural4_ver = "natural4-exe"
+  natural4_ver = "natural4-exe"
 
 natural4_exe = "natural4-exe"  # the default filename when you call `stack install`
 # but sometimes it is desirable to override it with a particular binary from a particular commit
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
 if "natural4_exe" in os.environ: natural4_exe = os.environ["natural4_exe"]
-
-# if "maudedir" in os.environ: maudedir = os.environ["maudedir"]
 
 # see gunicorn.conf.py for basedir, workdir, startport
 template_dir = basedir + "/template/"
@@ -57,23 +55,20 @@ app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 @app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
 def get_workdir_file(uuid, ssid, sid, channel, filename):
-    print("get_workdir_file: handling request for %s/%s/%s/%s/%s" % (uuid, ssid, sid, channel, filename), file=sys.stderr)
-    workdir_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + channel
-    if not os.path.exists(workdir_folder):
-        print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
-        return
-
-    if not os.path.isfile(workdir_folder + "/" + filename):
-        print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
-        return
-
-    (fn, ext) = os.path.splitext(filename)
+  print("get_workdir_file: handling request for %s/%s/%s/%s/%s" % (uuid, ssid, sid, channel, filename), file=sys.stderr)
+  workdir_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + channel
+  if not os.path.exists(workdir_folder):
+    print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
+  elif not os.path.isfile(workdir_folder + "/" + filename):
+    print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
+  else:
+    (_, ext) = os.path.splitext(filename)
     if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
-        print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
-        return send_file(workdir_folder + "/" + filename, mimetype="text/plain")
+      print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
+      mimetype = "text/plain"
     else:
-        print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
-        return send_file(workdir_folder + "/" + filename)
+      print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
+    return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
 
 
 # ################################################
@@ -87,11 +82,11 @@ def get_workdir_file(uuid, ssid, sid, channel, filename):
 
 @app.route("/aasvg/<uuid>/<ssid>/<sid>/<image>")
 def show_aasvg_image(uuid, ssid, sid, image):
-    print("show_aasvg_image: handling request for /aasvg/ url", file=sys.stderr)
-    aasvg_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/aasvg/LATEST/"
-    image_path = aasvg_folder + image
-    print("show_aasvg_image: sending path " + image_path, file=sys.stderr)
-    return send_file(image_path)
+  print("show_aasvg_image: handling request for /aasvg/ url", file=sys.stderr)
+  aasvg_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/aasvg/LATEST/"
+  image_path = aasvg_folder + image
+  print("show_aasvg_image: sending path " + image_path, file=sys.stderr)
+  return send_file(image_path)
 
 
 # ################################################
