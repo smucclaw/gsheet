@@ -24,7 +24,11 @@ import natural4_maude
 if "basedir" in os.environ:
   basedir = os.environ["basedir"]
 if "V8K_WORKDIR" in os.environ:
-  v8k_workdir = os.environ["V8K_WORKDIR"]
+    v8k_workdir = os.environ["V8K_WORKDIR"]
+if "V8K_SLOTS" in os.environ:
+    v8k_slots_arg = "--poolsize " + os.environ["V8K_SLOTS"]
+else:
+    v8k_slots_arg = ""
 if "v8k_startport" in os.environ:
   v8k_startport = os.environ["v8k_startport"]
 if "v8k_path" in os.environ:
@@ -37,7 +41,8 @@ else:
 natural4_exe = "natural4-exe"  # the default filename when you call `stack install`
 # but sometimes it is desirable to override it with a particular binary from a particular commit
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
-if "natural4_exe" in os.environ: natural4_exe = os.environ["natural4_exe"]
+if "natural4_exe" in os.environ:
+    natural4_exe = os.environ["natural4_exe"]
 
 # see gunicorn.conf.py for basedir, workdir, startport
 template_dir = basedir + "/template/"
@@ -104,16 +109,16 @@ async def process_csv():
 
   response = {}
 
-  uuid = data['uuid']
-  spreadsheet_id = data['spreadsheet_id']
-  sheet_id = data['sheet_id']
-  target_folder = natural4_dir + "/" + uuid + "/" + spreadsheet_id + "/" + sheet_id + "/"
-  print(target_folder)
-  time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
-  target_file = time_now + ".csv"
-  target_path = target_folder + target_file
-  # if not os.path.exists(target_folder):
-  Path(target_folder).mkdir(parents=True, exist_ok=True)
+    uuid = data['uuid']
+    spreadsheet_id = data['spreadsheetId']
+    sheet_id = data['sheetId']
+    target_folder = natural4_dir + "/" + uuid + "/" + spreadsheet_id + "/" + sheet_id + "/"
+    print(target_folder)
+    time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
+    target_file = time_now + ".csv"
+    target_path = target_folder + target_file
+    # if not os.path.exists(target_folder):
+    Path(target_folder).mkdir(parents=True, exist_ok=True)
 
   with open(target_path, "w") as fout:
     fout.write(data['csvString'])
@@ -180,22 +185,22 @@ async def process_csv():
     # postprocessing: (re-)launch the vue web server
     # - call v8k up
     # ---------------------------------------------
+    v8kargs = ["python", v8k_path,
+               "--workdir=" + v8k_workdir,
+               "up",
+               v8k_slots_arg,
+               "--uuid=" + uuid,
+               "--ssid=" + spreadsheet_id,
+               "--sheetid=" + sheet_id,
+               "--startport=" + v8k_startport,
+               uuid_ss_folder + "/purs/LATEST.purs"]
 
-  v8kargs = ["python", v8k_path,
-              "--workdir=" + v8k_workdir,
-              "up",
-              "--uuid=" + uuid,
-              "--ssid=" + spreadsheet_id,
-              "--sheetid=" + sheet_id,
-              "--startport=" + v8k_startport,
-              uuid_ss_folder + "/purs/LATEST.purs"]
-
-  print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
-  os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
-  print("hello.py main: v8k up returned", file=sys.stderr)
-  with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
-    v8k_out = read_file.readline()
-  print("v8k.out: %s" % (v8k_out), file=sys.stderr)
+    print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
+    os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
+    print("hello.py main: v8k up returned", file=sys.stderr)
+    with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
+        v8k_out = read_file.readline()
+    print("v8k.out: %s" % (v8k_out), file=sys.stderr)
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
