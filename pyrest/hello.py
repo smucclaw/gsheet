@@ -109,16 +109,16 @@ async def process_csv():
 
   response = {}
 
-    uuid = data['uuid']
-    spreadsheet_id = data['spreadsheetId']
-    sheet_id = data['sheetId']
-    target_folder = natural4_dir + "/" + uuid + "/" + spreadsheet_id + "/" + sheet_id + "/"
-    print(target_folder)
-    time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
-    target_file = time_now + ".csv"
-    target_path = target_folder + target_file
-    # if not os.path.exists(target_folder):
-    Path(target_folder).mkdir(parents=True, exist_ok=True)
+  uuid = data['uuid']
+  spreadsheet_id = data['spreadsheetId']
+  sheet_id = data['sheetId']
+  target_folder = natural4_dir + "/" + uuid + "/" + spreadsheet_id + "/" + sheet_id + "/"
+  print(target_folder)
+  time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
+  target_file = time_now + ".csv"
+  target_path = target_folder + target_file
+  # if not os.path.exists(target_folder):
+  Path(target_folder).mkdir(parents=True, exist_ok=True)
 
   with open(target_path, "w") as fout:
     fout.write(data['csvString'])
@@ -199,7 +199,7 @@ async def process_csv():
     os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
     print("hello.py main: v8k up returned", file=sys.stderr)
     with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
-        v8k_out = read_file.readline()
+      v8k_out = read_file.readline()
     print("v8k.out: %s" % (v8k_out), file=sys.stderr)
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
