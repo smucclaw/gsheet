@@ -9,20 +9,18 @@
 # ################################################
 # There is no #! line because we are run out of gunicorn.
 
+import asyncio
 import datetime
 import json
 import os
 import re
 import subprocess
 import sys
-# import threading
-import asyncio
 from pathlib import Path
 
 from flask import Flask, request, send_file
 
-from natural4_maude.analyse_state_space import analyse_state_space 
-
+import natural4_maude 
 
 if "basedir" in os.environ:
     basedir = os.environ["basedir"]
@@ -261,7 +259,7 @@ async def process_csv():
     print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
           ")", file=sys.stderr)
 
-    analyse_state_space(uuid_ss_folder)
+    natural4_maude.analyse_state_space(uuid_ss_folder)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
