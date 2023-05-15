@@ -128,9 +128,9 @@ async def process_csv():
 
   # target_path is for CSV data
 
-# ---------------------------------------------
-# call natural4-exe, wait for it to complete. see SECOND RUN below.
-# ---------------------------------------------
+  # ---------------------------------------------
+  # call natural4-exe, wait for it to complete. see SECOND RUN below.
+  # ---------------------------------------------
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
@@ -199,10 +199,10 @@ async def process_csv():
   if os.path.isfile(epilog_path + "/LATEST.epilog"): os.unlink(epilog_path + "/LATEST.epilog")
   os.symlink(time_now + ".epilog", epilog_path + "/LATEST.epilog")
 
-# ---------------------------------------------
-# postprocessing: (re-)launch the vue web server
-# - call v8k up
-# ---------------------------------------------
+  # ---------------------------------------------
+  # postprocessing: (re-)launch the vue web server
+  # - call v8k up
+  # ---------------------------------------------
 
   v8kargs = ["python", v8k_path,
               "--workdir=" + v8k_workdir,
