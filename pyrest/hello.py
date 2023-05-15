@@ -145,12 +145,12 @@ async def process_csv():
   print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
 
   if len(nl4exe.stderr.decode('utf-8')) < 2000:
-      print(nl4exe.stderr.decode('utf-8'))
+    print(nl4exe.stderr.decode('utf-8'))
   nl4_out = nl4exe.stdout.decode('utf-8')
   with open(target_folder + time_now + ".err", "w") as fout:
-      fout.write(nl4exe.stderr.decode('utf-8'))
+    fout.write(nl4exe.stderr.decode('utf-8'))
   with open(target_folder + time_now + ".out", "w") as fout:
-      fout.write(nl4exe.stdout.decode('utf-8'))
+    fout.write(nl4exe.stdout.decode('utf-8'))
 
   response['nl4_stderr'] = nl4exe.stderr.decode('utf-8')[:20000]
   response['nl4_stdout'] = nl4exe.stdout.decode('utf-8')[:20000]
@@ -165,26 +165,26 @@ async def process_csv():
   (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
 
   if not os.path.exists(petri_folder):
-      print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
+    print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
   else:
-      petri_path_svg = petri_folder + timestamp + ".svg"
-      petri_path_png = petri_folder + timestamp + ".png"
-      small_petri_path = petri_folder + timestamp + "-small.png"
-      print("hello.py main: running: dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &", file=sys.stderr)
-      os.system("dot -Tpng -Gdpi=72  " + dot_path + " -o " + small_petri_path + " &")
-      os.system("dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &")
-      os.system("dot -Tsvg           " + dot_path + " -o " + petri_path_svg + " &")
-      try:
-          if os.path.isfile(petri_folder + "LATEST.svg"):       os.unlink(petri_folder + "LATEST.svg")
-          if os.path.isfile(petri_folder + "LATEST.png"):       os.unlink(petri_folder + "LATEST.png")
-          if os.path.isfile(petri_folder + "LATEST-small.png"): os.unlink(petri_folder + "LATEST-small.png")
-          os.symlink(os.path.basename(petri_path_svg), petri_folder + "LATEST.svg")
-          os.symlink(os.path.basename(petri_path_png), petri_folder + "LATEST.png")
-          os.symlink(os.path.basename(small_petri_path), petri_folder + "LATEST-small.png")
-      except Exception as e:
-          print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking",
-                file=sys.stderr)
-          print("hello.py main: %s" % (e), file=sys.stderr)
+    petri_path_svg = petri_folder + timestamp + ".svg"
+    petri_path_png = petri_folder + timestamp + ".png"
+    small_petri_path = petri_folder + timestamp + "-small.png"
+    print("hello.py main: running: dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &", file=sys.stderr)
+    os.system("dot -Tpng -Gdpi=72  " + dot_path + " -o " + small_petri_path + " &")
+    os.system("dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &")
+    os.system("dot -Tsvg           " + dot_path + " -o " + petri_path_svg + " &")
+    try:
+      if os.path.isfile(petri_folder + "LATEST.svg"):       os.unlink(petri_folder + "LATEST.svg")
+      if os.path.isfile(petri_folder + "LATEST.png"):       os.unlink(petri_folder + "LATEST.png")
+      if os.path.isfile(petri_folder + "LATEST-small.png"): os.unlink(petri_folder + "LATEST-small.png")
+      os.symlink(os.path.basename(petri_path_svg), petri_folder + "LATEST.svg")
+      os.symlink(os.path.basename(petri_path_png), petri_folder + "LATEST.png")
+      os.symlink(os.path.basename(small_petri_path), petri_folder + "LATEST-small.png")
+    except Exception as e:
+      print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking",
+            file=sys.stderr)
+      print("hello.py main: %s" % (e), file=sys.stderr)
 
   # ---------------------------------------------
   # postprocessing: for the babyl4 downstream transpilations
@@ -219,22 +219,22 @@ async def process_csv():
   os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
   print("hello.py main: v8k up returned", file=sys.stderr)
   with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
-      v8k_out = read_file.readline();
+    v8k_out = read_file.readline();
   print("v8k.out: %s" % (v8k_out), file=sys.stderr)
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
-      v8k_url = v8k_out.strip()
-      print("v8k up succeeded with: " + v8k_url, file=sys.stderr)
-      response['v8k_url'] = v8k_url
+    v8k_url = v8k_out.strip()
+    print("v8k up succeeded with: " + v8k_url, file=sys.stderr)
+    response['v8k_url'] = v8k_url
   else:
-      response['v8k_url'] = None
+    response['v8k_url'] = None
 
 # ---------------------------------------------
 # load in the aasvg index HTML to pass back to sidebar
 # ---------------------------------------------
 
   with open(uuid_ss_folder + "/aasvg/LATEST/index.html", "r") as read_file:
-      response['aasvg_index'] = read_file.read()
+    response['aasvg_index'] = read_file.read()
 
 # ---------------------------------------------
 # construct other response elements and log run-timings.
@@ -321,8 +321,8 @@ async def process_csv():
           )
         )
 
-      # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
-      return json.dumps(response)
+    # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
+    return json.dumps(response)
 
   # ---------------------------------------------
   # return to sidebar caller
@@ -333,4 +333,4 @@ async def process_csv():
 # ################################################
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=False, threaded=True, processes=6)
+  app.run(host='0.0.0.0', port=8080, debug=False, threaded=True, processes=6)
