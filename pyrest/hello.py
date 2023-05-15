@@ -9,7 +9,6 @@
 # ################################################
 # There is no #! line because we are run out of gunicorn.
 
-import asyncio
 import datetime
 import json
 import os
