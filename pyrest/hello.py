@@ -9,6 +9,7 @@
 # ################################################
 # There is no #! line because we are run out of gunicorn.
 
+import asyncio
 import datetime
 import json
 import os
@@ -101,7 +102,7 @@ def show_aasvg_image(uuid, ssid, sid, image):
 # This is the function that does all the heavy lifting.
 
 @app.route("/post", methods=['GET', 'POST'])
-async def process_csv():
+def process_csv():
   start_time = datetime.datetime.now()
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
@@ -258,7 +259,7 @@ async def process_csv():
     print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
           ")", file=sys.stderr)
 
-    natural4_maude.analyse_state_space(uuid_ss_folder)
+    asyncio.run(natural4_maude.analyse_state_space(uuid_ss_folder))
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
