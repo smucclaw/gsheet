@@ -61,7 +61,7 @@ async def analyse_state_space(uuid_ss_folder):
     if config:
       # Parallel composition of:
       # - generation of state space
-      # - finding a race condition trace,
+      # - finding a race condition trace
       # with a time out of 30s.
       try:
         async with (
