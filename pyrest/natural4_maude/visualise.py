@@ -82,9 +82,14 @@ class Graph(pyrs.PRecord):
   edges = pyrs.pset_field(Edge)
 
 def node_to_colour(node):
-  if node.contract_status == 'Active': return 'blue'
-  if node.contract_status == 'Fulfilled': return 'green'
-  if node.contract_status == 'Breached': return 'red'
+  # if node.contract_status == 'Active': return 'blue'
+  # if node.contract_status == 'Fulfilled': return 'green'
+  # if node.contract_status == 'Breached': return 'red'
+  match node.contract_status:
+    case 'Active': colour = 'blue'
+    case 'Fulfilled': colour = 'green'
+    case 'Breached': colour = 'red'
+  return colour
 
 @curry
 def edge_to_colour(graph, edge):
