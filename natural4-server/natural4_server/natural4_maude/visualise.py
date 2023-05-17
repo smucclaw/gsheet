@@ -82,9 +82,6 @@ class Graph(pyrs.PRecord):
   edges = pyrs.pset_field(Edge)
 
 def node_to_colour(node):
-  # if node.contract_status == 'Active': return 'blue'
-  # if node.contract_status == 'Fulfilled': return 'green'
-  # if node.contract_status == 'Breached': return 'red'
   match node.contract_status:
     case 'Active': colour = 'blue'
     case 'Fulfilled': colour = 'green'
@@ -151,33 +148,20 @@ def node_id_to_term_str(graph, node_id):
   )
 
 @curry
-def node_term_to_contract_status(mod, node_term):
-  return pipe(
+def node_term_to_node(mod, node_term):
+  term_str = escape_ansi(node_term)
+  contract_status = pipe(
     node_term,
     apply_fn_to_str(mod, 'configToStatus'),
     lambda x: 'Fulfilled' if x == '(Fulfilled).ContractStatus' else x
   )
-
-@curry
-def node_term_to_node(mod, node_term):
-  contract_status = node_term_to_contract_status(mod, node_term)
-  term_str = pipe(
-    node_term,
-    escape_ansi
-  )
   return Node(term_str = term_str, contract_status = contract_status)
-  # return pipe(
-  #   node_term,
-  #   # juxt(apply_fn_to_str(mod, 'pretty'), node_term_to_contract_status),
-  #   juxt(escape_ansi, node_term_to_contract_status(mod)),
-  #   lambda x: Node(term_str = x[0], contract_status = x[1])
-  # )
 
 @curry
 def edges_to_node_map(mod, rewrite_graph, edges):
   node_id_to_node = compose_left(
     node_id_to_term_str(rewrite_graph),
-    node_term_to_node(mod)
+    node_term_to_node
   )
   return pipe(
     edges,
@@ -186,7 +170,7 @@ def edges_to_node_map(mod, rewrite_graph, edges):
     # [... (src_id, dest_id) ...]
     concat,
     # [... src_id, dest_id ...]
-    map(juxt(identity, node_id_to_node)),
+    map(juxt(identity, node_id_to_node(mod, rewrite_graph))),
     # [... (src_id, Node_src_id), (dest_id, Node_dest_id)]
     pyrs.pmap
     # {... src_id: Node_src_id, dest_id: Node_dest_id ...}
