@@ -343,12 +343,6 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
   #       next_ids = next_ids.append(succ_id)
   #     yield (curr_id, succ_id)
 
-    # next_ids = pipe(
-    #   next_ids,
-    #   lambda q: q.popleft(),
-    #   lambda q: q.extend(to_edge_pairs(seen_ids, curr_id))
-    # )
-
 @curry
 def rewrite_graph_to_graph(mod, rewrite_graph):
   return pipe(
