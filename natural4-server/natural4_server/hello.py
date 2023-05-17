@@ -20,7 +20,7 @@ from pathlib import Path
 
 from flask import Flask, request, send_file
 
-from natural4_maude.analyse_state_space import analyse_state_space 
+from natural4_maude.analyse_state_space import run_analyse_state_space 
 
 if "basedir" in os.environ:
   basedir = os.environ["basedir"]
@@ -262,7 +262,7 @@ def process_csv():
     maude_output_path = Path(uuid_ss_folder) / 'maude'
     natural4_file = maude_output_path / 'LATEST.natural4'
 
-    asyncio.run(analyse_state_space(natural4_file, maude_output_path))
+    run_analyse_state_space(natural4_file, maude_output_path)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
