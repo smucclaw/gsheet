@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "natural4-server"
+version = "0.1.0"
+description = ""
+authors = ["CCLAW"]
+readme = "README.md"
+packages = [{include = "natural4_server"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+cytoolz = "^0.12.1"
+Flask = "^2.3.0"
+gunicorn = "^20.1.0"
+maude = "^1.2.2"
+networkx = "^3"
+pyrsistent = "^0.19.3"
+pyvis = "^0.3.2"
+umaudemc = "^0.12.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
