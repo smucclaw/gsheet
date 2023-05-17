@@ -161,7 +161,7 @@ def node_term_to_node(mod, node_term):
 def edges_to_node_map(mod, rewrite_graph, edges):
   node_id_to_node = compose_left(
     node_id_to_term_str(rewrite_graph),
-    node_term_to_node
+    node_term_to_node(mod)
   )
   return pipe(
     edges,
@@ -170,7 +170,7 @@ def edges_to_node_map(mod, rewrite_graph, edges):
     # [... (src_id, dest_id) ...]
     concat,
     # [... src_id, dest_id ...]
-    map(juxt(identity, node_id_to_node(mod, rewrite_graph))),
+    map(juxt(identity, node_id_to_node)),
     # [... (src_id, Node_src_id), (dest_id, Node_dest_id)]
     pyrs.pmap
     # {... src_id: Node_src_id, dest_id: Node_dest_id ...}
@@ -220,7 +220,7 @@ def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
   (src_id, dest_id) = edge_pair
   dest_node = node_id_to_term_str(rewrite_graph, dest_id)
 
-  match rewrite_graph.getRule(src_id, dest_id):
+  match rewrite_graph.getTransition(src_id, dest_id).getRule():
     case None:
       edge = None
     case rule:
@@ -228,7 +228,8 @@ def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
         rule,
         lambda rule: rule.getLabel(),
         to_rule_label(mod, dest_node),
-        lambda rule_label: Edge(src_id, dest_id, rule_label)
+        lambda rule_label:
+          Edge(src_id=src_id, dest_id=dest_id, rule_label=rule_label)
       )
 
   return edge

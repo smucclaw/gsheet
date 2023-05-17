@@ -259,7 +259,10 @@ def process_csv():
     print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
           ")", file=sys.stderr)
 
-    asyncio.run(analyse_state_space(uuid_ss_folder))
+    maude_output_path = Path(uuid_ss_folder) / 'maude'
+    natural4_file = maude_output_path / 'LATEST.natural4'
+
+    asyncio.run(analyse_state_space(natural4_file, maude_output_path))
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
