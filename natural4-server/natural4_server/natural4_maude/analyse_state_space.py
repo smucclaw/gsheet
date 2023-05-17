@@ -24,7 +24,7 @@ def gen_state_space(output_path, config):
   )
 
 @curry
-def find_race_cond(maude_path, natural4_rules):
+def find_race_cond(output_path, natural4_rules):
   '''
   Find a trace with race conditions and generate a graph.
   '''
@@ -32,7 +32,7 @@ def find_race_cond(maude_path, natural4_rules):
   return asyncio.to_thread(
     vis.natural4_rules_to_race_cond_htmls,
     maude_main_mod,
-    maude_path / 'LATEST_race_cond.html',
+    output_path / 'LATEST_race_cond.html',
     natural4_rules
   )
 
