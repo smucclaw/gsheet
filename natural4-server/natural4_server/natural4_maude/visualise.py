@@ -143,7 +143,7 @@ def apply_fn_to_str(mod, fn, arg):
   )
 
 @curry
-def get_state_term_str(graph, node_id):
+def node_id_to_term_str(graph, node_id):
   return pipe(
     node_id,
     graph.getStateTerm,
@@ -176,7 +176,7 @@ def node_term_to_node(mod, node_term):
 @curry
 def edges_to_node_map(mod, rewrite_graph, edges):
   node_id_to_node = compose_left(
-    get_state_term_str(rewrite_graph),
+    node_id_to_term_str(rewrite_graph),
     node_term_to_node(mod)
   )
   return pipe(
@@ -233,22 +233,38 @@ def to_rule_label(mod, dest_node, rule_label):
 @curry
 def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
   # TODO: Implement a proper Option type
-  return pipe(
-    edge_pair,
-    lambda edge:
-      # (edge[0], edge[1], rewrite_graph.getTransition(*edge).getRule()),
-      (edge[0], edge[1], rewrite_graph.getRule(*edge)),
-    # [... (n, succ, rule), ...]
-    lambda edge:
-      (edge[0], edge[1],
-        to_rule_label(mod, get_state_term_str(rewrite_graph, edge[1]), edge[2].getLabel()))
-      if edge[2] != None else None,
-    # [... (n, succ, rule_label), ...]
-    lambda edge:
-      Edge(src_id = edge[0], dest_id = edge[1], rule_label = edge[2])
-      if edge != None else None
-    # [... Edge ...]
-  )
+  (src_id, dest_id) = edge_pair
+  dest_node = node_id_to_term_str(rewrite_graph, dest_id)
+
+  match rewrite_graph.getRule(src_id, dest_id):
+    case None:
+      edge = None
+    case rule:
+      edge = pipe(
+        rule,
+        lambda rule: rule.getLabel(),
+        to_rule_label(mod, dest_node),
+        lambda rule_label: Edge(src_id, dest_id, rule_label)
+      )
+
+  return edge
+
+  # return pipe(
+  #   edge_pair,
+  #   lambda edge:
+  #     # (edge[0], edge[1], rewrite_graph.getTransition(*edge).getRule()),
+  #     (edge[0], edge[1], rewrite_graph.getRule(*edge)),
+  #   # [... (n, succ, rule), ...]
+  #   lambda edge:
+  #     (edge[0], edge[1],
+  #       to_rule_label(mod, get_state_term_str(rewrite_graph, edge[1]), edge[2].getLabel()))
+  #     if edge[2] != None else None,
+  #   # [... (n, succ, rule_label), ...]
+  #   lambda edge:
+  #     Edge(src_id = edge[0], dest_id = edge[1], rule_label = edge[2])
+  #     if edge != None else None
+  #   # [... Edge ...]
+  # )
 
 # Based on:
 # https://github.com/fadoss/umaudemc/blob/master/umaudemc/wrappers.py#L77
@@ -378,25 +394,6 @@ def graph_to_nx_graph(mod, graph):
     do(lambda nx_graph: nx_graph.add_edges_from(edges))
   )
 
-  # nx_graph = nx.DiGraph()
-  # for node_id, node in graph.node_map.items():
-  #   nx_graph.add_node(
-  #     node_id,
-  #     # Do we want title or label?
-  #     # Title can contain html and only shows when hovering over the node.
-  #     # Label is visible all the time.
-  #     title = node.term_str,
-  #     contract_state = node.contract_status,
-  #     color = node_to_colour(node)
-  #   )
-  # for edge in graph.edges:
-  #   nx_graph.add_edge(
-  #     edge.src_id, edge.dest_id,
-  #     label = edge.rule_label,
-  #     next_state = edge_to_next_state(graph, edge),
-  #     color = edge_to_colour(graph, edge)
-  #   )
-
   # Quotient states by same title, to merge states that have different global time.
   nx_node_titles = nx_graph.nodes(data = 'title')
   equiv_rel = lambda node1, node2: (
@@ -470,7 +467,7 @@ def rewrite_graph_to_nx_graph(mod, rewrite_graph):
 def term_strat_to_nx_graph(mod, term, strat):
   return pipe(
     create_graph(
-      term = term, # strategy = strat,
+      term = term, strategy = strat,
       # purge_fails = 'yes',
       logic = ''
     ),
@@ -578,10 +575,12 @@ def race_cond_path_to_graph(mod, race_cond_path):
     take_nth(2),
     # [(state_0, trans_01, state_1), (state_1, trans_12, state_2) ...]
     map(lambda e: 
-        Edge(
-          src_id = node_term_to_id_map[e[0]],
-          dest_id = node_term_to_id_map[e[2]],
-          rule_label = to_rule_label(mod, e[2], e[1].getRule().getLabel())))
+      Edge(
+        src_id = node_term_to_id_map[e[0]],
+        dest_id = node_term_to_id_map[e[2]],
+        rule_label = to_rule_label(mod, e[2], e[1].getRule().getLabel())
+      )
+    )
     # [... Edge(src_id, dest_id, rule_label) ...]
   )
 
