@@ -20,7 +20,7 @@ from pathlib import Path
 
 from flask import Flask, request, send_file
 
-import natural4_maude 
+from natural4_maude.analyse_state_space import analyse_state_space 
 
 if "basedir" in os.environ:
   basedir = os.environ["basedir"]
@@ -259,7 +259,7 @@ def process_csv():
     print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
           ")", file=sys.stderr)
 
-    asyncio.run(natural4_maude.analyse_state_space(uuid_ss_folder))
+    asyncio.run(analyse_state_space(uuid_ss_folder))
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
