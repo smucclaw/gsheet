@@ -39,10 +39,9 @@ import sys
 import maude
 from umaudemc.wrappers import create_graph
 
-import itertools as it
-
 import pyrsistent as pyrs
 from cytoolz.functoolz import *
+from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import networkx as nx
@@ -284,19 +283,65 @@ def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
 
 # repeat = iterate(identity)
 
-# BFS to explore all edges in a rewrite graph.
-def rewrite_graph_to_edge_pairs(rewrite_graph):
-  seen_ids = pyrs.pset([0])
-  next_ids = pyrs.pdeque([0])
 
-  while next_ids:
-    curr_id = next_ids.left
-    next_ids = next_ids.popleft()
-    for succ_id in rewrite_graph.getNextStates(curr_id):
-      if succ_id not in seen_ids:
-        seen_ids = seen_ids.add(succ_id)
-        next_ids = next_ids.append(succ_id)
-      yield (curr_id, succ_id)
+def rewrite_graph_to_edge_pairs(rewrite_graph):
+  '''
+  BFS to explore all edges in a rewrite graph, computed via fixed point
+  iteration of a suitably defined transition system.
+
+  Note that there is a possibility of nontermination if for instance the
+  transition system has infinitely many states so that the fixpoint lies
+  beyond omega.
+  In such scenarios however, we can at least guarantee that we will always
+  make progress in each step < omega.
+  '''
+
+  def one_step_transition(state):
+    if not state['next_ids']: return state
+
+    curr_id = state['next_ids'].left
+    state = state.set('next_ids', state['next_ids'].popleft())
+
+    def binop(curr_state, succ_id):
+      next_state = curr_state.set(
+        'edge_pairs', curr_state['edge_pairs'].add((curr_id, succ_id))
+      )
+      if succ_id not in next_state['seen_ids']:
+        next_state = pipe(
+          next_state,
+          lambda s: s.set('seen_ids', next_state['seen_ids'].add(succ_id)),
+          lambda s: s.set('next_ids', next_state['next_ids'].append(succ_id))
+        )
+      return next_state
+
+    return reduce(binop, rewrite_graph.getNextStates(curr_id), state)
+
+  return pipe(
+    # Initialize the transition system
+    pyrs.pmap({
+      'seen_ids': pyrs.pset([0]),
+      'next_ids': pyrs.pdeque([0]),
+      'edge_pairs': pyrs.pset()
+    }),
+    # Compute the transitive closure of the transition relation.
+    iterate(one_step_transition),
+    # Get the fixed point.
+    filter(lambda state : state == one_step_transition(state)),
+    first,
+    get('edge_pairs')
+  )
+
+  # seen_ids = pyrs.pset([0])
+  # next_ids = pyrs.pdeque([0])
+
+  # while next_ids:
+  #   curr_id = next_ids.left
+  #   next_ids = next_ids.popleft()
+  #   for succ_id in rewrite_graph.getNextStates(curr_id):
+  #     if succ_id not in seen_ids:
+  #       seen_ids = seen_ids.add(succ_id)
+  #       next_ids = next_ids.append(succ_id)
+  #     yield (curr_id, succ_id)
 
     # next_ids = pipe(
     #   next_ids,
@@ -330,7 +375,7 @@ def rewrite_graph_to_graph(mod, rewrite_graph):
     juxt(identity, edges_to_node_map(mod, rewrite_graph)),
     # ({... Edge ...}, node_map)
     lambda x: Graph(edges = x[0], node_map = x[1]),
-    # do(lambda g: print(f'Size of state space before quotiening: {len(g.node_map), len(g.edges)}'))
+    do(lambda g: print(f'Size of state space before quotiening: {len(g.node_map), len(g.edges)}'))
   )
 
 @curry
