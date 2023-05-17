@@ -1,4 +1,3 @@
-import asyncio
 from pathlib import Path
 
 from natural4_maude.analyse_state_space import run_analyse_state_space
