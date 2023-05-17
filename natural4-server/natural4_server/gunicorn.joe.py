@@ -17,4 +17,4 @@ keyfile    = "/etc/letsencrypt/live/cclaw.legalese.com/privkey.pem"
 
 preload = True
 accesslog = "access_log"
-workers  = 5
+workers  = 3
