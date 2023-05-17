@@ -57,22 +57,16 @@ async def analyse_state_space(natural4_file, output_path):
     )
     # Do we need to worry about this being None?
     if config:
-      # PARTY natural4-server
-      # UPON transpilation of natural4 to Maude plaintext
-      # MAY WITHIN 20 seconds
-      # DO task_group
-      #
-      # task_group MEANS generate state space AND find race condition
+      # // Define a composite action in the AsyncIO Monad
+      # tasks MEANS generate state space AND find race condition
+      tasks = asyncio.gather(
+        find_race_cond(output_path, natural4_rules),
+        gen_state_space(output_path, config)
+      )
+      # PARTY natural4-server MAY WITHIN 10 seconds DO tasks
       try:
-        async with (
-          asyncio.TaskGroup() as task_group,
-          asyncio.timeout(20)
-        ):
-          for (f, arg) in [
-            (gen_state_space, config),
-            (find_race_cond, natural4_rules)
-          ]:
-            task_group.create_task(f(output_path, arg))
+        await asyncio.wait_for(tasks, timeout=10)
       except TimeoutError:
-        # Continue along the happy path even if we get a timeout.
+        # Continue along the happy path even if we get a timeout
+        print("Natural4 Maude timeout")
         pass
