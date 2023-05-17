@@ -17,6 +17,8 @@ pyrsistent = "^0.19.3"
 pyvis = "^0.3.2"
 umaudemc = "^0.12.1"
 
+[tool.poetry.dev-dependencies]
+ipython ="^8.13" 
 
 [build-system]
 requires = ["poetry-core"]
