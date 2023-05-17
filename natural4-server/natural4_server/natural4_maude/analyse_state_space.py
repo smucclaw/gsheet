@@ -9,6 +9,7 @@ import natural4_maude.visualise as vis
 maude_main_file = Path('natural4_maude') / 'main.maude'
 maude_main_mod = vis.init_maude_n_load_main_file(maude_main_file)
 
+@curry
 def gen_state_space(output_path, config):
   '''
   Generate state space graph.
@@ -22,6 +23,7 @@ def gen_state_space(output_path, config):
     output_path / 'LATEST_state_space.html'
   )
 
+@curry
 def find_race_cond(maude_path, natural4_rules):
   '''
   Find a trace with race conditions and generate a graph.
@@ -34,6 +36,7 @@ def find_race_cond(maude_path, natural4_rules):
     natural4_rules
   )
 
+@curry
 async def analyse_state_space(natural4_file, output_path):
   '''
   Post process textual natural4 files by using Maude to generate a state space
@@ -58,7 +61,7 @@ async def analyse_state_space(natural4_file, output_path):
     # Do we need to worry about this being None?
     if config:
       # PARTY natural4-server MAY WITHIN 10 seconds DO tasks
-      # tasks IS A AsyncM ()
+      # tasks IS A AsyncIO ()
       # MEANS generate state space AND find race condition
       try:
         async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
