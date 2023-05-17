@@ -108,13 +108,11 @@ def edge_to_next_state(graph, edge):
 
 @curry
 def apply_fn(mod, fn, arg):
-  fn = escape_ansi(fn)
-  arg = escape_ansi(arg)
-  return pipe(
-    f'{fn}({arg})',
-    mod.parseTerm,
-    do(lambda term: term.reduce())
-  )
+  (fn, arg) = tuple(map(escape_ansi, (fn, arg)))
+  term = mod.parseTerm(f'{fn}({arg})')
+  if term:
+    term.reduce()
+  return term
 
 def parse_term_containing_qids(term):
   # replace_fn = lambda match: pipe(
@@ -332,8 +330,7 @@ def rewrite_graph_to_graph(mod, rewrite_graph):
     juxt(identity, edges_to_node_map(mod, rewrite_graph)),
     # ({... Edge ...}, node_map)
     lambda x: Graph(edges = x[0], node_map = x[1]),
-    do(lambda g:
-       print(f'Size of state space before quotiening: {len(g.node_map), len(g.edges)}'))
+    # do(lambda g: print(f'Size of state space before quotiening: {len(g.node_map), len(g.edges)}'))
   )
 
 @curry
@@ -368,8 +365,7 @@ def graph_to_nx_graph(mod, graph):
   edges = pipe(
     graph.edges,
     # [... Edge ...]
-    map(lambda edge:
-        (edge.src_id, edge.dest_id, edge_to_nx_metadata(edge))),
+    map(lambda edge: (edge.src_id, edge.dest_id, edge_to_nx_metadata(edge))),
     # [... (src_id, dest_id, edge_metadata) ...]
   )
 
@@ -389,7 +385,8 @@ def graph_to_nx_graph(mod, graph):
   return pipe(
     nx_graph,
     lambda x: nx.quotient_graph(
-      x, equiv_rel, node_data = node_data_fn, create_using = nx.MultiDiGraph
+      x, equiv_rel, node_data = node_data_fn,
+      create_using = nx.MultiDiGraph
     ),
     # Ensure that the node labels in the output graph are consecutive.
     nx.convert_node_labels_to_integers
