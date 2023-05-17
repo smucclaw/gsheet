@@ -4,7 +4,7 @@ from pathlib import Path
 from cytoolz.functoolz import *
 from cytoolz.curried import *
 
-import visualise as vis
+import natural4_maude.visualise as vis
 
 maude_main_file = Path('natural4_maude') / 'main.maude'
 maude_main_mod = vis.init_maude_n_load_main_file(maude_main_file)
