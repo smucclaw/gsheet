@@ -60,13 +60,10 @@ async def analyse_state_space(natural4_file, output_path):
     )
     # Do we need to worry about this being None?
     if config:
-      # PARTY natural4-server MAY WITHIN 10 seconds DO tasks
-      # tasks IS A AsyncIO ()
-      # MEANS generate state space AND find race condition
       try:
         async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
-          tasks.create_task(gen_state_space(output_path, config))
           tasks.create_task(find_race_cond(output_path, natural4_rules))
+          tasks.create_task(gen_state_space(output_path, config))
       except asyncio.TimeoutError:
         # Continue along the happy path even if we get a timeout
         print("Natural4 Maude timeout")
