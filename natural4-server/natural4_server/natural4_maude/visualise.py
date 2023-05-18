@@ -331,9 +331,6 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
             lambda edge_pairs: edge_pairs.add((curr_id, succ_id)),
             curr_bfs_state
           )
-          # curr_bfs_state.set(
-          #   'edge_pairs', curr_bfs_state['edge_pairs'].add((curr_id, succ_id))
-          # )
           if succ_id not in next_bfs_state['seen_ids']:
             next_bfs_state = pipe(
               next_bfs_state,
