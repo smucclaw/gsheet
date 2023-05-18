@@ -203,35 +203,34 @@ def edges_to_node_map(mod, rewrite_graph, edges):
 
 @curry
 def to_rule_label(mod, dest_node, rule_label):
-  if rule_label == 'tick':
-    return '1 day'
-  if rule_label == 'action':
-    return pipe(
-      dest_node,
-      # get_state_term_str(rewrite_graph),
-      apply_fn_to_str(mod, 'getAction'),
-      parse_term_containing_qids
-    )
+  match rule_label:
+    case 'tick':
+      rule_label = '1 day'
+    case 'action':
+      rule_label = pipe(
+        dest_node,
+        # get_state_term_str(rewrite_graph),
+        apply_fn_to_str(mod, 'getAction'),
+        parse_term_containing_qids
+      )
+  return rule_label
 
 @curry
 def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
   # TODO: Implement a proper Option type
   (src_id, dest_id) = edge_pair
-  dest_node = node_id_to_term_str(rewrite_graph, dest_id)
-
-  match rewrite_graph.getTransition(src_id, dest_id).getRule():
-    case None:
-      edge = None
-    case rule:
-      edge = pipe(
+  trans = rewrite_graph.getTransition(src_id, dest_id)
+  if trans:
+    rule = trans.getRule()
+    if rule:
+      dest_node = node_id_to_term_str(rewrite_graph, dest_id)
+      return pipe(
         rule,
         lambda rule: rule.getLabel(),
         to_rule_label(mod, dest_node),
         lambda rule_label:
           Edge(src_id=src_id, dest_id=dest_id, rule_label=rule_label)
       )
-
-  return edge
 
   # return pipe(
   #   edge_pair,
@@ -318,7 +317,7 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
   '''
 
   def one_step_transition(bfs_state):
-    match safe_viewleft(bfs_state['next_ids'], 0):
+    match safe_viewleft(bfs_state['next_ids']):
       case None:
         return bfs_state.set('is_fixed_point', True)
       case (curr_id, next_ids):
