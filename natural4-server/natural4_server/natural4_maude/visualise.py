@@ -321,10 +321,8 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
   def one_step_transition(bfs_state):
     match safe_viewleft(bfs_state['next_ids']):
       case None:
-        return bfs_state.set('is_fixed_point', True)
+        result = bfs_state.set('is_fixed_point', True)
       case (curr_id, next_ids):
-        bfs_state = bfs_state.set('next_ids', next_ids)
-
         def append_new_edge(curr_bfs_state, succ_id):
           next_bfs_state = mapk(
             'edge_pairs',
@@ -339,9 +337,12 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
             )
           return next_bfs_state
 
-        return reduce(
-          append_new_edge, rewrite_graph.getNextStates(curr_id), bfs_state
+        result = reduce(
+          append_new_edge,
+          rewrite_graph.getNextStates(curr_id),
+          bfs_state.set('next_ids', next_ids)
         )
+    return result
 
   return pipe(
     # Initialize the transition system
