@@ -40,6 +40,8 @@ import maude
 from umaudemc.wrappers import create_graph
 
 import pyrsistent as pyrs
+from pyrsistent_extras import psequence
+
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
@@ -283,11 +285,20 @@ def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
 
 # repeat = iterate(identity)
 
+def uncons(pseq):
+  try:
+    (_, head, tail) = pseq.view(0)
+  except IndexError:
+    result = None
+  else:
+    result = pyrs.pmap({'head': head, 'tail': tail})
+
+  return result
 
 def rewrite_graph_to_edge_pairs(rewrite_graph):
   '''
-  BFS to explore all edges in a rewrite graph, computed via fixed point
-  iteration of a suitably defined transition system.
+  BFS to explore all edges in a rewrite graph, computed via transfinite
+  fixed point iteration.
 
   Note that there is a possibility of nontermination if for instance the
   transition system has infinitely many states so that the fixpoint lies
@@ -297,30 +308,30 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
   '''
 
   def one_step_transition(state):
-    if not state['next_ids']: return state
+    match uncons(state['next_ids']):
+      case None: return state
+      case {'head': curr_id, 'tail': next_ids}:
+        state = state.set('next_ids', next_ids)
 
-    curr_id = state['next_ids'].left
-    state = state.set('next_ids', state['next_ids'].popleft())
+        def binop(curr_state, succ_id):
+          next_state = curr_state.set(
+            'edge_pairs', curr_state['edge_pairs'].add((curr_id, succ_id))
+          )
+          if succ_id not in next_state['seen_ids']:
+            next_state = pipe(
+              next_state,
+              lambda s: s.set('seen_ids', next_state['seen_ids'].add(succ_id)),
+              lambda s: s.set('next_ids', next_state['next_ids'].append(succ_id))
+            )
+          return next_state
 
-    def binop(curr_state, succ_id):
-      next_state = curr_state.set(
-        'edge_pairs', curr_state['edge_pairs'].add((curr_id, succ_id))
-      )
-      if succ_id not in next_state['seen_ids']:
-        next_state = pipe(
-          next_state,
-          lambda s: s.set('seen_ids', next_state['seen_ids'].add(succ_id)),
-          lambda s: s.set('next_ids', next_state['next_ids'].append(succ_id))
-        )
-      return next_state
-
-    return reduce(binop, rewrite_graph.getNextStates(curr_id), state)
+        return reduce(binop, rewrite_graph.getNextStates(curr_id), state)
 
   return pipe(
     # Initialize the transition system
     pyrs.pmap({
       'seen_ids': pyrs.pset([0]),
-      'next_ids': pyrs.pdeque([0]),
+      'next_ids': psequence([0]),
       'edge_pairs': pyrs.pset()
     }),
     # Compute the transitive closure of the transition relation.
