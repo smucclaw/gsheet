@@ -316,6 +316,8 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
   make progress in each step < omega.
   '''
 
+  mapk = curry(lambda k, f, m : m.set(k, f(m[k])))
+
   def one_step_transition(bfs_state):
     match safe_viewleft(bfs_state['next_ids']):
       case None:
@@ -324,14 +326,19 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
         bfs_state = bfs_state.set('next_ids', next_ids)
 
         def append_new_edge(curr_bfs_state, succ_id):
-          next_bfs_state = curr_bfs_state.set(
-            'edge_pairs', curr_bfs_state['edge_pairs'].add((curr_id, succ_id))
+          next_bfs_state = mapk(
+            'edge_pairs',
+            lambda edge_pairs: edge_pairs.add((curr_id, succ_id)),
+            curr_bfs_state
           )
+          # curr_bfs_state.set(
+          #   'edge_pairs', curr_bfs_state['edge_pairs'].add((curr_id, succ_id))
+          # )
           if succ_id not in next_bfs_state['seen_ids']:
             next_bfs_state = pipe(
               next_bfs_state,
-              lambda s: s.set('seen_ids', next_bfs_state['seen_ids'].add(succ_id)),
-              lambda s: s.set('next_ids', next_bfs_state['next_ids'].append(succ_id))
+              mapk('seen_ids', lambda seen_ids: seen_ids.add(succ_id)),
+              mapk('next_ids', lambda next_ids: next_ids.append(succ_id))
             )
           return next_bfs_state
 
