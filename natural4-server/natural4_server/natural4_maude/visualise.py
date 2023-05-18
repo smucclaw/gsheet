@@ -307,25 +307,27 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
   make progress in each step < omega.
   '''
 
-  def one_step_transition(state):
-    match uncons(state['next_ids']):
-      case None: return state
+  def one_step_transition(bfs_state):
+    match uncons(bfs_state['next_ids']):
+      case None: return bfs_state
       case {'head': curr_id, 'tail': next_ids}:
-        state = state.set('next_ids', next_ids)
+        bfs_state = bfs_state.set('next_ids', next_ids)
 
-        def binop(curr_state, succ_id):
-          next_state = curr_state.set(
-            'edge_pairs', curr_state['edge_pairs'].add((curr_id, succ_id))
+        def append_new_edge(curr_bfs_state, succ_id):
+          next_bfs_state = curr_bfs_state.set(
+            'edge_pairs', curr_bfs_state['edge_pairs'].add((curr_id, succ_id))
           )
-          if succ_id not in next_state['seen_ids']:
-            next_state = pipe(
-              next_state,
-              lambda s: s.set('seen_ids', next_state['seen_ids'].add(succ_id)),
-              lambda s: s.set('next_ids', next_state['next_ids'].append(succ_id))
+          if succ_id not in next_bfs_state['seen_ids']:
+            next_bfs_state = pipe(
+              next_bfs_state,
+              lambda s: s.set('seen_ids', next_bfs_state['seen_ids'].add(succ_id)),
+              lambda s: s.set('next_ids', next_bfs_state['next_ids'].append(succ_id))
             )
-          return next_state
+          return next_bfs_state
 
-        return reduce(binop, rewrite_graph.getNextStates(curr_id), state)
+        return reduce(
+          append_new_edge, rewrite_graph.getNextStates(curr_id), bfs_state
+        )
 
   return pipe(
     # Initialize the transition system
