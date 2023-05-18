@@ -9,7 +9,6 @@
 # ################################################
 # There is no #! line because we are run out of gunicorn.
 
-import asyncio
 import datetime
 import json
 import os
@@ -20,7 +19,10 @@ from pathlib import Path
 
 from flask import Flask, request, send_file
 
-from natural4_maude.analyse_state_space import run_analyse_state_space 
+try:
+  from natural4_maude.analyse_state_space import run_analyse_state_space 
+except ImportError:
+  run_analyse_state_space = lambda _natural4_file, _maude_output_path: None
 
 if "basedir" in os.environ:
   basedir = os.environ["basedir"]
@@ -43,7 +45,7 @@ natural4_exe = "natural4-exe"  # the default filename when you call `stack insta
 # but sometimes it is desirable to override it with a particular binary from a particular commit
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
 if "natural4_exe" in os.environ:
-    natural4_exe = os.environ["natural4_exe"]
+  natural4_exe = os.environ["natural4_exe"]
 
 # see gunicorn.conf.py for basedir, workdir, startport
 template_dir = basedir + "/template/"

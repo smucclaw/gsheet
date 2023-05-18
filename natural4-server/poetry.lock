@@ -267,6 +267,22 @@ setproctitle = ["setproctitle"]
 tornado = ["tornado (>=0.2)"]
 
 [[package]]
+name = "ipdb"
+version = "0.13.13"
+description = "IPython-enabled pdb"
+category = "dev"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+files = [
+    {file = "ipdb-0.13.13-py3-none-any.whl", hash = "sha256:45529994741c4ab6d2388bfa5d7b725c2cf7fe9deffabdb8a6113aa5ed449ed4"},
+    {file = "ipdb-0.13.13.tar.gz", hash = "sha256:e3ac6018ef05126d442af680aad863006ec19d02290561ac88b8b1c0b0cfc726"},
+]
+
+[package.dependencies]
+decorator = {version = "*", markers = "python_version >= \"3.11\""}
+ipython = {version = ">=7.31.1", markers = "python_version >= \"3.11\""}
+
+[[package]]
 name = "ipython"
 version = "8.13.2"
 description = "IPython: Productive Interactive Computing"
@@ -360,7 +376,7 @@ name = "jsonpickle"
 version = "3.0.1"
 description = "Python library for serializing any arbitrary object graph into JSON"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "jsonpickle-3.0.1-py2.py3-none-any.whl", hash = "sha256:130d8b293ea0add3845de311aaba55e6d706d0bb17bc123bd2c8baf8a39ac77c"},
@@ -452,7 +468,7 @@ name = "maude"
 version = "1.2.3"
 description = "Python bindings for Maude"
 category = "main"
-optional = false
+optional = true
 python-versions = "*"
 files = [
     {file = "maude-1.2.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d1fff8d389b9a340348c9b818f712ef8ce60b072cb7ce7f198f493e4bf17ad4e"},
@@ -481,7 +497,7 @@ name = "networkx"
 version = "3.1"
 description = "Python package for creating and manipulating graphs and networks"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "networkx-3.1-py3-none-any.whl", hash = "sha256:4f33f68cb2afcf86f28a45f43efc27a9386b535d567d2127f8f61d51dec58d36"},
@@ -633,11 +649,46 @@ files = [
 ]
 
 [[package]]
+name = "pyrsistent-extras"
+version = "0.1.0"
+description = "Extra data structures for pyrsistent"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pyrsistent-extras-0.1.0.tar.gz", hash = "sha256:51daa81366a234d401a96d6125c40c9459cdea980eab2e41c2830379e8f7b4cb"},
+    {file = "pyrsistent_extras-0.1.0-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:5ee67f520a2582006540e2cb5ab31dde86a4382adf3a1d49632bafb62f0668eb"},
+    {file = "pyrsistent_extras-0.1.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8afd09c59ee406a382bfbc5e81403f5eca04694e435bc5237fc1a14406399333"},
+    {file = "pyrsistent_extras-0.1.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1320b5c6dde104e561914868240f6f2e5dc98a194ce41cbf39ef301209649a28"},
+    {file = "pyrsistent_extras-0.1.0-cp310-cp310-win32.whl", hash = "sha256:d009be9a7ab7b785a50ca64a8e28ff3708ac9fb9c10c8fce3d1758423f1476d8"},
+    {file = "pyrsistent_extras-0.1.0-cp310-cp310-win_amd64.whl", hash = "sha256:02cf47f4e95e62df9a849a6eb1d17d3fcef17db31d0d89c5c94b086f11fb3db7"},
+    {file = "pyrsistent_extras-0.1.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:d3340c9555689302d15687cd349b24138245374bf297bd0bb5e2490f91c3ea66"},
+    {file = "pyrsistent_extras-0.1.0-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:c9a0e9503ed2781352f207c163ad84d0605b698efc52ca9b02c83c56a6f22f23"},
+    {file = "pyrsistent_extras-0.1.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0d24412039996e5ec7f3bdd855210063482fae5888bb2bffe2aa80a4bb1cf56e"},
+    {file = "pyrsistent_extras-0.1.0-cp37-cp37m-win32.whl", hash = "sha256:df247a9091760dcd3a8b3f02148d8e502a1be0696d50d4b54d109c16e0b904b7"},
+    {file = "pyrsistent_extras-0.1.0-cp37-cp37m-win_amd64.whl", hash = "sha256:6816526b1813e6ea097d15cdb29864ec2fc39051aa06af2323d7ea1c0d609c05"},
+    {file = "pyrsistent_extras-0.1.0-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:b416eade41207a4bb6b9932382dbd805278f5f7a8837296600b01138a1756a28"},
+    {file = "pyrsistent_extras-0.1.0-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:78bee2c272ce2da7bdffefb6582e7b55a54b58c835ea211c6d76979875fafe24"},
+    {file = "pyrsistent_extras-0.1.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:848aa26ad7044664f9b33425b9e8072fddd431cf6ef766935d985b0445bbda8d"},
+    {file = "pyrsistent_extras-0.1.0-cp38-cp38-win32.whl", hash = "sha256:0476afe00c8bd8f53f8043d35c484d1c3cfc4b07f67a108b5599759fdfdc81b5"},
+    {file = "pyrsistent_extras-0.1.0-cp38-cp38-win_amd64.whl", hash = "sha256:c7ca66b00e6a0ea08e64db6f399891e254c5939efe05759a2d241da470346235"},
+    {file = "pyrsistent_extras-0.1.0-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:095bfe271a45431cfee66a23be9e903ec6a9c788abf9d8bb7828b94d37f64b47"},
+    {file = "pyrsistent_extras-0.1.0-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:38abe9b91703ed6f40925f2f7a1e8d4175aa362d7561f303189f360792ba7463"},
+    {file = "pyrsistent_extras-0.1.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3808ccb00d5812cda54298e09f6e279394cc0953b341d62346b8305c05474f96"},
+    {file = "pyrsistent_extras-0.1.0-cp39-cp39-win32.whl", hash = "sha256:0b48857f5ec05a4da2e02742f498fd819f034724bc697187eb1202fa57ee2dcf"},
+    {file = "pyrsistent_extras-0.1.0-cp39-cp39-win_amd64.whl", hash = "sha256:0994643170a709d2d877ba1a8b667803babc031f1df390673dd66009a06c4745"},
+    {file = "pyrsistent_extras-0.1.0-py3-none-any.whl", hash = "sha256:b615879e8a3fffedfd0900c020a47a32dba07c02ce93f70e1d4e105bae231def"},
+]
+
+[package.dependencies]
+typing-extensions = "*"
+
+[[package]]
 name = "pyvis"
 version = "0.3.2"
 description = "A Python network graph visualization library"
 category = "main"
-optional = false
+optional = true
 python-versions = ">3.6"
 files = [
     {file = "pyvis-0.3.2-py3-none-any.whl", hash = "sha256:5720c4ca8161dc5d9ab352015723abb7a8bb8fb443edeb07f7a322db34a97555"},
@@ -727,11 +778,23 @@ docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=2.0)", "pre-commit", "pytest", "pytest-mock"]
 
 [[package]]
+name = "typing-extensions"
+version = "4.5.0"
+description = "Backported and Experimental Type Hints for Python 3.7+"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "typing_extensions-4.5.0-py3-none-any.whl", hash = "sha256:fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4"},
+    {file = "typing_extensions-4.5.0.tar.gz", hash = "sha256:5cb5f4a79139d699607b3ef622a1dedafa84e115ab0024e0d9c044a9479ca7cb"},
+]
+
+[[package]]
 name = "umaudemc"
 version = "0.12.1"
 description = "Unified Maude model-checking utility"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "umaudemc-0.12.1-py3-none-any.whl", hash = "sha256:4c940b410728a8cdf5b6b9394bc0d96a5d2eebe39c3b8e26fcbbb27e0da56b43"},
@@ -776,7 +839,10 @@ MarkupSafe = ">=2.1.1"
 [package.extras]
 watchdog = ["watchdog (>=2.3)"]
 
+[extras]
+formal-verification = ["maude", "networkx", "pyvis", "umaudemc"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.3"
-content-hash = "442a24360979af59530762fc9a7d9dde8cd46e880fb77d0b1b5689815f765a39"
+content-hash = "c71ec986ac4159330768bceec2deb211a99398afb589ae6281730e9ca6b7cba4"
