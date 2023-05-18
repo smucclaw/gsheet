@@ -285,20 +285,30 @@ def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
 
 # repeat = iterate(identity)
 
-def uncons(pseq):
+# def uncons(pseq):
+#   try:
+#     (_, head, tail) = pseq.view(0)
+#   except IndexError:
+#     result = None
+#   else:
+#     result = pyrs.pmap({'head': head, 'tail': tail})
+
+#   return result
+
+def safe_viewleft(pseq):
+  '''
+  Uncons for PSequence.
+  '''
   try:
-    (_, head, tail) = pseq.view(0)
+    result = pseq.viewleft()
   except IndexError:
     result = None
-  else:
-    result = pyrs.pmap({'head': head, 'tail': tail})
-
   return result
 
 def rewrite_graph_to_edge_pairs(rewrite_graph):
   '''
-  BFS to explore all edges in a rewrite graph, computed via transfinite
-  fixed point iteration.
+  BFS to explore all edges in a rewrite graph, computed via fixed point
+  iteration.
 
   Note that there is a possibility of nontermination if for instance the
   transition system has infinitely many states so that the fixpoint lies
@@ -308,9 +318,10 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
   '''
 
   def one_step_transition(bfs_state):
-    match uncons(bfs_state['next_ids']):
-      case None: return bfs_state
-      case {'head': curr_id, 'tail': next_ids}:
+    match safe_viewleft(bfs_state['next_ids'], 0):
+      case None:
+        return bfs_state.set('is_fixed_point', True)
+      case (curr_id, next_ids):
         bfs_state = bfs_state.set('next_ids', next_ids)
 
         def append_new_edge(curr_bfs_state, succ_id):
@@ -334,12 +345,13 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
     pyrs.pmap({
       'seen_ids': pyrs.pset([0]),
       'next_ids': psequence([0]),
-      'edge_pairs': pyrs.pset()
+      'edge_pairs': pyrs.pset(),
+      'is_fixed_point': False
     }),
     # Compute the transitive closure of the transition relation, stopping once
     # we reach the fixed point (if it exists < omega).
     iterate(one_step_transition),
-    filter(lambda state : state == one_step_transition(state)),
+    filter(lambda state : state['is_fixed_point']),
     first,
     get('edge_pairs')
   )
