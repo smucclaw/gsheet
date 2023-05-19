@@ -1,5 +1,6 @@
 import asyncio
 from pathlib import Path
+import sys
 
 from cytoolz.functoolz import *
 from cytoolz.curried import *
@@ -66,7 +67,7 @@ async def analyse_state_space(natural4_file, output_path):
           tasks.create_task(gen_state_space(output_path, config))
       except TimeoutError:
         # Continue along the happy path even if we get a timeout
-        print("Natural4 Maude timeout")
+        print("Natural4 Maude timeout", file=sys.stderr)
         pass
 
 run_analyse_state_space = compose_left(
