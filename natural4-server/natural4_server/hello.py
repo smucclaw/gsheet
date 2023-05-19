@@ -26,16 +26,21 @@ except ImportError:
 
 if "basedir" in os.environ:
   basedir = os.environ["basedir"]
+
 if "V8K_WORKDIR" in os.environ:
-    v8k_workdir = os.environ["V8K_WORKDIR"]
+  v8k_workdir = os.environ["V8K_WORKDIR"]
+
 if "V8K_SLOTS" in os.environ:
-    v8k_slots_arg = "--poolsize " + os.environ["V8K_SLOTS"]
+  v8k_slots_arg = "--poolsize " + os.environ["V8K_SLOTS"]
 else:
-    v8k_slots_arg = ""
+  v8k_slots_arg = ""
+
 if "v8k_startport" in os.environ:
   v8k_startport = os.environ["v8k_startport"]
+
 if "v8k_path" in os.environ:
   v8k_path = os.environ["v8k_path"]
+
 if "natural4_ver" in os.environ:
   natural4_ver = os.environ["v8k_path"]
 else:

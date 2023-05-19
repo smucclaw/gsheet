@@ -509,8 +509,8 @@ def graph_to_nx_graph(mod, graph):
 @curry
 def rewrite_graph_to_nx_graph(mod, rewrite_graph):
   return pipe(
-    (mod, rewrite_graph),
-    lambda x: rewrite_graph_to_graph(*x),
+    rewrite_graph,
+    lambda x: rewrite_graph_to_graph(mod, x),
     graph_to_nx_graph(mod)
   )
 
@@ -519,8 +519,7 @@ def term_strat_to_nx_graph(mod, term, strat):
   return pipe(
     create_graph(
       term = term, strategy = strat,
-      # purge_fails = 'yes',
-      logic = ''
+      purge_fails = 'yes', logic = ''
     ),
     rewrite_graph_to_nx_graph(mod)
   )
@@ -679,8 +678,8 @@ def natural4_rules_to_race_cond_htmls(mod, html_file_path, natural4_rules, max_t
   )
 
   pipe(
-    (mod, natural4_rules),
-    lambda x: natural4_rules_to_race_cond_graphs(*x, max_traces = max_traces),
+    natural4_rules,
+    lambda x: natural4_rules_to_race_cond_graphs(mod, x, max_traces = max_traces),
     # [... race_cond_graph ... ]
     map(graph_to_nx_graph(mod)),
     # [... race_cond_nx_graph ...]
