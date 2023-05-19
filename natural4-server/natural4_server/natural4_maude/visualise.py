@@ -563,24 +563,21 @@ def init_maude_n_load_main_file(main_file):
   return main_mod
 
 @curry
-def parse_natural4_file(main_mod, natural4_file):
+def parse_natural4_file(mod, natural4_file):
   with open(natural4_file) as f:
     natural4_rules = f.read()
-  return pipe(
-    natural4_rules,
-    main_mod.parseTerm
-  )
+  return mod.parseTerm(natural4_rules)
 
 @curry
-def natural4_rules_to_config(main_mod, natural4_rules):
-  return apply_fn(main_mod, 'init', natural4_rules)
+def natural4_rules_to_config(mod, natural4_rules):
+  return apply_fn(mod, 'init', natural4_rules)
 
 @curry
-def config_to_html_file(main_mod, config, strat, html_file_path):
+def config_to_html_file(mod, config, strat, html_file_path):
   netwk = pipe(
     strat,
-    main_mod.parseStrategy,
-    term_strat_to_pyvis_netwk(main_mod, config)
+    mod.parseStrategy,
+    term_strat_to_pyvis_netwk(mod, config)
   )
 
   # html_file = workdir / f'{natural4_file.stem}.html'
