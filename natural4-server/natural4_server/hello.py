@@ -67,17 +67,20 @@ def get_workdir_file(uuid, ssid, sid, channel, filename):
   workdir_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + channel
   if not os.path.exists(workdir_folder):
     print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
-  elif not os.path.isfile(workdir_folder + "/" + filename):
+    return
+
+  if not os.path.isfile(workdir_folder + "/" + filename):
     print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
+    return
+
+  (_, ext) = os.path.splitext(filename)
+  if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
+    print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
+    mimetype = "text/plain"
   else:
-    (_, ext) = os.path.splitext(filename)
-    if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
-      print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
-      mimetype = "text/plain"
-    else:
-      print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
-      mimetype = None
-    return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
+    print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
+    mimetype = None
+  return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
 
 
 # ################################################
