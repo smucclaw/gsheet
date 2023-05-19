@@ -19,10 +19,10 @@ from pathlib import Path
 
 from flask import Flask, request, send_file
 
-# try:
-from natural4_maude.analyse_state_space import run_analyse_state_space 
-# except ImportError:
-#   run_analyse_state_space = lambda _natural4_file, _maude_output_path: None
+try:
+  from natural4_maude.analyse_state_space import run_analyse_state_space 
+except ImportError:
+  run_analyse_state_space = lambda _natural4_file, _maude_output_path: None
 
 if "basedir" in os.environ:
   basedir = os.environ["basedir"]
@@ -63,23 +63,20 @@ app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 @app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
 def get_workdir_file(uuid, ssid, sid, channel, filename):
-    print("get_workdir_file: handling request for %s/%s/%s/%s/%s" % (uuid, ssid, sid, channel, filename), file=sys.stderr)
-    workdir_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + channel
-    if not os.path.exists(workdir_folder):
-        print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
-        return
-
-    if not os.path.isfile(workdir_folder + "/" + filename):
-        print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
-        return
-
+  print("get_workdir_file: handling request for %s/%s/%s/%s/%s" % (uuid, ssid, sid, channel, filename), file=sys.stderr)
+  workdir_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + channel
+  if not os.path.exists(workdir_folder):
+    print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
+  elif not os.path.isfile(workdir_folder + "/" + filename):
+    print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
+  else:
     (_, ext) = os.path.splitext(filename)
     if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
-        print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
-        return send_file(workdir_folder + "/" + filename, mimetype="text/plain")
+      print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
+      mimetype = 'text/plain'
     else:
-        print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
-        return send_file(workdir_folder + "/" + filename)
+      print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
+    return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
 
 # ################################################
 #            SERVE SVG STATIC FILES
