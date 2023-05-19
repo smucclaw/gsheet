@@ -565,7 +565,6 @@ def init_maude_n_load_main_file(main_file):
 
 @curry
 def parse_natural4_file(main_mod, natural4_file):
-  natural4_rules = ''
   with open(natural4_file) as f:
     natural4_rules = f.read()
   return pipe(
@@ -575,10 +574,7 @@ def parse_natural4_file(main_mod, natural4_file):
 
 @curry
 def natural4_rules_to_config(main_mod, natural4_rules):
-  return pipe(
-    natural4_rules,
-    apply_fn(main_mod, 'init')
-  )
+  return apply_fn(main_mod, 'init', natural4_rules)
 
 @curry
 def config_to_html_file(main_mod, config, strat, html_file_path):
@@ -618,6 +614,15 @@ def race_cond_path_to_graph(mod, race_cond_path):
     pyrs.pmap
   )
 
+  def triple_to_edge(edge_triple):
+    (src_term, trans, dest_term) = edge_triple
+    rule_label = trans.getRule().getLabel()
+    return Edge(
+      src_id = node_term_to_id_map[src_term],
+      dest_id = node_term_to_id_map[dest_term],
+      rule_label = to_rule_label(mod, dest_term, rule_label)
+    )
+
   edges = pipe(
     race_cond_path,
     # [state_0, trans_01, state_1 ... state_n]
@@ -625,13 +630,7 @@ def race_cond_path_to_graph(mod, race_cond_path):
     # [(state_0, trans_01, state_1), (trans_01, state_1, trans_12), (state_1, trans_12, state_2) ...]
     take_nth(2),
     # [(state_0, trans_01, state_1), (state_1, trans_12, state_2) ...]
-    map(lambda e: 
-      Edge(
-        src_id = node_term_to_id_map[e[0]],
-        dest_id = node_term_to_id_map[e[2]],
-        rule_label = to_rule_label(mod, e[2], e[1].getRule().getLabel())
-      )
-    )
+    map(triple_to_edge)
     # [... Edge(src_id, dest_id, rule_label) ...]
   )
 
