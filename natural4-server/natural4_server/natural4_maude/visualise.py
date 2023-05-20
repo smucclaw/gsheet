@@ -674,7 +674,7 @@ def natural4_rules_to_race_cond_htmls(mod, html_file_path, natural4_rules, max_t
     netwk.write_html
   )
 
-  pipe(
+  race_cond_netwks = pipe(
     natural4_rules,
     lambda x: natural4_rules_to_race_cond_graphs(mod, x, max_traces = max_traces),
     # [... race_cond_graph ... ]
@@ -682,12 +682,10 @@ def natural4_rules_to_race_cond_htmls(mod, html_file_path, natural4_rules, max_t
     # [... race_cond_nx_graph ...]
     map(nx_trace_to_pyvis_netwk),
     # [... race_cond_pyvis_netwk ...]
-    enumerate,
-    # [... (index, race_cond_pyvis_netwk) ...]
-    map(lambda x: write_race_cond_netwk_to_html(*x)),
-    # [... IO action ...]
-    list # sequence, aka force all the IO actions to run.
   )
+
+  for (index, race_cond_netwk) in enumerate(race_cond_netwks):
+    write_race_cond_netwk_to_html(index, race_cond_netwk)
 
 @curry
 def main_file_term_strat_to_html_file(main_file, natural4_file, html_file_path, strat = 'all *'):
