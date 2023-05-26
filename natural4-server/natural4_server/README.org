@@ -1,3 +1,24 @@
+* Installing the python stuff 
+
+There's a poetry config that you can use in the short term (in the long term, we'll probably try to move to ~nix~ at least partially), and which was adapted from the config Joe had around May 24. 
+
+To use this:
+0. Install ~pyenv~ if you want to be able to easily toggle between python versions, and follow the docs for how to use ~pyenv~ with ~poetry~. The rest of the instructions won't talk about pyenv.
+
+1. Install poetry in your user account, by following the instructions at ~https://python-poetry.org/docs/~. It will probably be better to install poetry with python 3.11. As of end May 2023, the following should work: ~curl -sSL https://install.python-poetry.org | python3.11 -~
+
+2. Then to install the dependencies, navigate to the dir with the poetry files and run
+
+#+begin_example
+export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+# you'll probably need this for the server
+poetry shell
+
+poetry install
+#+end_example
+
+You can activate the virtual environment with ~poetry shell~. Or to run the scripts, you can do ~poetry run~. See the docs (https://python-poetry.org/docs/) for more info.
+
 
 * Invocation
 
