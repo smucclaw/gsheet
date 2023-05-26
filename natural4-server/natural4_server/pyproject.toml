@@ -3,7 +3,7 @@ name = "pyrest"
 version = "0.1.0"
 description = ""
 authors = ["CCLAW"]
-readme = "README.md"
+readme = "README.org"
 
 [tool.poetry.dependencies]
 python = "^3.11.3"
