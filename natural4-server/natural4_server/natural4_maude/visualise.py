@@ -39,10 +39,11 @@ import sys
 import maude
 from umaudemc.wrappers import create_graph
 
-import itertools as it
-
 import pyrsistent as pyrs
+from pyrsistent_extras import psequence
+
 from cytoolz.functoolz import *
+from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import networkx as nx
@@ -82,9 +83,11 @@ class Graph(pyrs.PRecord):
   edges = pyrs.pset_field(Edge)
 
 def node_to_colour(node):
-  if node.contract_status == 'Active': return 'blue'
-  if node.contract_status == 'Fulfilled': return 'green'
-  if node.contract_status == 'Breached': return 'red'
+  match node.contract_status:
+    case 'Active': colour = 'blue'
+    case 'Fulfilled': colour = 'green'
+    case 'Breached': colour = 'red'
+  return colour
 
 @curry
 def edge_to_colour(graph, edge):
@@ -106,13 +109,11 @@ def edge_to_next_state(graph, edge):
 
 @curry
 def apply_fn(mod, fn, arg):
-  fn = escape_ansi(fn)
-  arg = escape_ansi(arg)
-  return pipe(
-    f'{fn}({arg})',
-    mod.parseTerm,
-    do(lambda term: term.reduce())
-  )
+  (fn, arg) = tuple(map(escape_ansi, (fn, arg)))
+  term = mod.parseTerm(f'{fn}({arg})')
+  if term:
+    term.reduce()
+  return term
 
 def parse_term_containing_qids(term):
   # replace_fn = lambda match: pipe(
@@ -138,7 +139,7 @@ def apply_fn_to_str(mod, fn, arg):
   )
 
 @curry
-def get_state_term_str(graph, node_id):
+def node_id_to_term_str(graph, node_id):
   return pipe(
     node_id,
     graph.getStateTerm,
@@ -146,32 +147,19 @@ def get_state_term_str(graph, node_id):
   )
 
 @curry
-def node_term_to_contract_status(mod, node_term):
-  return pipe(
+def node_term_to_node(mod, node_term):
+  term_str = escape_ansi(node_term)
+  contract_status = pipe(
     node_term,
     apply_fn_to_str(mod, 'configToStatus'),
     lambda x: 'Fulfilled' if x == '(Fulfilled).ContractStatus' else x
   )
-
-@curry
-def node_term_to_node(mod, node_term):
-  contract_status = node_term_to_contract_status(mod, node_term)
-  term_str = pipe(
-    node_term,
-    escape_ansi
-  )
   return Node(term_str = term_str, contract_status = contract_status)
-  # return pipe(
-  #   node_term,
-  #   # juxt(apply_fn_to_str(mod, 'pretty'), node_term_to_contract_status),
-  #   juxt(escape_ansi, node_term_to_contract_status(mod)),
-  #   lambda x: Node(term_str = x[0], contract_status = x[1])
-  # )
 
 @curry
 def edges_to_node_map(mod, rewrite_graph, edges):
   node_id_to_node = compose_left(
-    get_state_term_str(rewrite_graph),
+    node_id_to_term_str(rewrite_graph),
     node_term_to_node(mod)
   )
   return pipe(
@@ -215,35 +203,51 @@ def edges_to_node_map(mod, rewrite_graph, edges):
 
 @curry
 def to_rule_label(mod, dest_node, rule_label):
-  if rule_label == 'tick':
-    return '1 day'
-  if rule_label == 'action':
-    return pipe(
-      dest_node,
-      # get_state_term_str(rewrite_graph),
-      apply_fn_to_str(mod, 'getAction'),
-      parse_term_containing_qids
-    )
+  match rule_label:
+    case 'tick':
+      rule_label = '1 day'
+    case 'action':
+      rule_label = pipe(
+        dest_node,
+        # get_state_term_str(rewrite_graph),
+        apply_fn_to_str(mod, 'getAction'),
+        parse_term_containing_qids
+      )
+  return rule_label
 
 @curry
 def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
   # TODO: Implement a proper Option type
-  return pipe(
-    edge_pair,
-    lambda edge:
-      # (edge[0], edge[1], rewrite_graph.getTransition(*edge).getRule()),
-      (edge[0], edge[1], rewrite_graph.getRule(*edge)),
-    # [... (n, succ, rule), ...]
-    lambda edge:
-      (edge[0], edge[1],
-        to_rule_label(mod, get_state_term_str(rewrite_graph, edge[1]), edge[2].getLabel()))
-      if edge[2] != None else None,
-    # [... (n, succ, rule_label), ...]
-    lambda edge:
-      Edge(src_id = edge[0], dest_id = edge[1], rule_label = edge[2])
-      if edge != None else None
-    # [... Edge ...]
-  )
+  (src_id, dest_id) = edge_pair
+  trans = rewrite_graph.getTransition(src_id, dest_id)
+  if trans:
+    rule = trans.getRule()
+    if rule:
+      dest_node = node_id_to_term_str(rewrite_graph, dest_id)
+      return pipe(
+        rule,
+        lambda rule: rule.getLabel(),
+        to_rule_label(mod, dest_node),
+        lambda rule_label:
+          Edge(src_id=src_id, dest_id=dest_id, rule_label=rule_label)
+      )
+
+  # return pipe(
+  #   edge_pair,
+  #   lambda edge:
+  #     # (edge[0], edge[1], rewrite_graph.getTransition(*edge).getRule()),
+  #     (edge[0], edge[1], rewrite_graph.getRule(*edge)),
+  #   # [... (n, succ, rule), ...]
+  #   lambda edge:
+  #     (edge[0], edge[1],
+  #       to_rule_label(mod, get_state_term_str(rewrite_graph, edge[1]), edge[2].getLabel()))
+  #     if edge[2] != None else None,
+  #   # [... (n, succ, rule_label), ...]
+  #   lambda edge:
+  #     Edge(src_id = edge[0], dest_id = edge[1], rule_label = edge[2])
+  #     if edge != None else None
+  #   # [... Edge ...]
+  # )
 
 # Based on:
 # https://github.com/fadoss/umaudemc/blob/master/umaudemc/wrappers.py#L77
@@ -280,25 +284,94 @@ def edge_pair_to_edge(mod, rewrite_graph, edge_pair):
 
 # repeat = iterate(identity)
 
-# BFS to explore all edges in a rewrite graph.
+# def uncons(pseq):
+#   try:
+#     (_, head, tail) = pseq.view(0)
+#   except IndexError:
+#     result = None
+#   else:
+#     result = pyrs.pmap({'head': head, 'tail': tail})
+
+#   return result
+
+def safe_viewleft(pseq):
+  '''
+  Uncons for PSequence.
+  '''
+  try:
+    result = pseq.viewleft()
+  except IndexError:
+    result = None
+  return result
+
 def rewrite_graph_to_edge_pairs(rewrite_graph):
-  seen_ids = pyrs.pset([0])
-  next_ids = pyrs.pdeque([0])
+  '''
+  BFS to explore all edges in a rewrite graph, computed via fixed point
+  iteration.
 
-  while next_ids:
-    curr_id = next_ids.left
-    next_ids = next_ids.popleft()
-    for succ_id in rewrite_graph.getNextStates(curr_id):
-      if succ_id not in seen_ids:
-        seen_ids = seen_ids.add(succ_id)
-        next_ids = next_ids.append(succ_id)
-      yield (curr_id, succ_id)
+  Note that there is a possibility of nontermination if for instance the
+  transition system has infinitely many states so that the fixpoint lies
+  beyond omega.
+  In such scenarios however, we can at least guarantee that we will always
+  make progress in each step < omega.
+  '''
 
-    # next_ids = pipe(
-    #   next_ids,
-    #   lambda q: q.popleft(),
-    #   lambda q: q.extend(to_edge_pairs(seen_ids, curr_id))
-    # )
+  # Apply a function f to a key k in the map m
+  apply_key = curry(lambda k, f, m : m.set(k, f(m[k])))
+
+  def one_step_transition(bfs_state):
+    match safe_viewleft(bfs_state['next_ids']):
+      case None:
+        result = bfs_state.set('is_fixed_point', True)
+      case (curr_id, next_ids):
+        def append_new_edge(curr_bfs_state, succ_id):
+          next_bfs_state = apply_key(
+            'edge_pairs',
+            lambda edge_pairs: edge_pairs.add((curr_id, succ_id)),
+            curr_bfs_state
+          )
+          if succ_id not in next_bfs_state['seen_ids']:
+            next_bfs_state = pipe(
+              next_bfs_state,
+              apply_key('seen_ids', lambda seen_ids: seen_ids.add(succ_id)),
+              apply_key('next_ids', lambda next_ids: next_ids.append(succ_id))
+            )
+          return next_bfs_state
+
+        result = reduce(
+          append_new_edge,
+          rewrite_graph.getNextStates(curr_id),
+          bfs_state.set('next_ids', next_ids)
+        )
+    return result
+
+  return pipe(
+    # Initialize the transition system
+    pyrs.pmap({
+      'seen_ids': pyrs.pset([0]),
+      'next_ids': psequence([0]),
+      'edge_pairs': pyrs.pset(),
+      'is_fixed_point': False
+    }),
+    # Compute the transitive closure of the transition relation, stopping once
+    # we reach the fixed point (if it exists < omega).
+    iterate(one_step_transition),
+    filter(lambda state : state['is_fixed_point']),
+    first,
+    get('edge_pairs')
+  )
+
+  # seen_ids = pyrs.pset([0])
+  # next_ids = pyrs.pdeque([0])
+
+  # while next_ids:
+  #   curr_id = next_ids.left
+  #   next_ids = next_ids.popleft()
+  #   for succ_id in rewrite_graph.getNextStates(curr_id):
+  #     if succ_id not in seen_ids:
+  #       seen_ids = seen_ids.add(succ_id)
+  #       next_ids = next_ids.append(succ_id)
+  #     yield (curr_id, succ_id)
 
 @curry
 def rewrite_graph_to_graph(mod, rewrite_graph):
@@ -326,8 +399,7 @@ def rewrite_graph_to_graph(mod, rewrite_graph):
     juxt(identity, edges_to_node_map(mod, rewrite_graph)),
     # ({... Edge ...}, node_map)
     lambda x: Graph(edges = x[0], node_map = x[1]),
-    do(lambda g:
-       print(f'Size of state space before quotiening: {len(g.node_map), len(g.edges)}'))
+    do(lambda g: print(f'Size of state space before quotiening: {len(g.node_map), len(g.edges)}'))
   )
 
 @curry
@@ -362,8 +434,7 @@ def graph_to_nx_graph(mod, graph):
   edges = pipe(
     graph.edges,
     # [... Edge ...]
-    map(lambda edge:
-        (edge.src_id, edge.dest_id, edge_to_nx_metadata(edge))),
+    map(lambda edge: (edge.src_id, edge.dest_id, edge_to_nx_metadata(edge))),
     # [... (src_id, dest_id, edge_metadata) ...]
   )
 
@@ -372,25 +443,6 @@ def graph_to_nx_graph(mod, graph):
     do(lambda nx_graph: nx_graph.add_nodes_from(nodes)),
     do(lambda nx_graph: nx_graph.add_edges_from(edges))
   )
-
-  # nx_graph = nx.DiGraph()
-  # for node_id, node in graph.node_map.items():
-  #   nx_graph.add_node(
-  #     node_id,
-  #     # Do we want title or label?
-  #     # Title can contain html and only shows when hovering over the node.
-  #     # Label is visible all the time.
-  #     title = node.term_str,
-  #     contract_state = node.contract_status,
-  #     color = node_to_colour(node)
-  #   )
-  # for edge in graph.edges:
-  #   nx_graph.add_edge(
-  #     edge.src_id, edge.dest_id,
-  #     label = edge.rule_label,
-  #     next_state = edge_to_next_state(graph, edge),
-  #     color = edge_to_colour(graph, edge)
-  #   )
 
   # Quotient states by same title, to merge states that have different global time.
   nx_node_titles = nx_graph.nodes(data = 'title')
@@ -402,7 +454,8 @@ def graph_to_nx_graph(mod, graph):
   return pipe(
     nx_graph,
     lambda x: nx.quotient_graph(
-      x, equiv_rel, node_data = node_data_fn, create_using = nx.MultiDiGraph
+      x, equiv_rel, node_data = node_data_fn,
+      create_using = nx.MultiDiGraph
     ),
     # Ensure that the node labels in the output graph are consecutive.
     nx.convert_node_labels_to_integers
@@ -456,8 +509,8 @@ def graph_to_nx_graph(mod, graph):
 @curry
 def rewrite_graph_to_nx_graph(mod, rewrite_graph):
   return pipe(
-    (mod, rewrite_graph),
-    lambda x: rewrite_graph_to_graph(*x),
+    rewrite_graph,
+    lambda x: rewrite_graph_to_graph(mod, x),
     graph_to_nx_graph(mod)
   )
 
@@ -465,9 +518,8 @@ def rewrite_graph_to_nx_graph(mod, rewrite_graph):
 def term_strat_to_nx_graph(mod, term, strat):
   return pipe(
     create_graph(
-      term = term, # strategy = strat,
-      # purge_fails = 'yes',
-      logic = ''
+      term = term, strategy = strat,
+      purge_fails = 'yes', logic = ''
     ),
     rewrite_graph_to_nx_graph(mod)
   )
@@ -511,28 +563,21 @@ def init_maude_n_load_main_file(main_file):
   return main_mod
 
 @curry
-def parse_natural4_file(main_mod, natural4_file):
-  natural4_rules = ''
+def parse_natural4_file(mod, natural4_file):
   with open(natural4_file) as f:
     natural4_rules = f.read()
-  return pipe(
-    natural4_rules,
-    main_mod.parseTerm
-  )
+  return mod.parseTerm(natural4_rules)
 
 @curry
-def natural4_rules_to_config(main_mod, natural4_rules):
-  return pipe(
-    natural4_rules,
-    apply_fn(main_mod, 'init')
-  )
+def natural4_rules_to_config(mod, natural4_rules):
+  return apply_fn(mod, 'init', natural4_rules)
 
 @curry
-def config_to_html_file(main_mod, config, strat, html_file_path):
+def config_to_html_file(mod, config, strat, html_file_path):
   netwk = pipe(
     strat,
-    main_mod.parseStrategy,
-    term_strat_to_pyvis_netwk(main_mod, config)
+    mod.parseStrategy,
+    term_strat_to_pyvis_netwk(mod, config)
   )
 
   # html_file = workdir / f'{natural4_file.stem}.html'
@@ -565,6 +610,15 @@ def race_cond_path_to_graph(mod, race_cond_path):
     pyrs.pmap
   )
 
+  def triple_to_edge(edge_triple):
+    (src_term, trans, dest_term) = edge_triple
+    rule_label = trans.getRule().getLabel()
+    return Edge(
+      src_id = node_term_to_id_map[src_term],
+      dest_id = node_term_to_id_map[dest_term],
+      rule_label = to_rule_label(mod, dest_term, rule_label)
+    )
+
   edges = pipe(
     race_cond_path,
     # [state_0, trans_01, state_1 ... state_n]
@@ -572,11 +626,7 @@ def race_cond_path_to_graph(mod, race_cond_path):
     # [(state_0, trans_01, state_1), (trans_01, state_1, trans_12), (state_1, trans_12, state_2) ...]
     take_nth(2),
     # [(state_0, trans_01, state_1), (state_1, trans_12, state_2) ...]
-    map(lambda e: 
-        Edge(
-          src_id = node_term_to_id_map[e[0]],
-          dest_id = node_term_to_id_map[e[2]],
-          rule_label = to_rule_label(mod, e[2], e[1].getRule().getLabel())))
+    map(triple_to_edge)
     # [... Edge(src_id, dest_id, rule_label) ...]
   )
 
@@ -624,20 +674,18 @@ def natural4_rules_to_race_cond_htmls(mod, html_file_path, natural4_rules, max_t
     netwk.write_html
   )
 
-  pipe(
-    (mod, natural4_rules),
-    lambda x: natural4_rules_to_race_cond_graphs(*x, max_traces = max_traces),
+  race_cond_netwks = pipe(
+    natural4_rules,
+    lambda x: natural4_rules_to_race_cond_graphs(mod, x, max_traces = max_traces),
     # [... race_cond_graph ... ]
     map(graph_to_nx_graph(mod)),
     # [... race_cond_nx_graph ...]
     map(nx_trace_to_pyvis_netwk),
     # [... race_cond_pyvis_netwk ...]
-    enumerate,
-    # [... (index, race_cond_pyvis_netwk) ...]
-    map(lambda x: write_race_cond_netwk_to_html(*x)),
-    # [... IO action ...]
-    list # sequence, aka force all the IO actions to run.
   )
+
+  for (index, race_cond_netwk) in enumerate(race_cond_netwks):
+    write_race_cond_netwk_to_html(index, race_cond_netwk)
 
 @curry
 def main_file_term_strat_to_html_file(main_file, natural4_file, html_file_path, strat = 'all *'):
