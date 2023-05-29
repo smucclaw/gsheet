@@ -8,6 +8,7 @@ raw_env = ["basedir="       + ".",
            "V8K_WORKDIR="   + "/home/joe/v8k_workdir",
            "v8k_startport=" + "8201",
            "v8k_path="      + "/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k",
+           "CCLAW_HTTPS="   + "true, set in gunicorn.conf.py so production supports https",
            # "maudedir="      + ""
            ]
 bind     = "0.0.0.0:8200"
