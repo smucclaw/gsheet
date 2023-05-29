@@ -7,7 +7,7 @@ To use this:
 
 1. Install poetry in your user account, by following the instructions at ~https://python-poetry.org/docs/~. It will probably be better to install poetry with python 3.11. As of end May 2023, the following should work: ~curl -sSL https://install.python-poetry.org | python3.11 -~
 
-2. Then to install the dependencies, navigate to the dir with the poetry files and run
+2. Then to install the dependencies, navigate to the dir with the poetry files (i.e., this subdir) and run
 
 #+begin_example
 export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
@@ -19,6 +19,14 @@ poetry install
 
 You can activate the virtual environment with ~poetry shell~. Or to run the scripts, you can do ~poetry run~. See the docs (https://python-poetry.org/docs/) for more info.
 
+If you run into issues on the server with poetry trying to use python3.8 instead of python3.11 (which is what is specified in the .toml), you can try
+
+#+begin_example
+poetry env use /usr/bin/python3.11
+poetry shell
+#+end_example
+
+To check what python the virtual env is using, do ~poetry env info~.
 
 * Invocation
 
