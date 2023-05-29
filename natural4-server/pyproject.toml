@@ -7,7 +7,7 @@ readme = "README.org"
 packages = [{include = "natural4_server"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.11.0"
 cytoolz = "^0.12.1"
 Flask = "^2.3.0"
 gunicorn = "^20.1.0"

@@ -804,5 +804,5 @@ formal-verification = ["maude", "networkx", "pyvis", "umaudemc"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.11"
-content-hash = "6296b3ca67b5925073e4fd62a5a1c9903b7b26c3c936908f1f80bb30386b2f38"
+python-versions = "^3.11.0"
+content-hash = "8b24d360d1dde6ccd7b3afa977b714ae338cf9a4160e3ff018e6f0d0e6fcdd32"
