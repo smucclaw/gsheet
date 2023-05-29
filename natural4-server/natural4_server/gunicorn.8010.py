@@ -9,7 +9,8 @@ raw_env = ["basedir="       + ".",
            "V8K_WORKDIR="   + "/home/mengwong/wow/much",
            "v8k_startport=" + str(bindport + 1),
            "v8k_path="      + "/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k",
-           "natural4_exe="  + "natural4-prod"
+           "natural4_exe="  + "natural4-prod",
+           "CCLAW_HTTPS="   + "true, set in gunicorn.conf.py so production supports https"
            ]
 bind     = "0.0.0.0:" + str(bindport)
 
