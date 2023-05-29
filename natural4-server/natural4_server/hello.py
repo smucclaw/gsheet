@@ -81,6 +81,7 @@ def get_workdir_file(uuid, ssid, sid, channel, filename):
       mimetype = 'text/plain'
     else:
       print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
+      mimetype = None
     return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
 
 # ################################################
