@@ -1,0 +1,20 @@
+minimum_pre_commit_version: "2.9.0"
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-yaml
+      - id: check-case-conflict
+      - id: check-merge-conflict
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.3.2
+    hooks:
+      - id: poetry-check
+        args: ["--directory=natural4-server", "--no-update"]
+      - id: poetry-lock
+        args: ["--directory=natural4-server"]
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.270
+    hooks:
+      - id: ruff

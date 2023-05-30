@@ -24,6 +24,20 @@ ipdb = "*"
 [tool.poetry.extras]
 formal_verification = ["maude", "umaudemc", "pyvis", "networkx"]
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.270"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 130
+target-version = "py311"
+
+ignore = ["E731"] 
+# we are FPers, assigning lambdas is OK
+
+[tool.ruff.per-file-ignores] 
+"natural4_server/natural4_maude/*.py" = ["F403", "E701", "F405"]
+# Ruff doesn't like the from module import * pattern
