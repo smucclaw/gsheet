@@ -1,3 +1,21 @@
+* Build with Docker
+
+This project can now be built with Docker, there are two Dockerfiles, one for dev and one for prod.
+
+To build this in dev
+#+begin_example
+docker build -f ./Dockerfile.dev -t natural4-server:dev .
+docker run natural4-server:dev
+#+end_example
+
+To build this in prod
+#+begin_example
+docker build -f ./Dockerfile.prod -t natural4-server:prod .
+docker run -v /etc/letsencrypt:/etc/letsencrypt natural4-server:prod
+#+end_example
+
+Note that we tag each docker image with their respective ~dev~ or ~prod~ builds. This helps us differentiate which one to run. The production image is intended to be ran on the production server. It will need the letsencrypt certificates.
+
 * Installing the python stuff 
 
 There's a poetry config that you can use in the short term (in the long term, we'll probably try to move to ~nix~ at least partially), and which was adapted from the config Joe had around May 24. 
