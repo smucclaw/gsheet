@@ -20,6 +20,8 @@ Note that we tag each docker image with their respective ~dev~ or ~prod~ builds.
 docker run -v /etc/letsencrypt:/etc/letsencrypt -p 8500:8080 natural4-server:prod
 #+end_example
 
+This can be done with the development container as well, if wish to change the port.
+
 * Installing the python stuff 
 
 There's a poetry config that you can use in the short term (in the long term, we'll probably try to move to ~nix~ at least partially), and which was adapted from the config Joe had around May 24. 
