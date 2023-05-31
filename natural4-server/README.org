@@ -28,6 +28,21 @@ poetry shell
 
 To check what python the virtual env is using, do ~poetry env info~.
 
+* Optional: if you want to use ~pre-commit~:
+
+There is a ~pre-commit~ config with some basic checks and linters. If you want to be able to run ~pre-commit~ locally:
+
+First install ~pre-commit~ by following the instructions at ~https://pre-commit.com/#install~ (if you are on a mac, ~brew install pre-commit~)
+
+You then have a few options as to when to run it.
+
+- Get the ~pre-commit~ hooks to run automatically either on commit or on push. If you like making a lot of commits, you'd probably prefer to have the hooks run on push with ~pre-commit install -t pre-push~
+- Run yourself at any time on your locally changed files: ~pre-commit run~
+- Run yourself on all files in the repository: ~pre-commit run --all-files~
+- Set up an editor hook to run on save
+
+~pre-commit~ can be useful even if you have a proper server-side CI, because it's often more convenient to be able to uncover and debug or fix the sorts of things that'd be checked by the linters locally, before it gets to the CI runner.
+
 * Invocation
 
 #+begin_example
