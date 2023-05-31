@@ -11,10 +11,14 @@ docker run natural4-server:dev
 To build this in prod
 #+begin_example
 docker build -f ./Dockerfile.prod -t natural4-server:prod .
-docker run -v /etc/letsencrypt:/etc/letsencrypt natural4-server:prod
+docker run -v /etc/letsencrypt:/etc/letsencrypt -p {your_port}:8080 natural4-server:prod
 #+end_example
 
-Note that we tag each docker image with their respective ~dev~ or ~prod~ builds. This helps us differentiate which one to run. The production image is intended to be ran on the production server. It will need the letsencrypt certificates.
+Note that we tag each docker image with their respective ~dev~ or ~prod~ builds. This helps us differentiate which one to run. The production image is intended to be ran on the production server. It will need the letsencrypt certificates. Note that it'll run on ~8080~ within the docker container. We will use expose our individually assigned port, that maps to ~8080~. For instance, if my assigned port is ~8500~, I will run
+
+#+begin_example
+docker run -v /etc/letsencrypt:/etc/letsencrypt -p 8500:8080 natural4-server:prod
+#+end_example
 
 * Installing the python stuff 
 
