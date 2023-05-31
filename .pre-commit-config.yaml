@@ -4,6 +4,7 @@ repos:
     rev: v4.4.0
     hooks:
       - id: check-added-large-files
+      - id: check-json
       - id: check-yaml
       - id: check-case-conflict
       - id: check-merge-conflict
