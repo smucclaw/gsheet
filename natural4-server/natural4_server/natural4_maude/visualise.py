@@ -393,7 +393,7 @@ def rewrite_graph_to_graph(mod, rewrite_graph):
     # [... (n, succ) ...]
     map(edge_pair_to_edge(mod, rewrite_graph)),
     # [... Edge ...]
-    filter(lambda edge: edge != None),
+    filter(lambda edge: edge is not None),
     pyrs.pset,
     # {... Edge ...}
     juxt(identity, edges_to_node_map(mod, rewrite_graph)),

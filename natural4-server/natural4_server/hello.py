@@ -24,13 +24,13 @@ try:
 except ImportError:
   run_analyse_state_space = lambda _natural4_file, _maude_output_path: None
 
-if "basedir" in os.environ:
-  basedir = os.environ["basedir"]
-else:
-  basedir = '.'
+
+basedir = os.environ.get("basedir", ".")
 
 if "V8K_WORKDIR" in os.environ:
   v8k_workdir = os.environ["V8K_WORKDIR"]
+else:
+  print("V8K_WORKDIR not set in os.environ -- check your gunicorn config!!", file=sys.stderr)
 
 if "V8K_SLOTS" in os.environ:
   v8k_slots_arg = "--poolsize " + os.environ["V8K_SLOTS"]
@@ -43,16 +43,13 @@ if "v8k_startport" in os.environ:
 if "v8k_path" in os.environ:
   v8k_path = os.environ["v8k_path"]
 
-if "natural4_ver" in os.environ:
-  natural4_ver = os.environ["v8k_path"]
-else:
-  natural4_ver = "natural4-exe"
 
-natural4_exe = "natural4-exe"  # the default filename when you call `stack install`
-# but sometimes it is desirable to override it with a particular binary from a particular commit
+default_filenm_natL4exe_from_stack_install = "natural4-exe"
+natural4_exe = os.environ.get("natural4_exe", default_filenm_natL4exe_from_stack_install)
+# sometimes it is desirable to override the default name 
+# that `stack install` uses with a particular binary from a particular commit
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
-if "natural4_exe" in os.environ:
-  natural4_exe = os.environ["natural4_exe"]
+
 
 # see gunicorn.conf.py for basedir, workdir, startport
 template_dir = basedir + "/template/"
@@ -127,7 +124,7 @@ def process_csv():
   time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
   target_file = time_now + ".csv"
   target_path = target_folder + target_file
-  # if not os.path.exists(target_folder):
+
   Path(target_folder).mkdir(parents=True, exist_ok=True)
 
   with open(target_path, "w") as fout:
@@ -141,24 +138,34 @@ def process_csv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files = natural4_exe + " --tomd --toasp --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheet_id + "/" + sheet_id + " " + target_path
-  print("hello.py main: calling natural4-exe (%s)" % (natural4_exe), file=sys.stderr)
-  print("hello.py main: %s" % (create_files), file=sys.stderr)
+  create_files = (natural4_exe + " --tomd --toasp --workdir=" 
+                               + natural4_dir 
+                               + " --uuiddir=" + uuid + "/" 
+                               + spreadsheet_id + "/" 
+                               + sheet_id
+                               + " " + target_path)
+  print(f"hello.py main: calling natural4-exe {natural4_exe}", file=sys.stderr)
+  print(f"hello.py main: {create_files}", file=sys.stderr)
   nl4exe = subprocess.run([create_files], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  print("hello.py main: back from fast natural4-exe (took", datetime.datetime.now() - start_time, ")", file=sys.stderr)
-  print("hello.py main: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
-  print("hello.py main: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+  print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - start_time, ")", file=sys.stderr)
 
-  if len(nl4exe.stderr.decode('utf-8')) < 2000:
-    print(nl4exe.stderr.decode('utf-8'))
-  nl4_out = nl4exe.stdout.decode('utf-8')
+  nl4_out, nl4_err = nl4exe.stdout.decode('utf-8'), nl4exe.stderr.decode('utf-8')
+
+  print(f"hello.py main: natural4-exe stdout length = {len(nl4_out)}", file=sys.stderr)
+  print(f"hello.py main: natural4-exe stderr length = {len(nl4_err)}", file=sys.stderr)
+
+  short_err_maxlen, long_err_maxlen = 2_000, 20_000
+
+  if len(nl4_err) < short_err_maxlen:
+    print(nl4_err)
+
   with open(target_folder + time_now + ".err", "w") as fout:
-    fout.write(nl4exe.stderr.decode('utf-8'))
+    fout.write(nl4_err)
   with open(target_folder + time_now + ".out", "w") as fout:
-    fout.write(nl4exe.stdout.decode('utf-8'))
+    fout.write(nl4_out)
 
-  response['nl4_stderr'] = nl4exe.stderr.decode('utf-8')[:20000]
-  response['nl4_stdout'] = nl4exe.stdout.decode('utf-8')[:20000]
+  response['nl4_stderr'] = nl4_err[:long_err_maxlen]
+  response['nl4_stdout'] = nl4_out[:long_err_maxlen]
 
   # ---------------------------------------------
   # postprocessing: for petri nets: turn the DOT files into PNGs
@@ -247,7 +254,8 @@ def process_csv():
   childpid = os.fork()
   # if this leads to trouble we may need to double-fork with grandparent-wait
   if childpid > 0:  # in the parent
-    # print("hello.py processCsv parent returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time, ")", file=sys.stderr)
+    # print("hello.py processCsv parent returning at", datetime.datetime.now(), 
+    #                   "(total", datetime.datetime.now() - start_time, ")", file=sys.stderr)
     print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
           datetime.datetime.now() - start_time, ")", file=sys.stderr)
     # print(json.dumps(response), file=sys.stderr)
@@ -256,9 +264,11 @@ def process_csv():
   else:  # in the child
     print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
 
-    create_files = natural4_exe + " --only tomd --workdir=" + natural4_dir + " --uuiddir=" + uuid + "/" + spreadsheet_id + "/" + sheet_id + " " + target_path
-    print("hello.py child: calling natural4-exe (%s) (slowly) for tomd" % (natural4_exe), file=sys.stderr)
-    print("hello.py child: %s" % (create_files), file=sys.stderr)
+    create_files = (natural4_exe 
+                  + " --only tomd --workdir=" + natural4_dir 
+                  + " --uuiddir=" + uuid + "/" + spreadsheet_id + "/" + sheet_id + " " + target_path)
+    print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
+    print(f"hello.py child: {create_files}", file=sys.stderr)
     nl4exe = subprocess.run([create_files], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
           file=sys.stderr)
