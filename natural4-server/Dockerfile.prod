@@ -14,7 +14,7 @@ ENV PATH="${PATH}:${POETRY_VENV}/bin"
 WORKDIR /natural4-server
 
 # Installs dependencies
-COPY ./natural4-server /natural4-server
+COPY . /natural4-server
 
 # If you do not need the extra dependencies
 # RUN poetry install
