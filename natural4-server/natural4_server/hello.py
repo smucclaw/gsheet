@@ -26,6 +26,8 @@ except ImportError:
 
 if "basedir" in os.environ:
   basedir = os.environ["basedir"]
+else:
+  basedir = '.'
 
 if "V8K_WORKDIR" in os.environ:
   v8k_workdir = os.environ["V8K_WORKDIR"]
@@ -282,5 +284,10 @@ def process_csv():
 # run when not launched via gunicorn
 # ################################################
 
+# This should only be ran while in debugging, and not in production
+# The debugging werkzeug server cannot have be both a multi-threaded
+# and multi-process at the same time.
+# For local development purposes this running it as a
+# multi-process server is fine, change if needed
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port=8080, debug=False, threaded=True, processes=6)
+  app.run(host='0.0.0.0', port=8080, debug=False, threaded=False, processes=6)
