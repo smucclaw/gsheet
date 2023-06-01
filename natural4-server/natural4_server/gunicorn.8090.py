@@ -5,7 +5,6 @@
 
 bindport=8090
 
-pythonpath = "/home/mengwong/src/smucclaw/gsheet/pyrest/lib/python3.8/site-packages/"
 raw_env = ["basedir="       + ".",
            "V8K_WORKDIR="   + "/home/mengwong/wow/much",
            "v8k_startport=" + str(bindport + 1),
