@@ -110,6 +110,7 @@ def show_aasvg_image(uuid, ssid, sid, image):
 @app.route("/post", methods=['GET', 'POST'])
 def process_csv():
   start_time = datetime.datetime.now()
+  print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
   data = request.form.to_dict()
@@ -218,6 +219,7 @@ def process_csv():
     with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
       v8k_out = read_file.readline()
     print("v8k.out: %s" % (v8k_out), file=sys.stderr)
+    print("less %s" % (uuid_ss_folder + "/v8k.out"), file=sys.stderr)
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
