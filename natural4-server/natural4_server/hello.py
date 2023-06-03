@@ -219,7 +219,7 @@ def process_csv():
     with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
       v8k_out = read_file.readline()
     print("v8k.out: %s" % (v8k_out), file=sys.stderr)
-    print("less %s" % (uuid_ss_folder + "/v8k.out"), file=sys.stderr)
+    print("tail -f %s" % (v8k_workdir + '/' + uuid_ss_folder + "/v8k.out"), file=sys.stderr)
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
