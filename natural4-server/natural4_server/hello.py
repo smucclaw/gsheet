@@ -20,7 +20,7 @@ from pathlib import Path
 from flask import Flask, request, send_file
 
 try:
-  from natural4_maude.analyse_state_space import run_analyse_state_space 
+  from natural4_maude.analyse_state_space import run_analyse_state_space
 except ImportError:
   run_analyse_state_space = lambda _natural4_file, _maude_output_path: None
 
@@ -46,7 +46,7 @@ if "v8k_path" in os.environ:
 
 default_filenm_natL4exe_from_stack_install = "natural4-exe"
 natural4_exe = os.environ.get("natural4_exe", default_filenm_natL4exe_from_stack_install)
-# sometimes it is desirable to override the default name 
+# sometimes it is desirable to override the default name
 # that `stack install` uses with a particular binary from a particular commit
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
 
@@ -100,6 +100,26 @@ def show_aasvg_image(uuid, ssid, sid, image):
   print("show_aasvg_image: sending path " + image_path, file=sys.stderr)
   return send_file(image_path)
 
+# ################################################
+#            PANDOC TRANSPILATION FILES
+# ################################################
+
+def pandocOutput(md, op):
+  p = op + "Path"
+  f = op + "File"
+  op + "Path" = uuidssfolder + "/" + op
+
+  Path(p).mkdir(parents=True, exist_ok=True)
+  f     = p + "/" + timeNow + "." + op
+
+  print("hello.py main: running: pandoc " + md + " -s -o " + f)
+  if op == "pdf":
+    os.system("pandoc " + md + " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " + f)
+  else:
+    os.system("pandoc " + md + " -f markdown+hard_line_breaks -s -o " + f)
+  if os.path.isfile(p + "/LATEST." + op): os.unlink( p + "/LATEST." + op)
+  os.symlink(timeNow + "." + op, p + "/LATEST." + o
+
 
 # ################################################
 #                      main
@@ -139,10 +159,10 @@ def process_csv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files = (natural4_exe + " --tomd --toasp --workdir=" 
-                               + natural4_dir 
-                               + " --uuiddir=" + uuid + "/" 
-                               + spreadsheet_id + "/" 
+  create_files = (natural4_exe + " --tomd --toasp --workdir="
+                               + natural4_dir
+                               + " --uuiddir=" + uuid + "/"
+                               + spreadsheet_id + "/"
                                + sheet_id
                                + " " + target_path)
   print(f"hello.py main: calling natural4-exe {natural4_exe}", file=sys.stderr)
@@ -198,6 +218,17 @@ def process_csv():
       print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking",
             file=sys.stderr)
       print("hello.py main: %s" % (e), file=sys.stderr)
+
+    # ---------------------------------------------
+    # postprocessing: call pandoc to convert markdown to pdf and word docs
+    # ---------------------------------------------
+
+    mdPath = uuidssfolder + "/md"
+    Path(mdPath).mkdir(parents=True, exist_ok=True)
+    mdFile = mdPath + "/" + timeNow + ".md"
+
+    pandoc_outputs = ["docx", "pdf"]
+    map(pandocOutput, repeat(mdFile), pandoc_outputs)
 
     # ---------------------------------------------
     # postprocessing: (re-)launch the vue web server
@@ -256,7 +287,7 @@ def process_csv():
   childpid = os.fork()
   # if this leads to trouble we may need to double-fork with grandparent-wait
   if childpid > 0:  # in the parent
-    # print("hello.py processCsv parent returning at", datetime.datetime.now(), 
+    # print("hello.py processCsv parent returning at", datetime.datetime.now(),
     #                   "(total", datetime.datetime.now() - start_time, ")", file=sys.stderr)
     print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
           datetime.datetime.now() - start_time, ")", file=sys.stderr)
@@ -266,8 +297,8 @@ def process_csv():
   else:  # in the child
     print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
 
-    create_files = (natural4_exe 
-                  + " --only tomd --workdir=" + natural4_dir 
+    create_files = (natural4_exe
+                  + " --only tomd --workdir=" + natural4_dir
                   + " --uuiddir=" + uuid + "/" + spreadsheet_id + "/" + sheet_id + " " + target_path)
     print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
     print(f"hello.py child: {create_files}", file=sys.stderr)
