@@ -204,23 +204,23 @@ def process_csv():
 
     mdPath = uuid_ss_folder + "/md"
     Path(mdPath).mkdir(parents=True, exist_ok=True)
-    mdFile = mdPath + "/" + timeNow + ".md"
+    mdFile = mdPath + "/" + timestamp + ".md"
 
     docxPath = uuid_ss_folder + "/docx"
     Path(docxPath).mkdir(parents=True, exist_ok=True)
-    docxFile = docxPath + "/" + timeNow + ".docx"
+    docxFile = docxPath + "/" + timestamp + ".docx"
     print("hello.py main: running: pandoc " + mdFile + " -s -o " + docxFile)
     os.system("pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile)
     if os.path.isfile(docxPath + "/LATEST.docx"): os.unlink(docxPath + "/LATEST.docx")
-    os.symlink(timeNow + ".docx", docxPath + "/LATEST.docx")
+    os.symlink(timestamp + ".docx", docxPath + "/LATEST.docx")
 
     pdfPath = uuid_ss_folder + "/pdf"
     Path(pdfPath).mkdir(parents=True, exist_ok=True)
-    pdfFile = pdfPath + "/" + timeNow + ".pdf"
+    pdfFile = pdfPath + "/" + timestamp + ".pdf"
     print("hello.py main: running: pandoc " + mdFile + " -s -o " + pdfFile)
     os.system("pandoc " + mdFile + " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " + pdfFile)
     if os.path.isfile(pdfPath + "/LATEST.pdf"): os.unlink(pdfPath + "/LATEST.pdf")
-    os.symlink(timeNow + ".pdf", pdfPath + "/LATEST.pdf")
+    os.symlink(timestamp + ".pdf", pdfPath + "/LATEST.pdf")
 
     # ---------------------------------------------
     # postprocessing: (re-)launch the vue web server
