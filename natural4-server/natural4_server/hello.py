@@ -24,6 +24,12 @@ try:
 except ImportError:
   run_analyse_state_space = lambda _natural4_file, _maude_output_path: None
 
+try:
+  from pypandoc import convert_file
+except ImportError:
+  def convert_file(
+      source_file, output_format, outputfile = Path(), extra_args = []
+  ): return
 
 basedir = os.environ.get("basedir", ".")
 
@@ -202,29 +208,39 @@ def process_csv():
     # postprocessing: call pandoc to convert markdown to pdf and word docs
     # ---------------------------------------------
 
-    mdPath = uuid_ss_folder + "/md"
-    Path(mdPath).mkdir(parents=True, exist_ok=True)
-    mdFile = mdPath + "/" + timestamp + ".md"
+    md_path = Path(uuid_ss_folder) / 'md'
+    md_path.mkdir(parents=True, exist_ok=True)
+    mdFile = md_path / f'{timestamp}.md'
 
-    docxPath = uuid_ss_folder + "/docx"
-    Path(docxPath).mkdir(parents=True, exist_ok=True)
-    docxFile = docxPath + "/" + timestamp + ".docx"
-    pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
-    print("hello.py main: running: " + pandocRunLineDocx)
-    os.system(pandocRunLineDocx)
-    if os.path.isfile(docxPath + "/LATEST.docx"): os.unlink(docxPath + "/LATEST.docx")
-    os.symlink(timestamp + ".docx", docxPath + "/LATEST.docx")
+    docx_path = Path(uuid_ss_folder) / 'docx'
+    docx_path.mkdir(parents=True, exist_ok=True)
+    docx_file = docx_path / f'{timestamp}.docx'
+    # pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
+    # print("hello.py main: running: " + pandocRunLineDocx)
+    # os.system(pandocRunLineDocx)
+    convert_file(mdFile, 'docx', outputfile = docx_file)
+    if (docx_path / 'LATEST.docx').exists(): os.unlink(str(docx_path / 'LATEST.docx'))
+    os.symlink(f'{timestamp}.docx', str(docx_path / 'LATEST.docx'))
 
-    pdfPath = uuid_ss_folder + "/pdf"
-    Path(pdfPath).mkdir(parents=True, exist_ok=True)
-    pdfFile = pdfPath + "/" + timestamp + ".pdf"
-    pandocRunLine = ("pandoc " + mdFile +
-                     " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " +
-                     pdfFile)
-    print("hello.py main: running: " + pandocRunLine)
-    os.system(pandocRunLine)
-    if os.path.isfile(pdfPath + "/LATEST.pdf"): os.unlink(pdfPath + "/LATEST.pdf")
-    os.symlink(timestamp + ".pdf", pdfPath + "/LATEST.pdf")
+    pdf_path = Path(uuid_ss_folder) / 'pdf'
+    pdf_path.mkdir(parents=True, exist_ok=True)
+    pdf_file = pdf_path / f'{timestamp}.pdf'
+    # pandocRunLine = ("pandoc " + mdFile +
+    #                  " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " +
+    #                  pdfFile)
+    # print("hello.py main: running: " + pandocRunLine)
+    # os.system(pandocRunLine)
+    convert_file(
+      pdf_file, 'pdf', outputfile = pdf_file,
+      extra_args = [
+        '--pdf-engine=xelatex',
+        '-V', 'CJKmainfont="Droid Sans Fallback"',
+        '-f', 'markdown+hard_line_breaks',
+        '-s', '-o'
+      ]
+    )
+    if (pdf_path / 'LATEST.pdf').exists(): os.unlink(str(pdf_path / 'LATEST.pdf'))
+    os.symlink(f'{timestamp}.pdf', str(pdf_path / 'LATEST.pdf'))
 
     # ---------------------------------------------
     # postprocessing: (re-)launch the vue web server

@@ -17,12 +17,14 @@ pyvis = {version = "^0.3.2", optional = true}
 maude = {version = "^1.2.2", optional = true}
 umaudemc = {version = "^0.12.1", optional = true}
 networkx = {version = "^3.0", optional = true}
+pypandoc_binary = {version = "^1.11", optional = true}
 
 [tool.poetry.dev-dependencies]
 ipdb = "*"
 
 [tool.poetry.extras]
 formal_verification = ["maude", "umaudemc", "pyvis", "networkx"]
+word_and_pdf = ["pypandoc_binary"]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.270"
