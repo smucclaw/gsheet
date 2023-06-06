@@ -210,7 +210,7 @@ def process_csv():
 
     md_path = Path(uuid_ss_folder) / 'md'
     md_path.mkdir(parents=True, exist_ok=True)
-    mdFile = md_path / f'{timestamp}.md'
+    md_file = md_path / f'{timestamp}.md'
 
     docx_path = Path(uuid_ss_folder) / 'docx'
     docx_path.mkdir(parents=True, exist_ok=True)
@@ -218,7 +218,7 @@ def process_csv():
     # pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
     # print("hello.py main: running: " + pandocRunLineDocx)
     # os.system(pandocRunLineDocx)
-    convert_file(mdFile, 'docx', outputfile = docx_file)
+    convert_file(md_file, 'docx', outputfile = docx_file)
     if (docx_path / 'LATEST.docx').exists(): os.unlink(str(docx_path / 'LATEST.docx'))
     os.symlink(f'{timestamp}.docx', str(docx_path / 'LATEST.docx'))
 
