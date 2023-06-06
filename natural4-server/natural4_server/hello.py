@@ -239,8 +239,8 @@ def process_csv():
     
     # print(f'Markdown file {md_file} exists: {md_file.exists()}', file=sys.stderr)
     if md_file.exists():
-      md_file = str(md_file.absolute())
-      print(f'Markdown file: {md_file}', file=sys.stderr)
+      # md_file = str(md_file.absolute())
+      # print(f'Markdown file: {md_file}', file=sys.stderr)
       docx_path = Path(uuid_ss_folder) / 'docx'
       docx_path.mkdir(parents=True, exist_ok=True)
       docx_file = docx_path / f'{timestamp}.docx'
@@ -266,7 +266,7 @@ def process_csv():
       # print("hello.py main: running: " + pandocRunLine)
       # os.system(pandocRunLine)
       convert_file(
-        pdf_file, 'pdf', outputfile = pdf_file,
+        md_file, 'pdf', outputfile = pdf_file,
         extra_args = [
           '--pdf-engine=xelatex',
           '-V', 'CJKmainfont="Droid Sans Fallback"',
