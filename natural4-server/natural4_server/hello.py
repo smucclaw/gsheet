@@ -237,35 +237,36 @@ def process_csv():
     md_path.mkdir(parents=True, exist_ok=True)
     md_file = md_path / f'{timestamp}.md'
 
-    docx_path = Path(uuid_ss_folder) / 'docx'
-    docx_path.mkdir(parents=True, exist_ok=True)
-    docx_file = docx_path / f'{timestamp}.docx'
-    # pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
-    # print("hello.py main: running: " + pandocRunLineDocx)
-    # os.system(pandocRunLineDocx)
-    convert_file(md_file, 'docx', outputfile = docx_file)
-    if (docx_path / 'LATEST.docx').exists(): os.unlink(str(docx_path / 'LATEST.docx'))
-    os.symlink(f'{timestamp}.docx', str(docx_path / 'LATEST.docx'))
+    if md_file.exists():
+      docx_path = Path(uuid_ss_folder) / 'docx'
+      docx_path.mkdir(parents=True, exist_ok=True)
+      docx_file = docx_path / f'{timestamp}.docx'
+      # pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
+      # print("hello.py main: running: " + pandocRunLineDocx)
+      # os.system(pandocRunLineDocx)
+      convert_file(md_file, 'docx', outputfile = docx_file)
+      if (docx_path / 'LATEST.docx').exists(): os.unlink(str(docx_path / 'LATEST.docx'))
+      os.symlink(f'{timestamp}.docx', str(docx_path / 'LATEST.docx'))
 
-    pdf_path = Path(uuid_ss_folder) / 'pdf'
-    pdf_path.mkdir(parents=True, exist_ok=True)
-    pdf_file = pdf_path / f'{timestamp}.pdf'
-    # pandocRunLine = ("pandoc " + mdFile +
-    #                  " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " +
-    #                  pdfFile)
-    # print("hello.py main: running: " + pandocRunLine)
-    # os.system(pandocRunLine)
-    convert_file(
-      pdf_file, 'pdf', outputfile = pdf_file,
-      extra_args = [
-        '--pdf-engine=xelatex',
-        '-V', 'CJKmainfont="Droid Sans Fallback"',
-        '-f', 'markdown+hard_line_breaks',
-        '-s', '-o'
-      ]
-    )
-    if (pdf_path / 'LATEST.pdf').exists(): os.unlink(str(pdf_path / 'LATEST.pdf'))
-    os.symlink(f'{timestamp}.pdf', str(pdf_path / 'LATEST.pdf'))
+      pdf_path = Path(uuid_ss_folder) / 'pdf'
+      pdf_path.mkdir(parents=True, exist_ok=True)
+      pdf_file = pdf_path / f'{timestamp}.pdf'
+      # pandocRunLine = ("pandoc " + mdFile +
+      #                  " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " +
+      #                  pdfFile)
+      # print("hello.py main: running: " + pandocRunLine)
+      # os.system(pandocRunLine)
+      convert_file(
+        pdf_file, 'pdf', outputfile = pdf_file,
+        extra_args = [
+          '--pdf-engine=xelatex',
+          '-V', 'CJKmainfont="Droid Sans Fallback"',
+          '-f', 'markdown+hard_line_breaks',
+          '-s', '-o'
+        ]
+      )
+      if (pdf_path / 'LATEST.pdf').exists(): os.unlink(str(pdf_path / 'LATEST.pdf'))
+      os.symlink(f'{timestamp}.pdf', str(pdf_path / 'LATEST.pdf'))
 
     # ---------------------------------------------
     # postprocessing: (re-)launch the vue web server
