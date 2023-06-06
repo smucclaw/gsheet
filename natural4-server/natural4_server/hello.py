@@ -210,7 +210,7 @@ def process_csv():
     Path(docxPath).mkdir(parents=True, exist_ok=True)
     docxFile = docxPath + "/" + timestamp + ".docx"
     pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
-    print("hello.py main: running: " + pandocRunLineDocx
+    print("hello.py main: running: " + pandocRunLineDocx)
     os.system(pandocRunLineDocx)
     if os.path.isfile(docxPath + "/LATEST.docx"): os.unlink(docxPath + "/LATEST.docx")
     os.symlink(timestamp + ".docx", docxPath + "/LATEST.docx")
