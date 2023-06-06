@@ -247,7 +247,13 @@ def process_csv():
       # pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
       # print("hello.py main: running: " + pandocRunLineDocx)
       # os.system(pandocRunLineDocx)
-      convert_file(md_file, 'docx', outputfile = docx_file)
+      convert_file(
+        md_file, 'docx', outputfile = docx_file,
+        extra_args = [
+          '-f', 'markdown+hard_line_breaks',
+          '-s', '-o'
+        ]
+      )
       if (docx_path / 'LATEST.docx').exists(): os.unlink(str(docx_path / 'LATEST.docx'))
       os.symlink(f'{timestamp}.docx', str(docx_path / 'LATEST.docx'))
 
