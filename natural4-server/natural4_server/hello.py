@@ -21,6 +21,7 @@ from flask import Flask, request, send_file
 
 ##########################################################
 # SETRLIMIT 10 seconds
+# cargo-culted from https://www.geeksforgeeks.org/python-how-to-put-limits-on-memory-and-cpu-usage/
 ##########################################################
 
 import signal
