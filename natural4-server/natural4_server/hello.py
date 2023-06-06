@@ -269,7 +269,7 @@ def process_csv():
         md_file, 'pdf', outputfile = str(pdf_file),
         extra_args = [
           '--pdf-engine=xelatex',
-          # '-V', 'CJKmainfont="Droid Sans Fallback"',
+          '-V', 'CJKmainfont="Droid Sans Fallback"',
           '-f', 'markdown+hard_line_breaks',
           '-s',
         ]
