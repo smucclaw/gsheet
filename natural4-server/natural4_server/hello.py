@@ -139,7 +139,7 @@ def process_csv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files = (natural4_exe + " --tomd --toasp --workdir=" 
+  create_files = (natural4_exe + " --tomd --toasp --toepilog --workdir=" 
                                + natural4_dir 
                                + " --uuiddir=" + uuid + "/" 
                                + spreadsheet_id + "/" 
