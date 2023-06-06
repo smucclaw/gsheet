@@ -1,0 +1,38 @@
+{
+    "contents": [
+        {
+            "contents": "all of:",
+            "tag": "Pre"
+        },
+        [
+            {
+                "contents": "Person Qualifies",
+                "tag": "Leaf"
+            },
+            {
+                "contents": "walks",
+                "tag": "Leaf"
+            },
+            {
+                "contents": [
+                    {
+                        "contents": "any of:",
+                        "tag": "Pre"
+                    },
+                    [
+                        {
+                            "contents": "drinks",
+                            "tag": "Leaf"
+                        },
+                        {
+                            "contents": "eats",
+                            "tag": "Leaf"
+                        }
+                    ]
+                ],
+                "tag": "Any"
+            }
+        ]
+    ],
+    "tag": "All"
+}

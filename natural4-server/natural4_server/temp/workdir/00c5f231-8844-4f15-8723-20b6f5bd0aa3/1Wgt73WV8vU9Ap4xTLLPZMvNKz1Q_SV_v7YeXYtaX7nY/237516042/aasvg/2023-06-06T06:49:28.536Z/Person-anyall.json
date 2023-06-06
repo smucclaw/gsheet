@@ -1,0 +1,28 @@
+{
+    "contents": [
+        null,
+        [
+            {
+                "contents": "Person walks",
+                "tag": "Leaf"
+            },
+            {
+                "contents": [
+                    null,
+                    [
+                        {
+                            "contents": "Person eats",
+                            "tag": "Leaf"
+                        },
+                        {
+                            "contents": "Person drinks",
+                            "tag": "Leaf"
+                        }
+                    ]
+                ],
+                "tag": "Any"
+            }
+        ]
+    ],
+    "tag": "All"
+}

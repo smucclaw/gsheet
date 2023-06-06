@@ -1,0 +1,699 @@
+* musings
+
+** Global Facts
+
+#+begin_src haskell
+[]
+#+end_src
+
+** Class Hierarchy
+
+
+
+** The entire classgraph
+
+#+begin_src haskell
+[]
+#+end_src
+
+** Symbol Table
+
+we know about the following scopes
+
+*** Rule: Qualifies
+
+**** symbol: ~[Qualifies]~
+
+#+begin_src haskell
+[ HC
+    { hHead = RPBoolStructR
+        [ MTT "Qualifies" ] RPis
+        ( All Nothing
+            [ Leaf
+                ( RPMT
+                    [ MTT "walks" ]
+                )
+            , Any Nothing
+                [ Leaf
+                    ( RPMT
+                        [ MTT "drinks" ]
+                    )
+                , Leaf
+                    ( RPMT
+                        [ MTT "eats" ]
+                    )
+                ]
+            ]
+        )
+    , hBody = Nothing
+    }
+]
+#+end_src
+
+**** typesig: ~(Nothing,[])~
+
+** the Rule Decision Graph
+
+#+begin_example
+1:[MTT "Person"]->[]
+2:[MTT "Qualifies"]->[]
+
+#+end_example
+
+** Decision Roots
+
+rules which are not just RuleAlises, and which are not relied on by any other rule
+
+#+begin_src haskell
+[
+    [ MTT "Person" ]
+,
+    [ MTT "Qualifies" ]
+]
+#+end_src
+
+*** Nubbed, Exposed, Decision Roots
+
+maybe some of the decision roots are identical and don't need to be repeated; so we nub them
+
+**** Decision Root 1
+
+- [Person]
+
+***** grpval
+
+#+begin_src haskell
+Just
+    ( Leaf "Person Qualifies" )
+#+end_src
+
+***** head uniqrs
+
+#+begin_src haskell
+Regulative
+    { subj = Leaf
+        (
+            ( MTT "Person" :| []
+            , Nothing
+            ) :| []
+        )
+    , rkeyword = REvery
+    , who = Just
+        ( Leaf
+            ( RPMT
+                [ MTT "Qualifies" ]
+            )
+        )
+    , cond = Nothing
+    , deontic = DMust
+    , action = Leaf
+        (
+            ( MTT "sing" :| []
+            , Nothing
+            ) :| []
+        )
+    , temporal = Nothing
+    , hence = Nothing
+    , lest = Nothing
+    , rlabel = Nothing
+    , lsource = Nothing
+    , srcref = Just
+        ( SrcRef
+            { url = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , short = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , srcrow = 2
+            , srccol = 1
+            , version = Nothing
+            }
+        )
+    , upon = Nothing
+    , given = Nothing
+    , having = Nothing
+    , wwhere = []
+    , defaults = []
+    , symtab = []
+    }
+#+end_src
+
+***** getAndOrTree (head uniqrs)
+
+#+begin_src haskell
+Just
+    ( Leaf "Person Qualifies" )
+#+end_src
+
+***** getBSR [head uniqrs]
+
+#+begin_src haskell
+[ Leaf
+    ( RPMT
+        [ MTT "Person"
+        , MTT "Qualifies"
+        ]
+    )
+]
+#+end_src
+
+***** expandBSR
+
+#+begin_src haskell
+[ Leaf
+    ( RPMT
+        [ MTT "Person"
+        , MTT "Qualifies"
+        ]
+    )
+]
+#+end_src
+
+
+
+**** Decision Root 2
+
+- [Qualifies]
+
+***** grpval
+
+#+begin_src haskell
+Just
+    ( All Nothing
+        [ Leaf "walks"
+        , Any Nothing
+            [ Leaf "drinks"
+            , Leaf "eats"
+            ]
+        ]
+    )
+#+end_src
+
+***** head uniqrs
+
+#+begin_src haskell
+Hornlike
+    { name =
+        [ MTT "Qualifies" ]
+    , super = Nothing
+    , keyword = Means
+    , given = Nothing
+    , giveth = Nothing
+    , upon = Nothing
+    , clauses =
+        [ HC
+            { hHead = RPBoolStructR
+                [ MTT "Qualifies" ] RPis
+                ( All Nothing
+                    [ Leaf
+                        ( RPMT
+                            [ MTT "walks" ]
+                        )
+                    , Any Nothing
+                        [ Leaf
+                            ( RPMT
+                                [ MTT "drinks" ]
+                            )
+                        , Leaf
+                            ( RPMT
+                                [ MTT "eats" ]
+                            )
+                        ]
+                    ]
+                )
+            , hBody = Nothing
+            }
+        ]
+    , rlabel = Nothing
+    , lsource = Nothing
+    , srcref = Just
+        ( SrcRef
+            { url = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , short = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , srcrow = 6
+            , srccol = 8
+            , version = Nothing
+            }
+        )
+    , defaults = []
+    , symtab = []
+    }
+#+end_src
+
+***** getAndOrTree (head uniqrs)
+
+#+begin_src haskell
+Just
+    ( All Nothing
+        [ Leaf "walks"
+        , Any Nothing
+            [ Leaf "drinks"
+            , Leaf "eats"
+            ]
+        ]
+    )
+#+end_src
+
+***** getBSR [head uniqrs]
+
+#+begin_src haskell
+[ All Nothing
+    [ Leaf
+        ( RPMT
+            [ MTT "walks" ]
+        )
+    , Any Nothing
+        [ Leaf
+            ( RPMT
+                [ MTT "drinks" ]
+            )
+        , Leaf
+            ( RPMT
+                [ MTT "eats" ]
+            )
+        ]
+    ]
+]
+#+end_src
+
+***** expandBSR
+
+#+begin_src haskell
+[ All Nothing
+    [ Leaf
+        ( RPMT
+            [ MTT "walks" ]
+        )
+    , Any Nothing
+        [ Leaf
+            ( RPMT
+                [ MTT "drinks" ]
+            )
+        , Leaf
+            ( RPMT
+                [ MTT "eats" ]
+            )
+        ]
+    ]
+]
+#+end_src
+
+****** uniq rules
+
+#+begin_src haskell
+Hornlike
+    { name =
+        [ MTT "Qualifies" ]
+    , super = Nothing
+    , keyword = Means
+    , given = Nothing
+    , giveth = Nothing
+    , upon = Nothing
+    , clauses =
+        [ HC
+            { hHead = RPBoolStructR
+                [ MTT "Qualifies" ] RPis
+                ( All Nothing
+                    [ Leaf
+                        ( RPMT
+                            [ MTT "walks" ]
+                        )
+                    , Any Nothing
+                        [ Leaf
+                            ( RPMT
+                                [ MTT "drinks" ]
+                            )
+                        , Leaf
+                            ( RPMT
+                                [ MTT "eats" ]
+                            )
+                        ]
+                    ]
+                )
+            , hBody = Nothing
+            }
+        ]
+    , rlabel = Nothing
+    , lsource = Nothing
+    , srcref = Just
+        ( SrcRef
+            { url = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , short = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , srcrow = 6
+            , srccol = 8
+            , version = Nothing
+            }
+        )
+    , defaults = []
+    , symtab = []
+    }
+#+end_src
+
+******* givens
+
+#+begin_src haskell
+Nothing
+#+end_src
+
+******* horn clause
+
+#+begin_src haskell
+HC
+    { hHead = RPBoolStructR
+        [ MTT "Qualifies" ] RPis
+        ( All Nothing
+            [ Leaf
+                ( RPMT
+                    [ MTT "walks" ]
+                )
+            , Any Nothing
+                [ Leaf
+                    ( RPMT
+                        [ MTT "drinks" ]
+                    )
+                , Leaf
+                    ( RPMT
+                        [ MTT "eats" ]
+                    )
+                ]
+            ]
+        )
+    , hBody = Nothing
+    }
+#+end_src
+
+******** partitionExistentials
+
+#+begin_src haskell
+( Leaf
+    ( RPMT
+        [ MTT "TRUE" ]
+    )
+, Leaf
+    ( RPMT
+        [ MTT "TRUE" ]
+    )
+)
+#+end_src
+
+** qaHornsR
+
+*** [MTT "Person"]
+
+#+begin_src haskell
+Leaf
+    ( RPMT
+        [ MTT "Person"
+        , MTT "Qualifies"
+        ]
+    )
+#+end_src
+
+*** [MTT "Qualifies"]
+
+#+begin_src haskell
+All Nothing
+    [ Leaf
+        ( RPMT
+            [ MTT "walks" ]
+        )
+    , Any Nothing
+        [ Leaf
+            ( RPMT
+                [ MTT "drinks" ]
+            )
+        , Leaf
+            ( RPMT
+                [ MTT "eats" ]
+            )
+        ]
+    ]
+#+end_src
+
+** qaHornsT
+
+*** [MTT "Person"]
+
+#+begin_src haskell
+Leaf "Person Qualifies"
+#+end_src
+
+*** [MTT "Qualifies"]
+
+#+begin_src haskell
+All Nothing
+    [ Leaf "walks"
+    , Any Nothing
+        [ Leaf "drinks"
+        , Leaf "eats"
+        ]
+    ]
+#+end_src
+
+** expandedRules
+
+*** Person
+
+#+begin_src haskell
+Regulative
+    { subj = Leaf
+        (
+            ( MTT "Person" :| []
+            , Nothing
+            ) :| []
+        )
+    , rkeyword = REvery
+    , who = Just
+        ( Leaf
+            ( RPMT
+                [ MTT "Qualifies" ]
+            )
+        )
+    , cond = Nothing
+    , deontic = DMust
+    , action = Leaf
+        (
+            ( MTT "sing" :| []
+            , Nothing
+            ) :| []
+        )
+    , temporal = Nothing
+    , hence = Nothing
+    , lest = Nothing
+    , rlabel = Nothing
+    , lsource = Nothing
+    , srcref = Just
+        ( SrcRef
+            { url = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , short = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , srcrow = 2
+            , srccol = 1
+            , version = Nothing
+            }
+        )
+    , upon = Nothing
+    , given = Nothing
+    , having = Nothing
+    , wwhere = []
+    , defaults = []
+    , symtab = []
+    }
+#+end_src
+
+** getAndOrTrees, direct
+
+*** Person
+
+#+begin_src haskell
+Just
+    ( Leaf "Person Qualifies" )
+#+end_src
+
+*** Qualifies
+
+#+begin_src haskell
+Just
+    ( All Nothing
+        [ Leaf "walks"
+        , Any Nothing
+            [ Leaf "drinks"
+            , Leaf "eats"
+            ]
+        ]
+    )
+#+end_src
+
+** Things that are RuleAliases
+
+
+
+** default markings
+
+terms annotated with TYPICALLY so we tell XPile targets what their default values are
+
+#+begin_src haskell
+Marking
+    { getMarking = fromList [] }
+#+end_src
+
+** symbol tables (~scopetable l4i~)
+
+*** [Qualifies]
+
+#+begin_src haskell
+fromList
+    [
+        (
+            [ MTT "Qualifies" ]
+        ,
+            (
+                ( Nothing
+                , []
+                )
+            ,
+                [ HC
+                    { hHead = RPBoolStructR
+                        [ MTT "Qualifies" ] RPis
+                        ( All Nothing
+                            [ Leaf
+                                ( RPMT
+                                    [ MTT "walks" ]
+                                )
+                            , Any Nothing
+                                [ Leaf
+                                    ( RPMT
+                                        [ MTT "drinks" ]
+                                    )
+                                , Leaf
+                                    ( RPMT
+                                        [ MTT "eats" ]
+                                    )
+                                ]
+                            ]
+                        )
+                    , hBody = Nothing
+                    }
+                ]
+            )
+        )
+    ]
+#+end_src
+
+** class tables (~classtable l4i~)
+
+#+begin_src haskell
+CT
+    ( fromList [] )
+#+end_src
+
+
+
+** The original rules (~origrules l4i~)
+
+*** [Person]
+
+#+begin_src haskell
+Regulative
+    { subj = Leaf
+        (
+            ( MTT "Person" :| []
+            , Nothing
+            ) :| []
+        )
+    , rkeyword = REvery
+    , who = Just
+        ( Leaf
+            ( RPMT
+                [ MTT "Qualifies" ]
+            )
+        )
+    , cond = Nothing
+    , deontic = DMust
+    , action = Leaf
+        (
+            ( MTT "sing" :| []
+            , Nothing
+            ) :| []
+        )
+    , temporal = Nothing
+    , hence = Nothing
+    , lest = Nothing
+    , rlabel = Nothing
+    , lsource = Nothing
+    , srcref = Just
+        ( SrcRef
+            { url = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , short = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , srcrow = 2
+            , srccol = 1
+            , version = Nothing
+            }
+        )
+    , upon = Nothing
+    , given = Nothing
+    , having = Nothing
+    , wwhere = []
+    , defaults = []
+    , symtab = []
+    }
+#+end_src
+
+**** local variables
+
+#+begin_src haskell
+[]
+#+end_src
+
+*** [Qualifies]
+
+#+begin_src haskell
+Hornlike
+    { name =
+        [ MTT "Qualifies" ]
+    , super = Nothing
+    , keyword = Means
+    , given = Nothing
+    , giveth = Nothing
+    , upon = Nothing
+    , clauses =
+        [ HC
+            { hHead = RPBoolStructR
+                [ MTT "Qualifies" ] RPis
+                ( All Nothing
+                    [ Leaf
+                        ( RPMT
+                            [ MTT "walks" ]
+                        )
+                    , Any Nothing
+                        [ Leaf
+                            ( RPMT
+                                [ MTT "drinks" ]
+                            )
+                        , Leaf
+                            ( RPMT
+                                [ MTT "eats" ]
+                            )
+                        ]
+                    ]
+                )
+            , hBody = Nothing
+            }
+        ]
+    , rlabel = Nothing
+    , lsource = Nothing
+    , srcref = Just
+        ( SrcRef
+            { url = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , short = "./temp/workdir/00c5f231-8844-4f15-8723-20b6f5bd0aa3/1Wgt73WV8vU9Ap4xTLLPZMvNKz1Q_SV_v7YeXYtaX7nY/1411370405/20230606T064958.639896Z.csv"
+            , srcrow = 6
+            , srccol = 8
+            , version = Nothing
+            }
+        )
+    , defaults = []
+    , symtab = []
+    }
+#+end_src
+
+**** local variables
+
+#+begin_src haskell
+[]
+#+end_src
