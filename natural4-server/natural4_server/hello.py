@@ -202,6 +202,7 @@ def process_csv():
     # postprocessing: call pandoc to convert markdown to pdf and word docs
     # ---------------------------------------------
 
+    mdPath = uuidssfolder + "/md"
     Path(mdPath).mkdir(parents=True, exist_ok=True)
     mdFile = mdPath + "/" + timeNow + ".md"
 
