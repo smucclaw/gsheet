@@ -241,7 +241,7 @@ def process_csv():
 
     md_file = pipe(
       uuid_ss_folder_path / 'md',
-      do(lambda x: x.mkdir(parents = True, exists_ok = True)),
+      do(lambda x: x.mkdir(parents = True, exist_ok = True)),
       lambda x: x / 'LATEST.md' # f'{timestamp}.md'
     )
     
