@@ -251,7 +251,7 @@ def process_csv():
         md_file, 'docx', outputfile = docx_file,
         extra_args = [
           '-f', 'markdown+hard_line_breaks',
-          '-s', '-o'
+          '-s',
         ]
       )
       if (docx_path / 'LATEST.docx').exists(): os.unlink(str(docx_path / 'LATEST.docx'))
@@ -271,7 +271,7 @@ def process_csv():
           '--pdf-engine=xelatex',
           '-V', 'CJKmainfont="Droid Sans Fallback"',
           '-f', 'markdown+hard_line_breaks',
-          '-s', '-o'
+          '-s',
         ]
       )
       if (pdf_path / 'LATEST.pdf').exists(): os.unlink(str(pdf_path / 'LATEST.pdf'))
