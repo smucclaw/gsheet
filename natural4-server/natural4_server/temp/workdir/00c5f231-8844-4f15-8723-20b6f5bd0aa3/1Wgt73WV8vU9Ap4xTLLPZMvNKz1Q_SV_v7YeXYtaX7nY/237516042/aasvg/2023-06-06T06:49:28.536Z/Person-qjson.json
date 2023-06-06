@@ -1,0 +1,70 @@
+[
+    {
+        "andOr": {
+            "tag": "And"
+        },
+        "mark": {
+            "Left": null
+        },
+        "prePost": null,
+        "shouldView": "View"
+    },
+    [
+        [
+            {
+                "andOr": {
+                    "contents": "Person walks",
+                    "tag": "Simply"
+                },
+                "mark": {
+                    "Left": null
+                },
+                "prePost": null,
+                "shouldView": "Ask"
+            },
+            []
+        ],
+        [
+            {
+                "andOr": {
+                    "tag": "Or"
+                },
+                "mark": {
+                    "Left": null
+                },
+                "prePost": null,
+                "shouldView": "View"
+            },
+            [
+                [
+                    {
+                        "andOr": {
+                            "contents": "Person eats",
+                            "tag": "Simply"
+                        },
+                        "mark": {
+                            "Left": null
+                        },
+                        "prePost": null,
+                        "shouldView": "Ask"
+                    },
+                    []
+                ],
+                [
+                    {
+                        "andOr": {
+                            "contents": "Person drinks",
+                            "tag": "Simply"
+                        },
+                        "mark": {
+                            "Left": null
+                        },
+                        "prePost": null,
+                        "shouldView": "Ask"
+                    },
+                    []
+                ]
+            ]
+        ]
+    ]
+]
