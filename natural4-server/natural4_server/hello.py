@@ -19,6 +19,31 @@ from pathlib import Path
 
 from flask import Flask, request, send_file
 
+##########################################################
+# SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
+# cargo-culted from https://www.geeksforgeeks.org/python-how-to-put-limits-on-memory-and-cpu-usage/
+##########################################################
+
+import signal
+import resource
+  
+# checking time limit exceed
+def time_exceeded(signo, frame):
+    print("hello.py: setrlimit time exceeded, exiting")
+    raise SystemExit(1)
+  
+def set_max_runtime(seconds):
+    # setting up the resource limit
+    soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
+    resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
+    signal.signal(signal.SIGXCPU, time_exceeded)
+  
+# max run time
+set_max_runtime(10000)
+
+########################################################## end of setrlimit
+
+
 try:
   from natural4_maude.analyse_state_space import run_analyse_state_space
 except ImportError:
@@ -144,10 +169,10 @@ def process_csv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files = (natural4_exe + " --tomd --toasp --workdir="
-                               + natural4_dir
-                               + " --uuiddir=" + uuid + "/"
-                               + spreadsheet_id + "/"
+  create_files = (natural4_exe + " --tomd --toasp --toepilog --workdir=" 
+                               + natural4_dir 
+                               + " --uuiddir=" + uuid + "/" 
+                               + spreadsheet_id + "/" 
                                + sheet_id
                                + " " + target_path)
   print(f"hello.py main: calling natural4-exe {natural4_exe}", file=sys.stderr)
@@ -262,7 +287,8 @@ def process_csv():
     with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
       v8k_out = read_file.readline()
     print("v8k.out: %s" % (v8k_out), file=sys.stderr)
-    print("less %s" % (uuid_ss_folder + "/v8k.out"), file=sys.stderr)
+
+    print("to see v8k bring up vue using npm run serve, run\n  tail -f %s" % (os.getcwd() + '/' + uuid_ss_folder + "/v8k.out"), file=sys.stderr)
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
