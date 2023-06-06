@@ -6,7 +6,7 @@ bindport=8300
 
 pythonpath = ""
 raw_env = ["basedir="       + ".",
-           "V8K_WORKDIR="   + "/home/mengwong/wow/much",
+           "V8K_WORKDIR="   + "/home/maxloo/v8kworkdir",
            "v8k_startport=" + str(bindport + 1),
            "v8k_path="      + "/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k",
            "natural4_exe="  + "natural4-exe",
