@@ -20,7 +20,7 @@ from pathlib import Path
 from flask import Flask, request, send_file
 
 ##########################################################
-# SETRLIMIT 10 seconds
+# SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
 # cargo-culted from https://www.geeksforgeeks.org/python-how-to-put-limits-on-memory-and-cpu-usage/
 ##########################################################
 
@@ -38,7 +38,7 @@ def set_max_runtime(seconds):
     resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
     signal.signal(signal.SIGXCPU, time_exceeded)
   
-# max run time of 30 seconds
+# max run time
 set_max_runtime(10000)
 
 ########################################################## end of setrlimit
