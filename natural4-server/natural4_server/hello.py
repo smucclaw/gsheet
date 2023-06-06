@@ -202,11 +202,11 @@ def process_csv():
     # postprocessing: call pandoc to convert markdown to pdf and word docs
     # ---------------------------------------------
 
-    mdPath = uuidssfolder + "/md"
+    mdPath = uuid_ss_folder + "/md"
     Path(mdPath).mkdir(parents=True, exist_ok=True)
     mdFile = mdPath + "/" + timeNow + ".md"
 
-    docxPath = uuidssfolder + "/docx"
+    docxPath = uuid_ss_folder + "/docx"
     Path(docxPath).mkdir(parents=True, exist_ok=True)
     docxFile = docxPath + "/" + timeNow + ".docx"
     print("hello.py main: running: pandoc " + mdFile + " -s -o " + docxFile)
@@ -214,7 +214,7 @@ def process_csv():
     if os.path.isfile(docxPath + "/LATEST.docx"): os.unlink(docxPath + "/LATEST.docx")
     os.symlink(timeNow + ".docx", docxPath + "/LATEST.docx")
 
-    pdfPath = uuidssfolder + "/pdf"
+    pdfPath = uuid_ss_folder + "/pdf"
     Path(pdfPath).mkdir(parents=True, exist_ok=True)
     pdfFile = pdfPath + "/" + timeNow + ".pdf"
     print("hello.py main: running: pandoc " + mdFile + " -s -o " + pdfFile)
