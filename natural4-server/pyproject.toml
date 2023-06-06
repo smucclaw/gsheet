@@ -23,8 +23,8 @@ pypandoc_binary = {version = "^1.11", optional = true}
 ipdb = "*"
 
 [tool.poetry.extras]
-formal_verification = ["maude", "umaudemc", "pyvis", "networkx"]
-word_and_pdf = ["pypandoc_binary"]
+formal-verification = ["maude", "umaudemc", "pyvis", "networkx"]
+word-and-pdf = ["pypandoc_binary"]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.270"
