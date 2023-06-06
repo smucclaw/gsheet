@@ -235,10 +235,11 @@ def process_csv():
 
     md_path = Path(uuid_ss_folder) / 'md'
     md_path.mkdir(parents=True, exist_ok=True)
-    md_file = str((md_path / 'LATEST.md').resolve()) # f'{timestamp}.md'
+    md_file = md_path / 'LATEST.md' # f'{timestamp}.md'
     
     # print(f'Markdown file {md_file} exists: {md_file.exists()}', file=sys.stderr)
     if md_file.exists():
+      md_file = str(md_file.resolve())
       docx_path = Path(uuid_ss_folder) / 'docx'
       docx_path.mkdir(parents=True, exist_ok=True)
       docx_file = docx_path / f'{timestamp}.docx'
