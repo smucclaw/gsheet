@@ -248,7 +248,7 @@ def process_csv():
       # print("hello.py main: running: " + pandocRunLineDocx)
       # os.system(pandocRunLineDocx)
       convert_file(
-        md_file, 'docx', outputfile = docx_file,
+        md_file, 'docx', outputfile = str(docx_file),
         extra_args = [
           '-f', 'markdown+hard_line_breaks',
           '-s',
@@ -266,7 +266,7 @@ def process_csv():
       # print("hello.py main: running: " + pandocRunLine)
       # os.system(pandocRunLine)
       convert_file(
-        md_file, 'pdf', outputfile = pdf_file,
+        md_file, 'pdf', outputfile = str(pdf_file),
         extra_args = [
           '--pdf-engine=xelatex',
           '-V', 'CJKmainfont="Droid Sans Fallback"',
