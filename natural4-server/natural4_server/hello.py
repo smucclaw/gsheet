@@ -101,27 +101,6 @@ def show_aasvg_image(uuid, ssid, sid, image):
   return send_file(image_path)
 
 # ################################################
-#            PANDOC TRANSPILATION FILES
-# ################################################
-
-def pandocOutput(md, op):
-  p = op + "Path"
-  f = op + "File"
-  op + "Path" = uuidssfolder + "/" + op
-
-  Path(p).mkdir(parents=True, exist_ok=True)
-  f     = p + "/" + timeNow + "." + op
-
-  print("hello.py main: running: pandoc " + md + " -s -o " + f)
-  if op == "pdf":
-    os.system("pandoc " + md + " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " + f)
-  else:
-    os.system("pandoc " + md + " -f markdown+hard_line_breaks -s -o " + f)
-  if os.path.isfile(p + "/LATEST." + op): os.unlink( p + "/LATEST." + op)
-  os.symlink(timeNow + "." + op, p + "/LATEST." + o
-
-
-# ################################################
 #                      main
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
 # ################################################
@@ -223,12 +202,24 @@ def process_csv():
     # postprocessing: call pandoc to convert markdown to pdf and word docs
     # ---------------------------------------------
 
-    mdPath = uuidssfolder + "/md"
     Path(mdPath).mkdir(parents=True, exist_ok=True)
     mdFile = mdPath + "/" + timeNow + ".md"
 
-    pandoc_outputs = ["docx", "pdf"]
-    map(pandocOutput, repeat(mdFile), pandoc_outputs)
+    docxPath = uuidssfolder + "/docx"
+    Path(docxPath).mkdir(parents=True, exist_ok=True)
+    docxFile = docxPath + "/" + timeNow + ".docx"
+    print("hello.py main: running: pandoc " + mdFile + " -s -o " + docxFile)
+    os.system("pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile)
+    if os.path.isfile(docxPath + "/LATEST.docx"): os.unlink(docxPath + "/LATEST.docx")
+    os.symlink(timeNow + ".docx", docxPath + "/LATEST.docx")
+
+    pdfPath = uuidssfolder + "/pdf"
+    Path(pdfPath).mkdir(parents=True, exist_ok=True)
+    pdfFile = pdfPath + "/" + timeNow + ".pdf"
+    print("hello.py main: running: pandoc " + mdFile + " -s -o " + pdfFile)
+    os.system("pandoc " + mdFile + " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " + pdfFile)
+    if os.path.isfile(pdfPath + "/LATEST.pdf"): os.unlink(pdfPath + "/LATEST.pdf")
+    os.symlink(timeNow + ".pdf", pdfPath + "/LATEST.pdf")
 
     # ---------------------------------------------
     # postprocessing: (re-)launch the vue web server
