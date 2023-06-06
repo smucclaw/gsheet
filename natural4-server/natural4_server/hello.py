@@ -17,6 +17,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+from cytoolz.functoolz import *
+from cytoolz.itertoolz import *
+from cytoolz.curried import *
+
 from flask import Flask, request, send_file
 
 ##########################################################
@@ -53,7 +57,8 @@ try:
   from pypandoc import convert_file
 except ImportError:
   def convert_file(
-      source_file, output_format, outputfile = Path(), extra_args = []
+    source_file, output_format,
+    outputfile = '', extra_args = []
   ): return
 
 basedir = os.environ.get("basedir", ".")
@@ -232,16 +237,18 @@ def process_csv():
     # ---------------------------------------------
     # postprocessing: call pandoc to convert markdown to pdf and word docs
     # ---------------------------------------------
+    uuid_ss_folder_path = Path(uuid_ss_folder)
 
-    md_path = Path(uuid_ss_folder) / 'md'
-    md_path.mkdir(parents=True, exist_ok=True)
-    md_file = md_path / 'LATEST.md' # f'{timestamp}.md'
+    md_file = pipe(
+      uuid_ss_folder_path / 'md',
+      do(lambda x: x.mkdir(parents = True, exists_ok = True)),
+      lambda x: x / 'LATEST.md' # f'{timestamp}.md'
+    )
     
-    # print(f'Markdown file {md_file} exists: {md_file.exists()}', file=sys.stderr)
     if md_file.exists():
-      # md_file = str(md_file.absolute())
-      print(f'Markdown file: {md_file}', file=sys.stderr)
-      docx_path = Path(uuid_ss_folder) / 'docx'
+      # print(f'Markdown file: {md_file}', file=sys.stderr)
+
+      docx_path = uuid_ss_folder_path / 'docx'
       docx_path.mkdir(parents=True, exist_ok=True)
       docx_file = docx_path / f'{timestamp}.docx'
       # pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
@@ -254,10 +261,11 @@ def process_csv():
           '-s',
         ]
       )
-      if (docx_path / 'LATEST.docx').exists(): os.unlink(str(docx_path / 'LATEST.docx'))
+      if (docx_path / 'LATEST.docx').exists():
+        os.unlink(str(docx_path / 'LATEST.docx'))
       os.symlink(f'{timestamp}.docx', str(docx_path / 'LATEST.docx'))
 
-      pdf_path = Path(uuid_ss_folder) / 'pdf'
+      pdf_path = uuid_ss_folder_path / 'pdf'
       pdf_path.mkdir(parents=True, exist_ok=True)
       pdf_file = pdf_path / f'{timestamp}.pdf'
       # pandocRunLine = ("pandoc " + mdFile +
@@ -274,7 +282,8 @@ def process_csv():
           '-s',
         ]
       )
-      if (pdf_path / 'LATEST.pdf').exists(): os.unlink(str(pdf_path / 'LATEST.pdf'))
+      if (pdf_path / 'LATEST.pdf').exists():
+        os.unlink(str(pdf_path / 'LATEST.pdf'))
       os.symlink(f'{timestamp}.pdf', str(pdf_path / 'LATEST.pdf'))
 
     # ---------------------------------------------
