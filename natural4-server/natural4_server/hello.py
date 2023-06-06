@@ -217,8 +217,11 @@ def process_csv():
     pdfPath = uuid_ss_folder + "/pdf"
     Path(pdfPath).mkdir(parents=True, exist_ok=True)
     pdfFile = pdfPath + "/" + timestamp + ".pdf"
-    print("hello.py main: running: pandoc " + mdFile + " -s -o " + pdfFile)
-    os.system("pandoc " + mdFile + " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " + pdfFile)
+    pandocRunLine = ("pandoc " + mdFile +
+                     " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " +
+                     pdfFile)
+    print("hello.py main: running: " + pandocRunLine)
+    os.system(pandocRunLine)
     if os.path.isfile(pdfPath + "/LATEST.pdf"): os.unlink(pdfPath + "/LATEST.pdf")
     os.symlink(timestamp + ".pdf", pdfPath + "/LATEST.pdf")
 
