@@ -209,8 +209,9 @@ def process_csv():
     docxPath = uuid_ss_folder + "/docx"
     Path(docxPath).mkdir(parents=True, exist_ok=True)
     docxFile = docxPath + "/" + timestamp + ".docx"
-    print("hello.py main: running: pandoc " + mdFile + " -s -o " + docxFile)
-    os.system("pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile)
+    pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
+    print("hello.py main: running: " + pandocRunLineDocx
+    os.system(pandocRunLineDocx)
     if os.path.isfile(docxPath + "/LATEST.docx"): os.unlink(docxPath + "/LATEST.docx")
     os.symlink(timestamp + ".docx", docxPath + "/LATEST.docx")
 
