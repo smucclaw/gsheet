@@ -12,21 +12,17 @@ To use this:
 #+begin_example
 export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
 # you'll probably need this for the server
-poetry shell
 
+poetry env use /usr/bin/python3.11 
+# for the server. Replace that python path with the path to whereever your python3.11 is if it's different
+
+poetry shell
 poetry install
 #+end_example
 
 You can activate the virtual environment with ~poetry shell~. Or to run the scripts, you can do ~poetry run~. See the docs (https://python-poetry.org/docs/) for more info.
 
-If you run into issues on the server with poetry trying to use python3.8 instead of python3.11 (which is what is specified in the .toml), you can try
-
-#+begin_example
-poetry env use /usr/bin/python3.11
-poetry shell
-#+end_example
-
-To check what python the virtual env is using, do ~poetry env info~.
+To check what python the virtual env is using, do ~poetry env info~. You'll want to make sure it's using a version that's consistent with what's specified in the .toml.
 
 * Optional: if you want to use ~pre-commit~:
 
@@ -45,8 +41,24 @@ You then have a few options as to when to run it.
 
 * Invocation
 
+Suppose you have your ~gsheet~ repo in ~/home/ymhan/repos/gsheet~. 
+(I'm making this super concrete to make it easier for folks new to the command line.)
+
+Then you can call ~gunicorn~ from the poetry virtual environment in either of these two ways.
+
+First way: enter the poetry shell; then call gunicorn with your config file (e.g. ~gunicorn.ym.py~).
+
 #+begin_example
-~/src/smucclaw/gsheet/pyrest$ gunicorn wsgi:app -c gunicorn.conf.py
+cd /home/ymhan/repos/gsheet/natural4-server/natural4_server/
+poetry shell
+gunicorn wsgi:app -c  gunicorn.ym.py
+#+end_example
+
+Second way: use ~poetry run~ (see ~https://python-poetry.org/docs/cli/~ for an explanation of that).
+
+#+begin_example
+cd /home/ymhan/repos/gsheet/natural4-server/natural4_server/
+poetry run gunicorn wsgi:app -c  gunicorn.ym.py
 #+end_example
 
 * DevMode

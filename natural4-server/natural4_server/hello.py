@@ -19,6 +19,31 @@ from pathlib import Path
 
 from flask import Flask, request, send_file
 
+##########################################################
+# SETRLIMIT 10 seconds
+# cargo-culted from https://www.geeksforgeeks.org/python-how-to-put-limits-on-memory-and-cpu-usage/
+##########################################################
+
+import signal
+import resource
+  
+# checking time limit exceed
+def time_exceeded(signo, frame):
+    print("hello.py: setrlimit time exceeded, exiting")
+    raise SystemExit(1)
+  
+def set_max_runtime(seconds):
+    # setting up the resource limit
+    soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
+    resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
+    signal.signal(signal.SIGXCPU, time_exceeded)
+  
+# max run time of 30 seconds
+set_max_runtime(10000)
+
+########################################################## end of setrlimit
+
+
 try:
   from natural4_maude.analyse_state_space import run_analyse_state_space 
 except ImportError:
@@ -139,7 +164,7 @@ def process_csv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files = (natural4_exe + " --tomd --toasp --workdir=" 
+  create_files = (natural4_exe + " --tomd --toasp --toepilog --workdir=" 
                                + natural4_dir 
                                + " --uuiddir=" + uuid + "/" 
                                + spreadsheet_id + "/" 
