@@ -13,8 +13,8 @@ raw_env = ["basedir="       + ".",
            ]
 bind     = "0.0.0.0:8200"
 
-# certfile   = "/etc/letsencrypt/live/cclaw.legalese.com/cert.pem"
-# keyfile    = "/etc/letsencrypt/live/cclaw.legalese.com/privkey.pem"
+certfile   = "/etc/letsencrypt/live/cclaw.legalese.com/cert.pem"
+keyfile    = "/etc/letsencrypt/live/cclaw.legalese.com/privkey.pem"
 
 preload = True
 accesslog = "access_log"
