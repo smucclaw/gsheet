@@ -57,8 +57,6 @@ set_max_runtime(10000)
 
 ########################################################## end of setrlimit
 
-from plugins.natural4_maude import run_analyse_state_space
-
 basedir = Path(os.environ.get("basedir", "."))
 
 if "V8K_WORKDIR" in os.environ:
