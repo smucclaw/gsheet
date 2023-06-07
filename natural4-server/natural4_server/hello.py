@@ -382,11 +382,9 @@ async def process_csv() -> str:
 
     maude_outputs = run_analyse_state_space(natural4_file, maude_output_path)
 
-    await asyncio.gather(
-      flowchart_outputs,
-      pandoc_outputs,
-      maude_outputs
-    )
+    await flowchart_outputs
+    await pandoc_outputs
+    await maude_outputs
 
     # async with asyncio.TaskGroup() as tasks:
     #   tasks.create_task(flowchart_outputs)
