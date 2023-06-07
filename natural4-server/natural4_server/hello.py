@@ -286,7 +286,7 @@ def process_csv() -> str:
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
     subprocess.run(
       v8kargs,
-      stdout=outfile, stderr=outfile
+      stdout=outfile, # stderr=outfile
     )
 
   # os.system(' '.join(v8kargs))
