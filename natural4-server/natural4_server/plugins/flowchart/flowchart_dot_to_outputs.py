@@ -10,7 +10,30 @@ from cytoolz.curried import *
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
 
-import pygraphviz as pgv
+try:
+  from pygraphviz import AGraph
+
+  @curry
+  def _dot_file_to_output(
+      dot_file: str | os.PathLike,
+      output_file: str | os.PathLike,
+      args: str
+  ) -> None:
+    pipe(
+      dot_file,
+      AGraph,
+      do(lambda graph: graph._draw(output_file, args = args))
+    )
+
+except ImportError:
+  @curry
+  def _dot_file_to_output(
+      dot_file: str | os.PathLike,
+      output_file: str | os.PathLike,
+      args: str
+  ) -> None:
+    # WARNING: Potentially unsafe.
+    os.system(f'dot {dot_file} {args} -o {output_file}')
 
 class FlowchartOutput(pyrs.PRecord):
   # petrifile{suffix}.{file_extension}
@@ -50,8 +73,7 @@ def flowchart_dot_to_output(
         timestamp_file = f'{timestamp}{suffix}.{file_extension}'
         output_file = f'{output_path / timestamp_file}'
 
-        graph = pgv.AGraph(dot_file)
-        graph.draw(output_file, args = args)
+        _dot_file_to_output(dot_file, output_file, args)
 
         latest_file = output_path / f'LATEST{suffix}.{file_extension}'
         try:
