@@ -54,7 +54,7 @@ def pandoc_md_to_word_and_pdf(
         outputpath:Path = uuid_ss_folder_path / file_extension
         outputpath.mkdir(parents=True, exist_ok=True)
 
-        timestamp_file = Path(f'{timestamp}.{file_extension}')
+        timestamp_file = f'{timestamp}.{file_extension}'
         outputfile = str(outputpath / timestamp_file)
 
         print(f'Outputting to {file_extension}', file=sys.stderr)
