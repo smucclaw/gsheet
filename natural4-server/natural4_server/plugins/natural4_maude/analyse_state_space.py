@@ -1,12 +1,10 @@
 import asyncio
-from collections.abc import Awaitable, Collection
+from collections.abc import Awaitable, Generator
 import os
 from pathlib import Path
 
 from cytoolz.functoolz import *
 from cytoolz.curried import *
-
-import pyrsistent as pyrs
 
 import maude
 
@@ -54,10 +52,10 @@ def find_race_cond(
   )
 
 @curry
-def analyse_state_space(
+def get_maude_tasks(
   natural4_file: str | os.PathLike,
   output_path: str | os.PathLike
-):
+) -> Generator[Awaitable[None], None, None]:
   '''
   Post process textual natural4 files by using Maude to generate a state space
   and find a race condition trace.
@@ -90,6 +88,6 @@ def analyse_state_space(
       #   # Continue along the happy path even if we get a timeout
       #   print("Natural4 Maude timeout", file=sys.stderr)
 
-run_analyse_state_space = compose_left(
-  analyse_state_space, asyncio.run
-)
+# run_analyse_state_space = compose_left(
+#   analyse_state_space, asyncio.run
+# )

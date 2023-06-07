@@ -1,16 +1,14 @@
 import asyncio
-from collections.abc import Collection
+from collections.abc import Awaitable, Collection, Generator
 import os
 import sys
 from pathlib import Path
-from typing import Awaitable
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import pyrsistent as pyrs
-import pyrsistent.typing as pyrst
 
 import pypandoc
 
@@ -79,10 +77,10 @@ def pandoc_md_to_output(
         # os.symlink(timestamp_file, latest_file)
 
 @curry
-def pandoc_md_to_outputs(
+def get_pandoc_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
-):
+) -> Generator[Awaitable[None], None, None]:
   for pandoc_output in pandoc_outputs:
     yield asyncio.to_thread(
       pandoc_md_to_output, uuid_ss_folder, timestamp, pandoc_output
@@ -98,9 +96,9 @@ def pandoc_md_to_outputs(
   # except TimeoutError:
   #   print("Word and pdf pandoc timeout", file=sys.stderr)
 
-@curry
-def run_pandoc_md_to_outputs(
-  uuid_ss_folder: str | os.PathLike,
-  timestamp: str
-) -> None:
-  asyncio.run(pandoc_md_to_outputs(uuid_ss_folder, timestamp))
+# @curry
+# def run_pandoc_md_to_outputs(
+#   uuid_ss_folder: str | os.PathLike,
+#   timestamp: str
+# ) -> None:
+#   asyncio.run(pandoc_md_to_outputs(uuid_ss_folder, timestamp))

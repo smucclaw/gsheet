@@ -1,4 +1,4 @@
 try:
-  from .pandoc_md_to_outputs import pandoc_md_to_outputs as run_pandoc_md_to_outputs
+  from .pandoc_md_to_outputs import get_pandoc_tasks
 except ImportError:
-  run_pandoc_md_to_outputs = lambda _uuid_ss_folder, _timestamp: None
+  get_pandoc_tasks = lambda _uuid_ss_folder, _timestamp: None

@@ -10,7 +10,7 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import Sequence, Mapping
+from collections.abc import Sequence
 import datetime
 import json
 import os
@@ -29,9 +29,9 @@ import pyrsistent.typing as pyrst
 
 from flask import Flask, Response, request, send_file
 
-from plugins.natural4_maude import run_analyse_state_space
-from plugins.word_and_pdf import run_pandoc_md_to_outputs
-from plugins.flowchart import run_flowchart_dot_to_outputs
+from plugins.natural4_maude import get_maude_tasks
+from plugins.word_and_pdf import get_pandoc_tasks
+from plugins.flowchart import get_flowchart_tasks
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -112,12 +112,15 @@ async def get_workdir_file(
   )
 
   workdir_folder: Path = temp_dir / "workdir" / uuid / ssid / sid / channel
+  empty_response: Response = Response(status = 204)
 
   match (workdir_folder.exists(), (workdir_folder / filename).is_file()):
     case (False, _):
       print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
+      return empty_response
     case (_, False):
       print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
+      return empty_response
     case _:
       exts: Collection[str] = pyrs.s(
         '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
@@ -128,21 +131,7 @@ async def get_workdir_file(
       else:
         print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
         mimetype = None
-      return send_file(workdir_folder / filename, mimetype=mimetype)
-
-  # if not os.path.exists(workdir_folder):
-  #   print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
-  # elif not os.path.isfile(workdir_folder + "/" + filename):
-  #   print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
-  # else:
-  #   (_, ext) = os.path.splitext(filename)
-  #   if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
-  #     print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
-  #     mimetype = 'text/plain'
-  #   else:
-  #     print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
-  #     mimetype = None
-  #   return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
+      return send_file(workdir_folder / filename, mimetype = mimetype)
 
 # ################################################
 #            SERVE SVG STATIC FILES
@@ -253,7 +242,7 @@ async def process_csv() -> str:
   # (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
   timestamp = dot_path.resolve()
 
-  flowchart_tasks = run_flowchart_dot_to_outputs(uuid_ss_folder, timestamp)
+  flowchart_tasks = get_flowchart_tasks(uuid_ss_folder, timestamp)
 
   # if not os.path.exists(petri_folder):
   #   print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
@@ -280,7 +269,7 @@ async def process_csv() -> str:
   # ---------------------------------------------
   # postprocessing: call pandoc to convert markdown to pdf and word docs
   # ---------------------------------------------
-  pandoc_tasks = run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
+  pandoc_tasks = get_pandoc_tasks(uuid_ss_folder, timestamp)
 
   # ---------------------------------------------
   # postprocessing: use Maude to generate the state space and find race conditions
@@ -288,7 +277,7 @@ async def process_csv() -> str:
   maude_output_path = uuid_ss_folder / 'maude'
   natural4_file = maude_output_path / 'LATEST.natural4'
 
-  maude_tasks = run_analyse_state_space(natural4_file, maude_output_path)
+  maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
 
   # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server

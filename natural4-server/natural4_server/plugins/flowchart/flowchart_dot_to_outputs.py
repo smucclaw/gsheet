@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import Sequence, Collection
+from collections.abc import Awaitable, Collection, Generator, Sequence
 import os
 import subprocess
 import sys
@@ -22,7 +22,7 @@ class FlowchartOutput(pyrs.PRecord):
   # for subprocess.run.
   args = pyrs.field(type = Sequence, initial = pyrse.sq())
 
-flowchart_outputs:Collection[FlowchartOutput] = pyrs.s(
+flowchart_outputs: Collection[FlowchartOutput] = pyrs.s(
   FlowchartOutput(
     file_extension = 'png',
     args = pyrse.sq('-Gdpi=150')
@@ -99,10 +99,10 @@ def flowchart_dot_to_output(
           print(f'hello.py main: {e}', file=sys.stderr)
 
 @curry
-def flowchart_dot_to_outputs(
+def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
-):
+) -> Generator[Awaitable[None], None, None]:
   for flowchart_output in flowchart_outputs:
     yield asyncio.to_thread(
       flowchart_dot_to_output, uuid_ss_folder, timestamp, flowchart_output
@@ -118,9 +118,9 @@ def flowchart_dot_to_outputs(
   # except TimeoutError:
   #   print("Flowchart graphviz timeout", file=sys.stderr)
 
-@curry
-def run_flowchart_dot_to_outputs(
-  uuid_ss_folder: str | os.PathLike,
-  timestamp: str
-) -> None:
-  asyncio.run(flowchart_dot_to_outputs(uuid_ss_folder, timestamp))
+# @curry
+# def run_flowchart_dot_to_outputs(
+#   uuid_ss_folder: str | os.PathLike,
+#   timestamp: str
+# ) -> None:
+#   asyncio.run(flowchart_dot_to_outputs(uuid_ss_folder, timestamp))
