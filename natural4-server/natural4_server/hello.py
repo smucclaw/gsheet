@@ -164,7 +164,7 @@ def process_csv() -> str:
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-  data: pyrs.PMap[str, str] = pyrs.pmap(request.form.to_dict())
+  data: pyrs.PMap[str, str] = pyrs.pmap(request.form)
 
   response: pyrst.PMap[str, str] = pyrs.m()
 
@@ -287,7 +287,10 @@ def process_csv() -> str:
     v8k_out = read_file.readline()
   print(f"v8k.out: {v8k_out}", file=sys.stderr)
 
-  print("to see v8k bring up vue using npm run serve, run\n  tail -f %s" % (os.getcwd() + '/' + uuid_ss_folder + "/v8k.out"), file=sys.stderr)
+  print(
+    f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',
+    file=sys.stderr
+  )
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
