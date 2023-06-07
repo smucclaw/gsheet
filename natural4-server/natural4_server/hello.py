@@ -345,6 +345,7 @@ async def process_csv() -> str:
         datetime.datetime.now() - start_time, ")", file=sys.stderr)
 
   childpid = os.fork()
+
   # if this leads to trouble we may need to double-fork with grandparent-wait
   if childpid > 0:  # in the parent
     # print("hello.py processCsv parent returning at", datetime.datetime.now(),
@@ -352,6 +353,10 @@ async def process_csv() -> str:
     print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
           datetime.datetime.now() - start_time, ")", file=sys.stderr)
     # print(json.dumps(response), file=sys.stderr)
+
+    async with asyncio.TaskGroup() as tasks:
+      tasks.create_task(flowchart_outputs)
+      tasks.create_task(pandoc_outputs)
 
     return json.dumps(response)
   else:  # in the child
@@ -382,8 +387,6 @@ async def process_csv() -> str:
 
     maude_outputs = run_analyse_state_space(natural4_file, maude_output_path)
 
-    await flowchart_outputs
-    await pandoc_outputs
     await maude_outputs
 
     # async with asyncio.TaskGroup() as tasks:
