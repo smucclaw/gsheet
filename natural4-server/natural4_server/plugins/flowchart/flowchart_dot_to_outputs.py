@@ -1,5 +1,6 @@
 import asyncio
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -15,9 +16,9 @@ try:
 
   @curry
   def _dot_file_to_output(
-      dot_file: str | os.PathLike,
-      output_file: str | os.PathLike,
-      args: str
+    dot_file: str | os.PathLike,
+    output_file: str | os.PathLike,
+    args: str
   ) -> None:
     pipe(
       dot_file,
@@ -28,12 +29,15 @@ try:
 except ImportError:
   @curry
   def _dot_file_to_output(
-      dot_file: str | os.PathLike,
-      output_file: str | os.PathLike,
-      args: str
+    dot_file: str | os.PathLike,
+    output_file: str | os.PathLike,
+    args: str
   ) -> None:
     # WARNING: Potentially unsafe.
-    os.system(f'dot {dot_file} {args} -o {output_file}')
+    subprocess.run(
+      ['dot', f'{dot_file}', f'{args}', '-o', f'{output_file}'],
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
 
 class FlowchartOutput(pyrs.PRecord):
   # petrifile{suffix}.{file_extension}
@@ -79,11 +83,12 @@ def flowchart_dot_to_output(
         latest_file = output_path / f'LATEST{suffix}.{file_extension}'
         try:
           if latest_file.exists():
-            os.unlink(latest_file)
-          os.symlink(timestamp_file, latest_file)
+            latest_file.unlink()
+          latest_file.symlink_to(timestamp_file)
+          # os.symlink(timestamp_file, latest_file)
         except Exception as e:
           print(
-            "hello.py main: got some kind of OS error to do with the unlinking and the symlinking",
+            'hello.py main: got some kind of OS error to do with the unlinking and the symlinking',
             file=sys.stderr
           )
           print(f'hello.py main: {e}', file=sys.stderr)

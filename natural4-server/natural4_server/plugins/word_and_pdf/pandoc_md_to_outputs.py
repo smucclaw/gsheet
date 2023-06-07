@@ -72,8 +72,9 @@ def pandoc_md_to_output(
 
         latest_file = outputpath / f'LATEST.{file_extension}'
         if latest_file.exists():
-          os.unlink(latest_file)
-        os.symlink(timestamp_file, latest_file)
+          latest_file.unlink()
+        latest_file.symlink_to(timestamp_file)
+        # os.symlink(timestamp_file, latest_file)
 
 @curry
 async def pandoc_md_to_outputs(
