@@ -392,6 +392,7 @@ async def process_csv() -> str:
     try:
       async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
         for task in concat(flowchart_tasks, pandoc_tasks, maude_tasks):
+          print(f'Running task: {task}', file=sys.stderr)
           tasks.create_task(task)
     except TimeoutError as exc:
       print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
