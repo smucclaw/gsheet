@@ -9,7 +9,7 @@
 # ################################################
 # There is no #! line because we are run out of gunicorn.
 
-from collections.abc import Sequence, Collection
+from collections.abc import Sequence, Mapping
 import datetime
 import json
 import os
@@ -164,9 +164,9 @@ def process_csv() -> str:
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-  data: pyrs.PMap[str, str] = pyrs.pmap(request.form)
+  data: Mapping[str, str] = request.form.to_dict()
 
-  response: pyrst.PMap[str, str] = pyrs.m()
+  response: Mapping[str, str] = {}
 
   uuid = data['uuid']
   spreadsheet_id = data['spreadsheetId']
@@ -220,8 +220,8 @@ def process_csv() -> str:
   with open(target_folder / f'{time_now}.out', "w") as fout:
     fout.write(nl4_out)
 
-  response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
-  response = response.set('nl4_stdout', nl4_out[:long_err_maxlen])
+  response['nl4_stderr'] = nl4_err[:long_err_maxlen]
+  response['nl4_stdout'] = nl4_out[:long_err_maxlen]
 
   # ---------------------------------------------
   # postprocessing: for petri nets: turn the DOT files into PNGs
@@ -295,16 +295,16 @@ def process_csv() -> str:
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
     print(f"v8k up succeeded with: {v8k_url}", file=sys.stderr)
-    response = response.set('v8k_url', v8k_url)
+    response['v8k_url'] = v8k_url
   else:
-    response = response.set('v8k_url', None)
+    response['v8k_url'] = None
 
 # ---------------------------------------------
 # load in the aasvg index HTML to pass back to sidebar
 # ---------------------------------------------
 
   with open(uuid_ss_folder / "aasvg" / "LATEST" / "index.html", "r") as read_file:
-    response = response.set('aasvg_index', read_file.read())
+    response['aasvg_index'] = read_file.read()
 
 # ---------------------------------------------
 # construct other response elements and log run-timings.
@@ -333,7 +333,7 @@ def process_csv() -> str:
           datetime.datetime.now() - start_time, ")", file=sys.stderr)
     # print(json.dumps(response), file=sys.stderr)
 
-    return json.dumps(pyrs.thaw(response))
+    return json.dumps(response)
   else:  # in the child
     print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
 
@@ -363,7 +363,7 @@ def process_csv() -> str:
     run_analyse_state_space(natural4_file, maude_output_path)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
-    return json.dumps(pyrs.thaw(response))
+    return json.dumps(response)
 
   # ---------------------------------------------
   # return to sidebar caller
