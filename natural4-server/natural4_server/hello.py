@@ -382,10 +382,16 @@ async def process_csv() -> str:
 
     maude_outputs = run_analyse_state_space(natural4_file, maude_output_path)
 
-    async with asyncio.TaskGroup() as tasks:
-      tasks.create_task(flowchart_outputs)
-      tasks.create_task(pandoc_outputs)
-      tasks.create_task(maude_outputs)
+    await asyncio.gather(
+      flowchart_outputs,
+      pandoc_outputs,
+      maude_outputs
+    )
+
+    # async with asyncio.TaskGroup() as tasks:
+    #   tasks.create_task(flowchart_outputs)
+    #   tasks.create_task(pandoc_outputs)
+    #   tasks.create_task(maude_outputs)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
