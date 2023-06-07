@@ -18,12 +18,16 @@ import subprocess
 import sys
 from pathlib import Path
 
+from cytoolz.functoolz import *
+from cytoolz.itertoolz import *
+from cytoolz.curried import *
+
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
 
 from flask import Flask, Response, request, send_file
 
-from plugins.natural4_maude import run_analyse_state_space
+from plugins.natural4_maude import analyse_state_space
 from plugins.word_and_pdf import run_pandoc_md_to_outputs
 from plugins.flowchart import run_flowchart_dot_to_outputs
 
@@ -93,7 +97,7 @@ app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 #  secondary handler serves .l4, .md, .hs, etc static files
 
 @app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
-def get_workdir_file(
+async def get_workdir_file(
   uuid: str | os.PathLike, 
   ssid: str | os.PathLike,
   sid: str | os.PathLike,
@@ -142,15 +146,20 @@ def get_workdir_file(
 # There is a LATEST directory instead of a LATEST file
 # so the directory path is a little bit different.
 
-@app.route("/aasvg/<uuid>/<ssid>/<sid>/<image>")
-def show_aasvg_image(
-  uuid:str, ssid:str, sid:str, image:str
+@app.route('/aasvg/<uuid>/<ssid>/<sid>/<image>')
+async def show_aasvg_image(
+  uuid: str | os.PathLike,
+  ssid: str | os.PathLike,
+  sid: str | os.PathLike,
+  image: str | os.PathLike
 ) -> Response:
   print("show_aasvg_image: handling request for /aasvg/ url", file=sys.stderr)
-  aasvg_folder = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST'
-  image_path = aasvg_folder / image
-  print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
-  return send_file(image_path)
+  return pipe(
+    temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image,
+    do(lambda image_path:
+        print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)),
+    send_file
+  )
 
 # ################################################
 #                      main
@@ -158,8 +167,8 @@ def show_aasvg_image(
 # ################################################
 # This is the function that does all the heavy lifting.
 
-@app.route("/post", methods=['GET', 'POST'])
-def process_csv() -> str:
+@app.route('/post', methods=['GET', 'POST'])
+async def process_csv() -> str:
   start_time = datetime.datetime.now()
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
@@ -347,7 +356,7 @@ def process_csv() -> str:
   else:  # in the child
     print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
 
-    create_files:Sequence[str] = pyrs.v(
+    create_files: Sequence[str] = pyrs.v(
       natural4_exe,
       '--only', 'tomd', f'--workdir={natural4_dir}',
       f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
@@ -370,7 +379,7 @@ def process_csv() -> str:
     maude_output_path = uuid_ss_folder / 'maude'
     natural4_file = maude_output_path / 'LATEST.natural4'
 
-    run_analyse_state_space(natural4_file, maude_output_path)
+    analyse_state_space(natural4_file, maude_output_path)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
