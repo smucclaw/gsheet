@@ -192,7 +192,7 @@ def process_csv() -> str:
   # one can leave out the ASP by adding the --toasp option
   create_files:Sequence[str] = pyrs.v(
     natural4_exe,
-    '--tomd', '--toasp', '--toepilog'
+    '--tomd', '--toasp', '--toepilog',
     f'--workdir={natural4_dir}',
     f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
     f'{target_path}'
