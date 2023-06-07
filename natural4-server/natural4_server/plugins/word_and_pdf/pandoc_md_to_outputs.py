@@ -91,7 +91,7 @@ async def pandoc_md_to_outputs(
     print("Pandoc timeout", file=sys.stderr)
 
 @curry
-def pandoc_md_to_outputs(
+def run_pandoc_md_to_outputs(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> None:
