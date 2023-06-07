@@ -179,7 +179,7 @@ def process_csv() -> str:
 
   target_folder.mkdir(parents=True, exist_ok=True)
 
-  with open(target_path, "w") as fout:
+  with open(target_path, 'w') as fout:
     fout.write(data['csvString'])
 
   # target_path is for CSV data
@@ -190,7 +190,7 @@ def process_csv() -> str:
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files:Sequence[str] = pyrs.v(
+  create_files: Sequence[str] = pyrs.v(
     natural4_exe,
     '--tomd', '--toasp', '--toepilog',
     f'--workdir={natural4_dir}',
@@ -200,7 +200,7 @@ def process_csv() -> str:
   print(f"hello.py main: calling natural4-exe {natural4_exe}", file=sys.stderr)
   print(f"hello.py main: {create_files}", file=sys.stderr)
   nl4exe = subprocess.run(
-    create_files, # shell=True
+    create_files, shell=True,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
   print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - start_time, ")", file=sys.stderr)
@@ -266,7 +266,7 @@ def process_csv() -> str:
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
-  v8kargs:Sequence[str] = pyrs.v(
+  v8kargs: Sequence[str] = pyrs.v(
     'python', v8k_path,
     f'--workdir={v8k_workdir}',
     'up',
@@ -346,7 +346,7 @@ def process_csv() -> str:
     print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
     print(f"hello.py child: {create_files}", file=sys.stderr)
     nl4exe = subprocess.run(
-      create_files, # shell=True,
+      create_files, shell=True,
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
