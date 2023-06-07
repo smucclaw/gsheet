@@ -9,6 +9,7 @@
 # ################################################
 # There is no #! line because we are run out of gunicorn.
 
+import asyncio
 from collections.abc import Sequence, Mapping
 import datetime
 import json
@@ -242,7 +243,7 @@ async def process_csv() -> str:
   # (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
   timestamp = dot_path.resolve()
 
-  run_flowchart_dot_to_outputs(uuid_ss_folder, timestamp)
+  flowchart_outputs = run_flowchart_dot_to_outputs(uuid_ss_folder, timestamp)
 
   # if not os.path.exists(petri_folder):
   #   print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
@@ -269,7 +270,7 @@ async def process_csv() -> str:
   # ---------------------------------------------
   # postprocessing: call pandoc to convert markdown to pdf and word docs
   # ---------------------------------------------
-  run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
+  pandoc_outputs = run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
 
   # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server
@@ -379,7 +380,12 @@ async def process_csv() -> str:
     maude_output_path = uuid_ss_folder / 'maude'
     natural4_file = maude_output_path / 'LATEST.natural4'
 
-    run_analyse_state_space(natural4_file, maude_output_path)
+    maude_outputs = run_analyse_state_space(natural4_file, maude_output_path)
+
+    async with asyncio.TaskGroup() as tasks:
+      tasks.create_task(flowchart_outputs)
+      tasks.create_task(pandoc_outputs)
+      tasks.create_task(maude_outputs)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
