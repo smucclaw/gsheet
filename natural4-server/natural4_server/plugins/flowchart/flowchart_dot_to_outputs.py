@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Sequence, Collection
 import os
 import subprocess
 import sys
@@ -9,7 +10,32 @@ from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import pyrsistent as pyrs
-import pyrsistent.typing as pyrst
+import pyrsistent_extras as pyrse
+
+class FlowchartOutput(pyrs.PRecord):
+  # petrifile{suffix}.{file_extension}
+  suffix = pyrs.field(type = str, initial = '')
+  file_extension = pyrs.field(mandatory = True, type = str)
+
+  # We prefer PSequence, ie 2-3 finger tree, for args because the log(n) concat
+  # makes it efficient to splice them with other stuff to construct commands
+  # for subprocess.run.
+  args = pyrs.field(type = Sequence, initial = pyrse.sq())
+
+flowchart_outputs:Collection[FlowchartOutput] = pyrs.s(
+  FlowchartOutput(
+    file_extension = 'png',
+    args = pyrse.sq('-Gdpi=150')
+  ),
+  FlowchartOutput(
+    suffix = '-small',
+    file_extension = 'png',
+    args = pyrse.sq('-Gdpi=72')
+  ),
+  FlowchartOutput(
+    file_extension = 'svg'
+  )
+)
 
 try:
   from pygraphviz import AGraph
@@ -18,7 +44,7 @@ try:
   def _dot_file_to_output(
     dot_file: str | os.PathLike,
     output_file: str | os.PathLike,
-    args: str
+    args: Sequence[str]
   ) -> None:
     pipe(
       dot_file,
@@ -31,34 +57,14 @@ except ImportError:
   def _dot_file_to_output(
     dot_file: str | os.PathLike,
     output_file: str | os.PathLike,
-    args: str
+    args: Sequence[str]
   ) -> None:
     # WARNING: Potentially unsafe.
     subprocess.run(
-      ['dot', f'{dot_file}', f'{args}', '-o', f'{output_file}'],
+      # Log(n) concat go brr
+      pyrse.sq('dot', f'{dot_file}') + args + pyrse.sq('-o', f'{output_file}'),
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
-
-class FlowchartOutput(pyrs.PRecord):
-  # petrifile{suffix}.{file_extension}
-  suffix = pyrs.field(type = str, initial = '')
-  file_extension = pyrs.field(mandatory = True, type = str)
-  args = pyrs.field(type = str, initial = '')
-
-flowchart_outputs:pyrst.PSet[FlowchartOutput] = pyrs.s(
-  FlowchartOutput(
-    file_extension = 'png',
-    args = '-Gdpi=150'
-  ),
-  FlowchartOutput(
-    suffix = '-small',
-    file_extension = 'png',
-    args = '-Gdpi=72'
-  ),
-  FlowchartOutput(
-    file_extension = 'svg'
-  )
-)
 
 @curry
 def flowchart_dot_to_output(

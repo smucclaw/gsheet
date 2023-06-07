@@ -9,6 +9,7 @@
 # ################################################
 # There is no #! line because we are run out of gunicorn.
 
+from collections.abc import Sequence, Collection
 import datetime
 import json
 import os
@@ -17,7 +18,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-from flask import Flask, request, send_file
+import pyrsistent as pyrs
+import pyrsistent.typing as pyrst
+import pyrsistent_extras as pyrse
+
+from flask import Flask, Response, request, send_file
 
 from plugins.natural4_maude import run_analyse_state_space
 from plugins.word_and_pdf import run_pandoc_md_to_outputs
@@ -33,14 +38,14 @@ import resource
   
 # checking time limit exceed
 def time_exceeded(signo, frame):
-    print("hello.py: setrlimit time exceeded, exiting")
-    raise SystemExit(1)
+  print("hello.py: setrlimit time exceeded, exiting")
+  raise SystemExit(1)
   
 def set_max_runtime(seconds):
-    # setting up the resource limit
-    soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
-    resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
-    signal.signal(signal.SIGXCPU, time_exceeded)
+  # setting up the resource limit
+  soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
+  resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
+  signal.signal(signal.SIGXCPU, time_exceeded)
   
 # max run time
 set_max_runtime(10000)
@@ -49,15 +54,7 @@ set_max_runtime(10000)
 
 from plugins.natural4_maude import run_analyse_state_space
 
-try:
-  from pypandoc import convert_file
-except ImportError:
-  def convert_file(
-    source_file, output_format,
-    outputfile = '', extra_args = []
-  ): return
-
-basedir = os.environ.get("basedir", ".")
+basedir = Path(os.environ.get("basedir", "."))
 
 if "V8K_WORKDIR" in os.environ:
   v8k_workdir = os.environ["V8K_WORKDIR"]
@@ -84,13 +81,12 @@ natural4_exe = os.environ.get("natural4_exe", default_filenm_natL4exe_from_stack
 
 
 # see gunicorn.conf.py for basedir, workdir, startport
-template_dir = basedir + "/template/"
-temp_dir = basedir + "/temp/"
-static_dir = basedir + "/static/"
-natural4_dir = temp_dir + "workdir"
+template_dir:Path = basedir / "template"
+temp_dir:Path = basedir / "temp"
+static_dir:Path = basedir / "static"
+natural4_dir:Path = temp_dir / "workdir"
 
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
-
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
@@ -98,22 +94,45 @@ app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 #  secondary handler serves .l4, .md, .hs, etc static files
 
 @app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
-def get_workdir_file(uuid, ssid, sid, channel, filename):
+def get_workdir_file(
+  uuid: str | os.PathLike, 
+  ssid: str | os.PathLike,
+  sid: str | os.PathLike,
+  channel: str | os.PathLike,
+  filename: str | os.PathLike
+) -> Response:
   print("get_workdir_file: handling request for %s/%s/%s/%s/%s" % (uuid, ssid, sid, channel, filename), file=sys.stderr)
-  workdir_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + channel
-  if not os.path.exists(workdir_folder):
-    print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
-  elif not os.path.isfile(workdir_folder + "/" + filename):
-    print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
-  else:
-    (_, ext) = os.path.splitext(filename)
-    if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
-      print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
-      mimetype = 'text/plain'
-    else:
-      print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
-      mimetype = None
-    return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
+  workdir_folder:Path = temp_dir / "workdir" / uuid / ssid / sid / channel
+  match (workdir_folder.exists(), (workdir_folder / filename).is_file()):
+    case (False, _):
+      print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
+    case (__, False):
+      print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
+    case _:
+      exts:pyrst.PSet[str] = pyrs.s(
+        '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
+      )
+      if Path(filename).suffix in exts:
+        print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
+        mimetype = 'text/plain'
+      else:
+        print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
+        mimetype = None
+      return send_file(workdir_folder / filename, mimetype=mimetype)
+
+  # if not os.path.exists(workdir_folder):
+  #   print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
+  # elif not os.path.isfile(workdir_folder + "/" + filename):
+  #   print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
+  # else:
+  #   (_, ext) = os.path.splitext(filename)
+  #   if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
+  #     print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
+  #     mimetype = 'text/plain'
+  #   else:
+  #     print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
+  #     mimetype = None
+  #   return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
 
 # ################################################
 #            SERVE SVG STATIC FILES
@@ -125,11 +144,13 @@ def get_workdir_file(uuid, ssid, sid, channel, filename):
 # so the directory path is a little bit different.
 
 @app.route("/aasvg/<uuid>/<ssid>/<sid>/<image>")
-def show_aasvg_image(uuid, ssid, sid, image):
+def show_aasvg_image(
+  uuid:str, ssid:str, sid:str, image:str
+) -> Response:
   print("show_aasvg_image: handling request for /aasvg/ url", file=sys.stderr)
-  aasvg_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/aasvg/LATEST/"
-  image_path = aasvg_folder + image
-  print("show_aasvg_image: sending path " + image_path, file=sys.stderr)
+  aasvg_folder = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST'
+  image_path = aasvg_folder / image
+  print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
   return send_file(image_path)
 
 # ################################################
@@ -139,25 +160,25 @@ def show_aasvg_image(uuid, ssid, sid, image):
 # This is the function that does all the heavy lifting.
 
 @app.route("/post", methods=['GET', 'POST'])
-def process_csv():
+def process_csv() -> str:
   start_time = datetime.datetime.now()
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-  data = request.form.to_dict()
+  data: pyrs.PMap[str, str] = pyrs.pmap(request.form.to_dict())
 
-  response = {}
+  response: pyrst.PMap[str, str] = pyrs.m()
 
   uuid = data['uuid']
   spreadsheet_id = data['spreadsheetId']
   sheet_id = data['sheetId']
-  target_folder = natural4_dir + "/" + uuid + "/" + spreadsheet_id + "/" + sheet_id + "/"
+  target_folder = Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
   print(target_folder)
   time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
-  target_file = time_now + ".csv"
-  target_path = target_folder + target_file
+  target_file = Path(f'{time_now}.csv')
+  target_path = target_folder / target_file
 
-  Path(target_folder).mkdir(parents=True, exist_ok=True)
+  target_folder.mkdir(parents=True, exist_ok=True)
 
   with open(target_path, "w") as fout:
     fout.write(data['csvString'])
@@ -170,15 +191,19 @@ def process_csv():
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files = (natural4_exe + " --tomd --toasp --toepilog --workdir=" 
-                               + natural4_dir 
-                               + " --uuiddir=" + uuid + "/" 
-                               + spreadsheet_id + "/" 
-                               + sheet_id
-                               + " " + target_path)
+  create_files:Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--tomd', '--toasp', '--toepilog'
+    f'--workdir={natural4_dir}',
+    f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
+    f'{target_path}'
+  )
   print(f"hello.py main: calling natural4-exe {natural4_exe}", file=sys.stderr)
   print(f"hello.py main: {create_files}", file=sys.stderr)
-  nl4exe = subprocess.run([create_files], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  nl4exe = subprocess.run(
+    create_files, # shell=True
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  )
   print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - start_time, ")", file=sys.stderr)
 
   nl4_out, nl4_err = nl4exe.stdout.decode('utf-8'), nl4exe.stderr.decode('utf-8')
@@ -191,22 +216,23 @@ def process_csv():
   if len(nl4_err) < short_err_maxlen:
     print(nl4_err)
 
-  with open(target_folder + time_now + ".err", "w") as fout:
+  with open(target_folder / f'{time_now}.err', "w") as fout:
     fout.write(nl4_err)
-  with open(target_folder + time_now + ".out", "w") as fout:
+  with open(target_folder / f'{time_now}.out', "w") as fout:
     fout.write(nl4_out)
 
-  response['nl4_stderr'] = nl4_err[:long_err_maxlen]
-  response['nl4_stdout'] = nl4_out[:long_err_maxlen]
+  response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
+  response = response.set('nl4_stdout', nl4_out[:long_err_maxlen])
 
   # ---------------------------------------------
   # postprocessing: for petri nets: turn the DOT files into PNGs
   # ---------------------------------------------
 
-  uuid_ss_folder = temp_dir + "workdir/" + uuid + "/" + spreadsheet_id + "/" + sheet_id
-  petri_folder = uuid_ss_folder + "/petri/"
-  dot_path = petri_folder + "LATEST.dot"
-  (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
+  uuid_ss_folder = temp_dir / "workdir" / uuid / spreadsheet_id / sheet_id
+  petri_folder = uuid_ss_folder / "petri"
+  dot_path = petri_folder / "LATEST.dot"
+  # (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
+  timestamp = dot_path.resolve()
 
   run_flowchart_dot_to_outputs(uuid_ss_folder, timestamp)
 
@@ -241,44 +267,47 @@ def process_csv():
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
-  v8kargs = ["python", v8k_path,
-              "--workdir=" + v8k_workdir,
-              "up",
-              v8k_slots_arg,
-              "--uuid=" + uuid,
-              "--ssid=" + spreadsheet_id,
-              "--sheetid=" + sheet_id,
-              "--startport=" + v8k_startport,
-              uuid_ss_folder + "/purs/LATEST.purs"]
+  v8kargs:Sequence[str] = pyrse.sq(
+    'python', v8k_path,
+    f'--workdir={v8k_workdir}',
+    'up',
+    v8k_slots_arg,
+    f'--uuid={uuid}',
+    f'--ssid={spreadsheet_id}',
+    f'--sheetid={sheet_id}',
+    f'--startport={v8k_startport}',
+    f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
+  )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
-  os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
-  print("hello.py main: v8k up returned", file=sys.stderr)
-  with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
+  subprocess.run(v8kargs + pyrse.sq('>', uuid_ss_folder / 'v8k.out'))
+  # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
+  print('hello.py main: v8k up returned', file=sys.stderr)
+  with open(uuid_ss_folder / 'v8k.out', "r") as read_file:
     v8k_out = read_file.readline()
-  print("v8k.out: %s" % (v8k_out), file=sys.stderr)
+  print(f"v8k.out: {v8k_out}", file=sys.stderr)
 
   print("to see v8k bring up vue using npm run serve, run\n  tail -f %s" % (os.getcwd() + '/' + uuid_ss_folder + "/v8k.out"), file=sys.stderr)
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
-    print("v8k up succeeded with: " + v8k_url, file=sys.stderr)
-    response['v8k_url'] = v8k_url
+    print(f"v8k up succeeded with: {v8k_url}", file=sys.stderr)
+    response = response.set('v8k_url', v8k_url)
   else:
-    response['v8k_url'] = None
+    response = response.set('v8k_url', None)
 
 # ---------------------------------------------
 # load in the aasvg index HTML to pass back to sidebar
 # ---------------------------------------------
 
-  with open(uuid_ss_folder + "/aasvg/LATEST/index.html", "r") as read_file:
-    response['aasvg_index'] = read_file.read()
+  with open(uuid_ss_folder / "aasvg" / "LATEST" / "index.html", "r") as read_file:
+    response = response.set('aasvg_index', read_file.read())
 
 # ---------------------------------------------
 # construct other response elements and log run-timings.
 # ---------------------------------------------
 
-  response['timestamp'] = timestamp
+  response = response.set('timestamp', f'{timestamp}')
 
   end_time = datetime.datetime.now()
   elapsed_time = end_time - start_time
@@ -305,21 +334,27 @@ def process_csv():
   else:  # in the child
     print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
 
-    create_files = (natural4_exe
-                  + " --only tomd --workdir=" + natural4_dir
-                  + " --uuiddir=" + uuid + "/" + spreadsheet_id + "/" + sheet_id + " " + target_path)
+    create_files:Sequence[str] = pyrs.v(
+      natural4_exe,
+      '--only', 'tomd', f'--workdir={natural4_dir}',
+      f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
+      f'{target_path}'
+    )
     print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
     print(f"hello.py child: {create_files}", file=sys.stderr)
-    nl4exe = subprocess.run([create_files], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    nl4exe = subprocess.run(
+      create_files, # shell=True,
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
           file=sys.stderr)
-    print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
-    print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
+    print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
+    print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
 
     print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
           ")", file=sys.stderr)
 
-    maude_output_path = Path(uuid_ss_folder) / 'maude'
+    maude_output_path = uuid_ss_folder / 'maude'
     natural4_file = maude_output_path / 'LATEST.natural4'
 
     run_analyse_state_space(natural4_file, maude_output_path)

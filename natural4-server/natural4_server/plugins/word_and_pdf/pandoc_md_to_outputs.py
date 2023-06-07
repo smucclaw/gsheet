@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Collection
 import os
 import sys
 from pathlib import Path
@@ -8,7 +9,6 @@ from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import pyrsistent as pyrs
-import pyrsistent.typing as pyrst
 
 import pypandoc
 
@@ -18,7 +18,7 @@ class PandocOutput(pyrs.PRecord):
     str, optional = True, initial = pyrs.pvector()
   )
 
-pandoc_outputs:pyrst.PSet[PandocOutput] = pyrs.s(
+pandoc_outputs:Collection[PandocOutput] = pyrs.s(
   PandocOutput(
     file_extension = 'docx',
     extra_args = pyrs.v(
