@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+import _typeshed
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -16,7 +17,7 @@ class PandocOutput(pyrs.PRecord):
     str, optional = True, initial = pyrs.pvector()
   )
 
-outputs = pyrs.v(
+outputs: pyrs.PVector[PandocOutput] = pyrs.v(
   PandocOutput(
     file_extension = 'docx',
     extra_args = pyrs.v(
@@ -36,7 +37,10 @@ outputs = pyrs.v(
 )
 
 @curry
-def pandoc_md_to_word_and_pdf(uuid_ss_folder, timestamp):
+def pandoc_md_to_word_and_pdf(
+  uuid_ss_folder: _typeshed.StrOrBytesPath,
+  timestamp: str
+) -> None:
   uuid_ss_folder_path = Path(uuid_ss_folder)
   md_file = uuid_ss_folder_path / 'md' / 'LATEST.md' # f'{timestamp}.md'
   # pipe(
