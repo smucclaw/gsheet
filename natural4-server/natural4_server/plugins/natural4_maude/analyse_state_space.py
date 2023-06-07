@@ -63,6 +63,7 @@ def get_maude_tasks(
 
   # Read the textual natural4 file.
   # maude_path = Path(uuid_ss_folder) / 'maude'
+  output_path = Path(output_path)
   output_path.mkdir(parents=True, exist_ok=True)
   # natural4_file = maude_path / 'LATEST.natural4'
   with open(natural4_file) as f:
@@ -80,6 +81,7 @@ def get_maude_tasks(
     if config:
       yield find_race_cond(output_path, natural4_rules)
       yield gen_state_space(output_path, config)
+
       # try:
       #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
       #     tasks.create_task(find_race_cond(output_path, natural4_rules))

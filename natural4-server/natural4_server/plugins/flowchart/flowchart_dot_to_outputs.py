@@ -103,10 +103,15 @@ def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> Generator[Awaitable[None], None, None]:
-  for flowchart_output in flowchart_outputs:
-    yield asyncio.to_thread(
-      flowchart_dot_to_output, uuid_ss_folder, timestamp, flowchart_output
+  return pipe(
+    flowchart_outputs,
+    map(
+      partial(
+        asyncio.to_thread, flowchart_dot_to_output, uuid_ss_folder, timestamp
+      )
     )
+  )
+
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
   #     for flowchart_output in flowchart_outputs:

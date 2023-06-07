@@ -18,7 +18,7 @@ class PandocOutput(pyrs.PRecord):
     str, optional = True, initial = pyrs.pvector()
   )
 
-pandoc_outputs:Collection[PandocOutput] = pyrs.s(
+pandoc_outputs: Collection[PandocOutput] = pyrs.s(
   PandocOutput(
     file_extension = 'docx',
     extra_args = pyrs.v(
@@ -81,10 +81,15 @@ def get_pandoc_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> Generator[Awaitable[None], None, None]:
-  for pandoc_output in pandoc_outputs:
-    yield asyncio.to_thread(
-      pandoc_md_to_output, uuid_ss_folder, timestamp, pandoc_output
+  return pipe(
+    pandoc_outputs,
+    map(
+      partial(
+        asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
+      )
     )
+  )
+
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
   #     for pandoc_output in pandoc_outputs:
