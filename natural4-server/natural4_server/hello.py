@@ -106,7 +106,9 @@ async def get_workdir_file(
   filename: str | os.PathLike
 ) -> Response:
   print("get_workdir_file: handling request for %s/%s/%s/%s/%s" % (uuid, ssid, sid, channel, filename), file=sys.stderr)
-  workdir_folder:Path = temp_dir / "workdir" / uuid / ssid / sid / channel
+
+  workdir_folder: Path = temp_dir / "workdir" / uuid / ssid / sid / channel
+
   match (workdir_folder.exists(), (workdir_folder / filename).is_file()):
     case (False, _):
       print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
@@ -155,6 +157,7 @@ async def show_aasvg_image(
   image: str | os.PathLike
 ) -> Response:
   print("show_aasvg_image: handling request for /aasvg/ url", file=sys.stderr)
+
   return pipe(
     temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image,
     do(lambda image_path:
@@ -362,10 +365,10 @@ async def process_csv() -> str:
           datetime.datetime.now() - start_time, ")", file=sys.stderr)
     # print(json.dumps(response), file=sys.stderr)
 
-    async with asyncio.TaskGroup() as tasks:
-      tasks.create_task(flowchart_outputs)
-      tasks.create_task(pandoc_outputs)
-      tasks.create_task(maude_outputs)
+    # async with asyncio.TaskGroup() as tasks:
+    #   tasks.create_task(flowchart_outputs)
+    #   tasks.create_task(pandoc_outputs)
+    #   tasks.create_task(maude_outputs)
 
     return json.dumps(response)
   else:  # in the child
