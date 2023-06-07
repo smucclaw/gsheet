@@ -190,15 +190,15 @@ def process_csv() -> str:
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files: Sequence[str] = pyrs.v(
+  create_files: Sequence[str] = [
     natural4_exe,
     '--tomd', '--toasp', '--toepilog',
     f'--workdir={natural4_dir}',
     f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
     f'{target_path}'
-  )
-  print(f"hello.py main: calling natural4-exe {natural4_exe}", file=sys.stderr)
-  print(f"hello.py main: {create_files}", file=sys.stderr)
+  ]
+  print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
+  print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
   nl4exe = subprocess.run(
     create_files, shell=True,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -266,7 +266,7 @@ def process_csv() -> str:
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
-  v8kargs: Sequence[str] = pyrs.v(
+  v8kargs: Sequence[str] = [
     'python', v8k_path,
     f'--workdir={v8k_workdir}',
     'up',
@@ -276,7 +276,7 @@ def process_csv() -> str:
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
     f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
-  )
+  ]
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
