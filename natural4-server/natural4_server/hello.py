@@ -279,7 +279,7 @@ def process_csv() -> str:
   )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
-  with open(uuid_ss_folder / 'v8k.out', 'w') as outfile:
+  with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
     subprocess.run(v8kargs, stdout=outfile, stderr=subprocess.PIPE)
   # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
   print('hello.py main: v8k up returned', file=sys.stderr)
