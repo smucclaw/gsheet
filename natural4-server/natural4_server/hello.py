@@ -266,7 +266,7 @@ def process_csv() -> str:
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
-  v8kargs: Sequence[str] = pyrs.v(
+  v8kargs: Sequence[str] = [
     'python', v8k_path,
     f'--workdir={v8k_workdir}',
     'up',
@@ -276,7 +276,7 @@ def process_csv() -> str:
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
     f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
-  )
+  ]
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
 
