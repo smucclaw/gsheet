@@ -12,6 +12,7 @@
 import asyncio
 from collections.abc import Sequence
 import datetime
+from itertools import chain
 import json
 import os
 import re
@@ -147,7 +148,7 @@ async def show_aasvg_image(
   sid: str | os.PathLike,
   image: str | os.PathLike
 ) -> Response:
-  print("show_aasvg_image: handling request for /aasvg/ url", file=sys.stderr)
+  print('show_aasvg_image: handling request for /aasvg/ url', file=sys.stderr)
 
   return pipe(
     temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image,
@@ -222,9 +223,9 @@ async def process_csv() -> str:
   if len(nl4_err) < short_err_maxlen:
     print(nl4_err)
 
-  with open(target_folder / f'{time_now}.err', "w") as fout:
+  with open(target_folder / f'{time_now}.err', 'w') as fout:
     fout.write(nl4_err)
-  with open(target_folder / f'{time_now}.out', "w") as fout:
+  with open(target_folder / f'{time_now}.out', 'w') as fout:
     fout.write(nl4_out)
 
   response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
@@ -309,7 +310,7 @@ async def process_csv() -> str:
   # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
 
   print('hello.py main: v8k up returned', file=sys.stderr)
-  with open(uuid_ss_folder / 'v8k.out', "r") as read_file:
+  with open(uuid_ss_folder / 'v8k.out', 'r') as read_file:
     v8k_out = read_file.readline()
   print(f'v8k.out: {v8k_out}', file=sys.stderr)
 
@@ -320,7 +321,7 @@ async def process_csv() -> str:
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
-    print(f"v8k up succeeded with: {v8k_url}", file=sys.stderr)
+    print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
     response = response.set('v8k_url', v8k_url)
   else:
     response = response.set('v8k_url', None)
@@ -329,7 +330,7 @@ async def process_csv() -> str:
 # load in the aasvg index HTML to pass back to sidebar
 # ---------------------------------------------
 
-  with open(uuid_ss_folder / "aasvg" / "LATEST" / "index.html", "r") as read_file:
+  with open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r') as read_file:
     response = response.set('aasvg_index', read_file.read())
 
 # ---------------------------------------------
@@ -356,50 +357,49 @@ async def process_csv() -> str:
     file=sys.stderr
   )
 
-  childpid = os.fork()
+  # childpid = os.fork()
 
   # if this leads to trouble we may need to double-fork with grandparent-wait
-  if childpid > 0:  # in the parent
+  # if childpid > 0:  # in the parent
     # print("hello.py processCsv parent returning at", datetime.datetime.now(),
     #                   "(total", datetime.datetime.now() - start_time, ")", file=sys.stderr)
-    print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
-          datetime.datetime.now() - start_time, ")", file=sys.stderr)
-    # print(json.dumps(response), file=sys.stderr)
+  print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
+        datetime.datetime.now() - start_time, ")", file=sys.stderr)
+  # print(json.dumps(response), file=sys.stderr)
 
-    try:
-      async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
-        for task in concat([flowchart_tasks, pandoc_tasks, maude_tasks]):
-          print(f'Running task: {task}', file=sys.stderr)
-          tasks.create_task(task)
-    except TimeoutError as exc:
-      print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
+  try:
+    async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
+      for task in chain(flowchart_tasks, pandoc_tasks, maude_tasks):
+        print(f'Running task: {task}', file=sys.stderr)
+        tasks.create_task(task)
+  except TimeoutError as exc:
+    print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
 
-    return json.dumps(pyrs.thaw(response))
-  else:  # in the child
-    print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
+  # else:  # in the child
+  print('hello.py processCsv: fork(child): continuing to run', file=sys.stderr)
 
-    create_files: Sequence[str] = pyrs.v(
-      natural4_exe,
-      '--only', 'tomd', f'--workdir={natural4_dir}',
-      f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
-      f'{target_path}'
-    )
-    print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
-    print(f"hello.py child: {create_files}", file=sys.stderr)
-    nl4exe = subprocess.run(
-      create_files,
-      stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
-          file=sys.stderr)
-    print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
-    print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
+  create_files: Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--only', 'tomd', f'--workdir={natural4_dir}',
+    f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
+    f'{target_path}'
+  )
+  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
+  print(f"hello.py child: {create_files}", file=sys.stderr)
+  nl4exe = subprocess.run(
+    create_files,
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  )
+  print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
+        file=sys.stderr)
+  print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
+  print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
 
-    print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
-          ")", file=sys.stderr)
+  print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
+        ")", file=sys.stderr)
 
-    # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
-    return json.dumps(pyrs.thaw(response))
+  # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
+  return json.dumps(pyrs.thaw(response))
 
   # ---------------------------------------------
   # return to sidebar caller
