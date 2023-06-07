@@ -2,7 +2,6 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-import typing
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -50,31 +49,31 @@ def pandoc_md_to_output(
   #   uuid_ss_folder_path / 'md',
   #   do(lambda x: x.mkdir(parents=True, exist_ok=True)),
   #   lambda x: x / f'{timestamp}.md'
+  if md_file.exists():
+    match pandoc_output:
+      case {'file_extension': file_extension, 'extra_args': extra_args}:
+        outputpath:Path = uuid_ss_folder_path / file_extension
+        outputpath.mkdir(parents=True, exist_ok=True)
 
-  match pandoc_output:
-    case {'file_extension': file_extension, 'extra_args': extra_args}:
-      outputpath:Path = uuid_ss_folder_path / file_extension
-      outputpath.mkdir(parents=True, exist_ok=True)
+        timestamp_file = f'{timestamp}.{file_extension}'
+        outputfile = f'{outputpath / timestamp_file}'
 
-      timestamp_file = f'{timestamp}.{file_extension}'
-      outputfile = str(outputpath / timestamp_file)
+        print(f'Outputting to {file_extension}', file=sys.stderr)
+        try:
+          pypandoc.convert_file(
+            md_file, file_extension,
+            outputfile = outputfile, extra_args = extra_args 
+          )
+        except RuntimeError as exc:
+          print(
+            f'Error occured while outputting to {file_extension}: {exc}',
+            file=sys.stderr
+          )
 
-      print(f'Outputting to {file_extension}', file=sys.stderr)
-      try:
-        pypandoc.convert_file(
-          md_file, file_extension,
-          outputfile = outputfile, extra_args = extra_args 
-        )
-      except RuntimeError as exc:
-        print(
-          f'Error occured while outputting to {file_extension}: {exc}',
-          file=sys.stderr
-        )
-
-      latest_file = outputpath / f'LATEST.{file_extension}'
-      if latest_file.exists():
-        os.unlink(latest_file)
-      os.symlink(timestamp_file, latest_file)
+        latest_file = outputpath / f'LATEST.{file_extension}'
+        if latest_file.exists():
+          os.unlink(latest_file)
+        os.symlink(timestamp_file, latest_file)
 
 @curry
 async def pandoc_md_to_outputs(

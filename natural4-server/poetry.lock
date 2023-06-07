@@ -584,6 +584,16 @@ files = [
 plugins = ["importlib-metadata"]
 
 [[package]]
+name = "pygraphviz"
+version = "1.11"
+description = "Python interface to Graphviz"
+optional = true
+python-versions = ">=3.8"
+files = [
+    {file = "pygraphviz-1.11.zip", hash = "sha256:a97eb5ced266f45053ebb1f2c6c6d29091690503e3a5c14be7f908b37b06f2d4"},
+]
+
+[[package]]
 name = "pypandoc-binary"
 version = "1.11"
 description = "Thin wrapper for pandoc."
@@ -840,10 +850,11 @@ MarkupSafe = ">=2.1.1"
 watchdog = ["watchdog (>=2.3)"]
 
 [extras]
+flowchart = ["pygraphviz"]
 natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 word-and-pdf = ["pypandoc_binary"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "132e1d1e08aa3753832d4db6265ab0604739b825c526dc7be0c3c44f035ce0ca"
+content-hash = "aaa8d409d60c3416811c9f2db5d1e63cbd91b1c2031d5a4cafbbe0953388897e"

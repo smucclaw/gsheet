@@ -21,6 +21,7 @@ from flask import Flask, request, send_file
 
 from plugins.natural4_maude import run_analyse_state_space
 from plugins.word_and_pdf import run_pandoc_md_to_outputs
+from plugins.flowchart import run_flowchart_dot_to_outputs
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -207,55 +208,57 @@ def process_csv():
   dot_path = petri_folder + "LATEST.dot"
   (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
 
-  if not os.path.exists(petri_folder):
-    print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
-  else:
-    petri_path_svg = petri_folder + timestamp + ".svg"
-    petri_path_png = petri_folder + timestamp + ".png"
-    small_petri_path = petri_folder + timestamp + "-small.png"
-    print("hello.py main: running: dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &", file=sys.stderr)
-    os.system("dot -Tpng -Gdpi=72  " + dot_path + " -o " + small_petri_path + " &")
-    os.system("dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &")
-    os.system("dot -Tsvg           " + dot_path + " -o " + petri_path_svg + " &")
-    try:
-      if os.path.isfile(petri_folder + "LATEST.svg"):       os.unlink(petri_folder + "LATEST.svg")
-      if os.path.isfile(petri_folder + "LATEST.png"):       os.unlink(petri_folder + "LATEST.png")
-      if os.path.isfile(petri_folder + "LATEST-small.png"): os.unlink(petri_folder + "LATEST-small.png")
-      os.symlink(os.path.basename(petri_path_svg), petri_folder + "LATEST.svg")
-      os.symlink(os.path.basename(petri_path_png), petri_folder + "LATEST.png")
-      os.symlink(os.path.basename(small_petri_path), petri_folder + "LATEST-small.png")
-    except Exception as e:
-      print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking",
-            file=sys.stderr)
-      print("hello.py main: %s" % (e), file=sys.stderr)
+  run_flowchart_dot_to_outputs(uuid_ss_folder, timestamp)
 
-    # ---------------------------------------------
-    # postprocessing: call pandoc to convert markdown to pdf and word docs
-    # ---------------------------------------------
-    run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
+  # if not os.path.exists(petri_folder):
+  #   print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
+  # else:
+  #   petri_path_svg = petri_folder + timestamp + ".svg"
+  #   petri_path_png = petri_folder + timestamp + ".png"
+  #   small_petri_path = petri_folder + timestamp + "-small.png"
+  #   print("hello.py main: running: dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &", file=sys.stderr)
+  #   os.system("dot -Tpng -Gdpi=72  " + dot_path + " -o " + small_petri_path + " &")
+  #   os.system("dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &")
+  #   os.system("dot -Tsvg           " + dot_path + " -o " + petri_path_svg + " &")
+  #   try:
+  #     if os.path.isfile(petri_folder + "LATEST.svg"):       os.unlink(petri_folder + "LATEST.svg")
+  #     if os.path.isfile(petri_folder + "LATEST.png"):       os.unlink(petri_folder + "LATEST.png")
+  #     if os.path.isfile(petri_folder + "LATEST-small.png"): os.unlink(petri_folder + "LATEST-small.png")
+  #     os.symlink(os.path.basename(petri_path_svg), petri_folder + "LATEST.svg")
+  #     os.symlink(os.path.basename(petri_path_png), petri_folder + "LATEST.png")
+  #     os.symlink(os.path.basename(small_petri_path), petri_folder + "LATEST-small.png")
+  #   except Exception as e:
+  #     print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking",
+  #           file=sys.stderr)
+  #     print("hello.py main: %s" % (e), file=sys.stderr)
 
-    # ---------------------------------------------
-    # postprocessing: (re-)launch the vue web server
-    # - call v8k up
-    # ---------------------------------------------
-    v8kargs = ["python", v8k_path,
-               "--workdir=" + v8k_workdir,
-               "up",
-               v8k_slots_arg,
-               "--uuid=" + uuid,
-               "--ssid=" + spreadsheet_id,
-               "--sheetid=" + sheet_id,
-               "--startport=" + v8k_startport,
-               uuid_ss_folder + "/purs/LATEST.purs"]
+  # ---------------------------------------------
+  # postprocessing: call pandoc to convert markdown to pdf and word docs
+  # ---------------------------------------------
+  run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
 
-    print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
-    os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
-    print("hello.py main: v8k up returned", file=sys.stderr)
-    with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
-      v8k_out = read_file.readline()
-    print("v8k.out: %s" % (v8k_out), file=sys.stderr)
+  # ---------------------------------------------
+  # postprocessing: (re-)launch the vue web server
+  # - call v8k up
+  # ---------------------------------------------
+  v8kargs = ["python", v8k_path,
+              "--workdir=" + v8k_workdir,
+              "up",
+              v8k_slots_arg,
+              "--uuid=" + uuid,
+              "--ssid=" + spreadsheet_id,
+              "--sheetid=" + sheet_id,
+              "--startport=" + v8k_startport,
+              uuid_ss_folder + "/purs/LATEST.purs"]
 
-    print("to see v8k bring up vue using npm run serve, run\n  tail -f %s" % (os.getcwd() + '/' + uuid_ss_folder + "/v8k.out"), file=sys.stderr)
+  print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
+  os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
+  print("hello.py main: v8k up returned", file=sys.stderr)
+  with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
+    v8k_out = read_file.readline()
+  print("v8k.out: %s" % (v8k_out), file=sys.stderr)
+
+  print("to see v8k bring up vue using npm run serve, run\n  tail -f %s" % (os.getcwd() + '/' + uuid_ss_folder + "/v8k.out"), file=sys.stderr)
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
