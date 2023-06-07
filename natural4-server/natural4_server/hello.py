@@ -20,7 +20,7 @@ from pathlib import Path
 from flask import Flask, request, send_file
 
 from plugins.natural4_maude import run_analyse_state_space
-from plugins.word_and_pdf import pandoc_md_to_word_and_pdf
+from plugins.word_and_pdf import run_pandoc_md_to_outputs
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -232,7 +232,7 @@ def process_csv():
     # ---------------------------------------------
     # postprocessing: call pandoc to convert markdown to pdf and word docs
     # ---------------------------------------------
-    pandoc_md_to_word_and_pdf(uuid_ss_folder, timestamp)
+    run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
 
     # ---------------------------------------------
     # postprocessing: (re-)launch the vue web server

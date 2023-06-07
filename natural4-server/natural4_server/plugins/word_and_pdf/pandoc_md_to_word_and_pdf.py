@@ -1,6 +1,8 @@
+import asyncio
 import os
 import sys
 from pathlib import Path
+import typing
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -17,7 +19,7 @@ class PandocOutput(pyrs.PRecord):
     str, optional = True, initial = pyrs.pvector()
   )
 
-outputs:pyrst.PVector[PandocOutput] = pyrs.v(
+pandoc_outputs:pyrst.PSet[PandocOutput] = pyrs.s(
   PandocOutput(
     file_extension = 'docx',
     extra_args = pyrs.v(
@@ -37,9 +39,10 @@ outputs:pyrst.PVector[PandocOutput] = pyrs.v(
 )
 
 @curry
-def pandoc_md_to_word_and_pdf(
+async def pandoc_md_to_output(
   uuid_ss_folder: str | os.PathLike,
-  timestamp: str
+  timestamp: str,
+  pandoc_output: PandocOutput
 ) -> None:
   uuid_ss_folder_path = Path(uuid_ss_folder)
   md_file = uuid_ss_folder_path / 'md' / 'LATEST.md' # f'{timestamp}.md'
@@ -48,28 +51,48 @@ def pandoc_md_to_word_and_pdf(
   #   do(lambda x: x.mkdir(parents=True, exist_ok=True)),
   #   lambda x: x / f'{timestamp}.md'
 
-  for output in outputs:
-    match output:
-      case {'file_extension': file_extension, 'extra_args': extra_args}:
-        outputpath:Path = uuid_ss_folder_path / file_extension
-        outputpath.mkdir(parents=True, exist_ok=True)
+  match pandoc_output:
+    case {'file_extension': file_extension, 'extra_args': extra_args}:
+      outputpath:Path = uuid_ss_folder_path / file_extension
+      outputpath.mkdir(parents=True, exist_ok=True)
 
-        timestamp_file = f'{timestamp}.{file_extension}'
-        outputfile = str(outputpath / timestamp_file)
+      timestamp_file = f'{timestamp}.{file_extension}'
+      outputfile = str(outputpath / timestamp_file)
 
-        print(f'Outputting to {file_extension}', file=sys.stderr)
-        try:
-          pypandoc.convert_file(
-            md_file, file_extension,
-            outputfile = outputfile, extra_args = extra_args 
-          )
-        except RuntimeError as exc:
-          print(
-            f'Error occured while outputting to {file_extension}: {exc}',
-            file=sys.stderr
-          )
+      print(f'Outputting to {file_extension}', file=sys.stderr)
+      try:
+        pypandoc.convert_file(
+          md_file, file_extension,
+          outputfile = outputfile, extra_args = extra_args 
+        )
+      except RuntimeError as exc:
+        print(
+          f'Error occured while outputting to {file_extension}: {exc}',
+          file=sys.stderr
+        )
 
-        latest_file = outputpath / f'LATEST.{file_extension}'
-        if latest_file.exists():
-          os.unlink(latest_file)
-        os.symlink(timestamp_file, latest_file)
+      latest_file = outputpath / f'LATEST.{file_extension}'
+      if latest_file.exists():
+        os.unlink(latest_file)
+      os.symlink(timestamp_file, latest_file)
+
+@curry
+async def pandoc_md_to_outputs(
+  uuid_ss_folder: str | os.PathLike,
+  timestamp: str
+) -> None:
+  try:
+    async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
+      for pandoc_output in pandoc_outputs:
+        tasks.create_task(
+          pandoc_md_to_output(uuid_ss_folder, timestamp, pandoc_output)
+        )
+  except TimeoutError:
+    print("Pandoc timeout", file=sys.stderr)
+
+@curry
+def pandoc_md_to_outputs(
+  uuid_ss_folder: str | os.PathLike,
+  timestamp: str
+) -> None:
+  asyncio.run(pandoc_md_to_output(uuid_ss_folder, timestamp))

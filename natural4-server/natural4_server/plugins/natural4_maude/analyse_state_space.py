@@ -73,7 +73,6 @@ async def analyse_state_space(natural4_file, output_path):
       except TimeoutError:
         # Continue along the happy path even if we get a timeout
         print("Natural4 Maude timeout", file=sys.stderr)
-        pass
 
 run_analyse_state_space = compose_left(
   analyse_state_space, asyncio.run
