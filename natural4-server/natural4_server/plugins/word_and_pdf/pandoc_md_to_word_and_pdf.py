@@ -58,10 +58,16 @@ def pandoc_md_to_word_and_pdf(
         outputfile = str(outputpath / timestamp_file)
 
         print(f'Outputting to {file_extension}', file=sys.stderr)
-        pypandoc.convert_file(
-          md_file, file_extension,
-          outputfile = outputfile, extra_args = extra_args 
-        )
+        try:
+          pypandoc.convert_file(
+            md_file, file_extension,
+            outputfile = outputfile, extra_args = extra_args 
+          )
+        except RuntimeError as exc:
+          print(
+            f'Error occured while outputting to {file_extension}: {exc}',
+            file=sys.stderr
+          )
 
         latest_file = outputpath / f'LATEST.{file_extension}'
         if latest_file.exists():
