@@ -364,7 +364,7 @@ async def process_csv() -> str:
 
   mp.Process(
     target = compose_left(postprocess, asyncio.run),
-    args = chain(flowchart_tasks, pandoc_tasks, maude_tasks)
+    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
   ).start()
 
   # print(
