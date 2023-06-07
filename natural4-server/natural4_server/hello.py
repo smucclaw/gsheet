@@ -190,13 +190,13 @@ def process_csv() -> str:
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files: Sequence[str] = [
+  create_files: Sequence[str] = pyrs.v(
     natural4_exe,
     '--tomd', '--toasp', '--toepilog',
     f'--workdir={natural4_dir}',
     f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
     f'{target_path}'
-  ]
+  )
   print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
   nl4exe = subprocess.run(
@@ -333,7 +333,7 @@ def process_csv() -> str:
           datetime.datetime.now() - start_time, ")", file=sys.stderr)
     # print(json.dumps(response), file=sys.stderr)
 
-    return json.dumps(response)
+    return json.dumps(pyrs.thaw(response))
   else:  # in the child
     print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
 
@@ -363,7 +363,7 @@ def process_csv() -> str:
     run_analyse_state_space(natural4_file, maude_output_path)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
-    return json.dumps(response)
+    return json.dumps(pyrs.thaw(response))
 
   # ---------------------------------------------
   # return to sidebar caller
