@@ -14,6 +14,7 @@ from collections.abc import Awaitable, Collection, Iterable, Sequence
 import datetime
 from itertools import chain
 import json
+import multiprocessing as mp
 import os
 from pathlib import Path
 import re
@@ -361,7 +362,7 @@ async def process_csv() -> str:
 # call natural4-exe; this is the SECOND RUN for any slow transpilers
 # ---------------------------------------------
 
-  Thread(
+  mp.Process(
     target = lambda: asyncio.run(
       postprocess(chain(flowchart_tasks, pandoc_tasks, maude_tasks))
     ),
