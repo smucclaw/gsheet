@@ -32,7 +32,7 @@ def gen_state_space(
   return asyncio.to_thread(
     config_to_html_file,
     maude_main_mod, config, 'all *',
-    output_path / 'LATEST_state_space.html'
+    Path(output_path) / 'LATEST_state_space.html'
   )
 
 @curry
@@ -47,7 +47,7 @@ def find_race_cond(
   return asyncio.to_thread(
     natural4_rules_to_race_cond_htmls,
     maude_main_mod,
-    output_path / 'LATEST_race_cond.html',
+    Path(output_path) / 'LATEST_race_cond.html',
     natural4_rules
   )
 
