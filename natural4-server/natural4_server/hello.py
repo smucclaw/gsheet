@@ -174,10 +174,9 @@ def get_markdown_tasks(
   print(f"hello.py child: {md_cmd}", file=sys.stderr)
 
   yield asyncio.to_thread(
-    subprocess.run(
-      md_cmd,
-      stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+    subprocess.run,
+    md_cmd,
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
 
   # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
