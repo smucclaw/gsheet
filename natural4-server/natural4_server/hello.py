@@ -246,7 +246,7 @@ async def process_csv() -> str:
   # (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
   timestamp = dot_path.resolve()
 
-  flowchart_outputs = run_flowchart_dot_to_outputs(uuid_ss_folder, timestamp)
+  flowchart_tasks = run_flowchart_dot_to_outputs(uuid_ss_folder, timestamp)
 
   # if not os.path.exists(petri_folder):
   #   print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
@@ -273,7 +273,7 @@ async def process_csv() -> str:
   # ---------------------------------------------
   # postprocessing: call pandoc to convert markdown to pdf and word docs
   # ---------------------------------------------
-  pandoc_outputs = run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
+  pandoc_tasks = run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
 
   # ---------------------------------------------
   # postprocessing: use Maude to generate the state space and find race conditions
@@ -281,7 +281,7 @@ async def process_csv() -> str:
   maude_output_path = uuid_ss_folder / 'maude'
   natural4_file = maude_output_path / 'LATEST.natural4'
 
-  maude_outputs = run_analyse_state_space(natural4_file, maude_output_path)
+  maude_tasks = run_analyse_state_space(natural4_file, maude_output_path)
 
   # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server
@@ -365,11 +365,6 @@ async def process_csv() -> str:
           datetime.datetime.now() - start_time, ")", file=sys.stderr)
     # print(json.dumps(response), file=sys.stderr)
 
-    # async with asyncio.TaskGroup() as tasks:
-    #   tasks.create_task(flowchart_outputs)
-    #   tasks.create_task(pandoc_outputs)
-    #   tasks.create_task(maude_outputs)
-
     return json.dumps(response)
   else:  # in the child
     print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
@@ -394,6 +389,9 @@ async def process_csv() -> str:
     print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
           ")", file=sys.stderr)
 
+    with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
+      for task in concat(flowchart_tasks, pandoc_tasks, maude_tasks):
+        tasks.create_task(task)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)

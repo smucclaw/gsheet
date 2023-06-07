@@ -3,12 +3,14 @@ from collections.abc import Collection
 import os
 import sys
 from pathlib import Path
+from typing import Awaitable
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import pyrsistent as pyrs
+import pyrsistent.typing as pyrst
 
 import pypandoc
 
@@ -77,20 +79,24 @@ def pandoc_md_to_output(
         # os.symlink(timestamp_file, latest_file)
 
 @curry
-async def pandoc_md_to_outputs(
+def pandoc_md_to_outputs(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
-) -> None:
-  try:
-    async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
-      for pandoc_output in pandoc_outputs:
-        pipe(
-          (pandoc_md_to_output, uuid_ss_folder, timestamp, pandoc_output),
-          lambda x: asyncio.to_thread(*x),
-          tasks.create_task
-        )
-  except TimeoutError:
-    print("Word and pdf pandoc timeout", file=sys.stderr)
+):
+  for pandoc_output in pandoc_outputs:
+    yield asyncio.to_thread(
+      pandoc_md_to_output, uuid_ss_folder, timestamp, pandoc_output
+    )
+  # try:
+  #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
+  #     for pandoc_output in pandoc_outputs:
+  #       pipe(
+  #         (pandoc_md_to_output, uuid_ss_folder, timestamp, pandoc_output),
+  #         lambda x: asyncio.to_thread(*x),
+  #         tasks.create_task
+  #       )
+  # except TimeoutError:
+  #   print("Word and pdf pandoc timeout", file=sys.stderr)
 
 @curry
 def run_pandoc_md_to_outputs(

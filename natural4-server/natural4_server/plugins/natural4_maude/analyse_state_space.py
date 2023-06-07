@@ -1,9 +1,14 @@
 import asyncio
+from collections.abc import Awaitable, Collection
+import os
 from pathlib import Path
-import sys
 
 from cytoolz.functoolz import *
 from cytoolz.curried import *
+
+import pyrsistent as pyrs
+
+import maude
 
 from .visualise import (
   init_maude_n_load_main_file,
@@ -16,7 +21,10 @@ maude_main_file = Path('plugins') / 'natural4_maude' / 'main.maude'
 maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 @curry
-def gen_state_space(output_path, config):
+def gen_state_space(
+  output_path: str | os.PathLike,
+  config: maude.Term
+) -> Awaitable[None]:
   '''
   Generate state space graph.
   graph.expand() in FailFreeGraph may take forever because the state
@@ -30,7 +38,10 @@ def gen_state_space(output_path, config):
   )
 
 @curry
-def find_race_cond(output_path, natural4_rules):
+def find_race_cond(
+  output_path: str | os.PathLike,
+  natural4_rules: str
+) -> Awaitable[None]:
   '''
   Find a trace with race conditions and generate a graph.
   '''
@@ -43,7 +54,10 @@ def find_race_cond(output_path, natural4_rules):
   )
 
 @curry
-async def analyse_state_space(natural4_file, output_path):
+def analyse_state_space(
+  natural4_file: str | os.PathLike,
+  output_path: str | os.PathLike
+):
   '''
   Post process textual natural4 files by using Maude to generate a state space
   and find a race condition trace.
@@ -66,13 +80,15 @@ async def analyse_state_space(natural4_file, output_path):
     )
     # Do we need to worry about this being None?
     if config:
-      try:
-        async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
-          tasks.create_task(find_race_cond(output_path, natural4_rules))
-          tasks.create_task(gen_state_space(output_path, config))
-      except TimeoutError:
-        # Continue along the happy path even if we get a timeout
-        print("Natural4 Maude timeout", file=sys.stderr)
+      yield find_race_cond(output_path, natural4_rules)
+      yield gen_state_space(output_path, config)
+      # try:
+      #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
+      #     tasks.create_task(find_race_cond(output_path, natural4_rules))
+      #     tasks.create_task(gen_state_space(output_path, config))
+      # except TimeoutError:
+      #   # Continue along the happy path even if we get a timeout
+      #   print("Natural4 Maude timeout", file=sys.stderr)
 
 run_analyse_state_space = compose_left(
   analyse_state_space, asyncio.run
