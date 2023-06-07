@@ -201,7 +201,6 @@ def process_csv() -> str:
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
   nl4exe = subprocess.run(
     create_files,
-    # [' '.join(create_files)], shell=True,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
   print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - start_time, ")", file=sys.stderr)
@@ -281,10 +280,12 @@ def process_csv() -> str:
   )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
-  # subprocess.run is unfortunately too slow and causes this to timeout.
+
+  # Joe: subprocess.run is unfortunately too slow and causes this to timeout.
   # os.system is much faster, but rather unsafe.
   # with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
   #   subprocess.run([' '.join(v8kargs)], shell=True, stdout=outfile, stderr=subprocess.PIPE)
+
   os.system(' '.join(v8kargs))
   # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
   print('hello.py main: v8k up returned', file=sys.stderr)
@@ -351,7 +352,8 @@ def process_csv() -> str:
     print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
     print(f"hello.py child: {create_files}", file=sys.stderr)
     nl4exe = subprocess.run(
-      [' '.join(create_files)], shell=True,
+      create_files,
+      # [' '.join(create_files)], shell=True,
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
