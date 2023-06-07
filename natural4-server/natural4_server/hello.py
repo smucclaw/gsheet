@@ -158,7 +158,21 @@ async def show_aasvg_image(
     send_file
   )
 
-async def postprocess(tasks: Iterable[Awaitable[None]]) -> Awaitable[None]:
+@curry
+async def postprocess(
+  cmd: Sequence[str],
+  tasks: Iterable[Awaitable[None]]
+) -> Awaitable[None]:
+
+  nl4exe = subprocess.run(
+    cmd,
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  )
+  # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
+  #       file=sys.stderr)
+  print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
+  print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
+
   try:
     async with (asyncio.timeout(15), asyncio.TaskGroup() as taskgroup):
       for task in tasks:
@@ -288,6 +302,19 @@ async def process_csv() -> str:
 
   maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
 
+  md_cmd: Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--only', 'tomd', f'--workdir={natural4_dir}',
+    f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
+    f'{target_path}'
+  )
+  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
+  print(f"hello.py child: {create_files}", file=sys.stderr)
+  Process(
+    target = compose_left(postprocess, asyncio.run),
+    args = [md_cmd, chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
+  ).start()
+
   # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
@@ -357,10 +384,6 @@ async def process_csv() -> str:
     file=sys.stderr
   )
 
-# ---------------------------------------------
-# call natural4-exe; this is the SECOND RUN for any slow transpilers
-# ---------------------------------------------
-
   # print(
   #   "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
   #   datetime.datetime.now() - start_time, ")",
@@ -388,27 +411,6 @@ async def process_csv() -> str:
   # else:  # in the child
   # print('hello.py processCsv: fork(child): continuing to run', file=sys.stderr)
 
-  create_files: Sequence[str] = pyrs.v(
-    natural4_exe,
-    '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
-    f'{target_path}'
-  )
-  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
-  print(f"hello.py child: {create_files}", file=sys.stderr)
-  nl4exe = subprocess.run(
-    create_files,
-    stdout=subprocess.PIPE, stderr=subprocess.PIPE
-  )
-  # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
-  #       file=sys.stderr)
-  print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
-  print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
-
-  Process(
-    target = compose_left(postprocess, asyncio.run),
-    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
-  ).start()
 
   # print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
   #       ")", file=sys.stderr)
