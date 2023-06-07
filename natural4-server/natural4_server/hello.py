@@ -271,20 +271,19 @@ def process_csv() -> str:
     f'--workdir={v8k_workdir}',
     'up',
     v8k_slots_arg,
+    f'{uuid_ss_folder / "purs" / "LATEST.purs"}',
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}',
-    f'--startport={v8k_startport}',
-    f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
+    f'--startport={v8k_startport}'
   )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
 
-  # Joe: subprocess.run is unfortunately too slow and causes this to timeout.
-  # os.system is much faster, but rather unsafe.
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
     subprocess.run(
-      [' '.join(v8kargs)], shell=True,
+      v8kargs,
+      # [' '.join(v8kargs)], shell=True,
       stdout=outfile, # stderr=outfile
     )
 
