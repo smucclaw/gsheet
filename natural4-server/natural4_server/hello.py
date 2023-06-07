@@ -15,10 +15,11 @@ import datetime
 from itertools import chain
 import json
 import os
+from pathlib import Path
 import re
 import subprocess
 import sys
-from pathlib import Path
+from threading import Thread
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -27,7 +28,6 @@ from cytoolz.curried import *
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
 
-from celery import Celery
 from flask import Flask, Response, request, send_file
 
 from plugins.natural4_maude import get_maude_tasks
@@ -91,8 +91,6 @@ static_dir: Path = basedir / "static"
 natural4_dir: Path = temp_dir / "workdir"
 
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
-
-celery = Celery(app.name)
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
@@ -159,17 +157,15 @@ async def show_aasvg_image(
     send_file
   )
 
-@celery.task
-def postprocess(tasks: Iterable[Awaitable[None]]) -> Awaitable[None]:
-  async def _postprocess_async():
-    try:
-      async with (asyncio.timeout(10), asyncio.TaskGroup() as taskgroup):
-        for task in tasks:
-          print(f'Running task: {task}', file=sys.stderr)
-          taskgroup.create_task(task)
-    except TimeoutError as exc:
-      print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
-  return asyncio.run(_postprocess_async())
+@curry
+async def postprocess(tasks: Iterable[Awaitable[None]]) -> Awaitable[None]:
+  try:
+    async with (asyncio.timeout(10), asyncio.TaskGroup() as taskgroup):
+      for task in tasks:
+        print(f'Running task: {task}', file=sys.stderr)
+        taskgroup.create_task(task)
+  except TimeoutError as exc:
+    print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
 
 # ################################################
 #                      main
@@ -365,6 +361,12 @@ async def process_csv() -> str:
 # call natural4-exe; this is the SECOND RUN for any slow transpilers
 # ---------------------------------------------
 
+  Thread(
+    target = lambda: asyncio.run(
+      postprocess(chain(flowchart_tasks, pandoc_tasks, maude_tasks))
+    ),
+  ).start()
+
   # print(
   #   "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
   #   datetime.datetime.now() - start_time, ")",
@@ -380,8 +382,6 @@ async def process_csv() -> str:
   # print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
   #       datetime.datetime.now() - start_time, ")", file=sys.stderr)
   # print(json.dumps(response), file=sys.stderr)
-
-  postprocess.delay(chain(flowchart_tasks, pandoc_tasks, maude_tasks))
 
   # try:
   #   async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):

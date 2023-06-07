@@ -1,9 +1,9 @@
 import asyncio
 from collections.abc import Awaitable, Collection, Generator, Sequence
 import os
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
