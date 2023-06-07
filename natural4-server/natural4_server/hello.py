@@ -27,7 +27,7 @@ import pyrsistent.typing as pyrst
 
 from flask import Flask, Response, request, send_file
 
-from plugins.natural4_maude import analyse_state_space
+from plugins.natural4_maude import run_analyse_state_space
 from plugins.word_and_pdf import run_pandoc_md_to_outputs
 from plugins.flowchart import run_flowchart_dot_to_outputs
 
