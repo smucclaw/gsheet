@@ -266,7 +266,7 @@ def process_csv() -> str:
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
-  v8kargs: Sequence[str] = [
+  v8kargs: Sequence[str] = pyrs.v(
     'python', v8k_path,
     f'--workdir={v8k_workdir}',
     'up',
@@ -276,7 +276,7 @@ def process_csv() -> str:
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
     f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
-  ]
+  )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
 
@@ -284,7 +284,7 @@ def process_csv() -> str:
   # os.system is much faster, but rather unsafe.
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
     subprocess.run(
-      v8kargs,
+      v8kargs, shell=True,
       stdout=outfile, # stderr=outfile
     )
 
