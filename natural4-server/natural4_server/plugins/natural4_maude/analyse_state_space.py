@@ -5,10 +5,15 @@ import sys
 from cytoolz.functoolz import *
 from cytoolz.curried import *
 
-import natural4_maude.visualise as vis
+from .visualise import (
+  init_maude_n_load_main_file,
+  config_to_html_file,
+  natural4_rules_to_config,
+  natural4_rules_to_race_cond_htmls
+)
 
 maude_main_file = Path('natural4_maude') / 'main.maude'
-maude_main_mod = vis.init_maude_n_load_main_file(maude_main_file)
+maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 @curry
 def gen_state_space(output_path, config):
@@ -19,7 +24,7 @@ def gen_state_space(output_path, config):
   '''
 
   return asyncio.to_thread(
-    vis.config_to_html_file,
+    config_to_html_file,
     maude_main_mod, config, 'all *',
     output_path / 'LATEST_state_space.html'
   )
@@ -31,7 +36,7 @@ def find_race_cond(output_path, natural4_rules):
   '''
 
   return asyncio.to_thread(
-    vis.natural4_rules_to_race_cond_htmls,
+    natural4_rules_to_race_cond_htmls,
     maude_main_mod,
     output_path / 'LATEST_race_cond.html',
     natural4_rules
@@ -56,7 +61,7 @@ async def analyse_state_space(natural4_file, output_path):
   if natural4_rules.strip():
     # Transform the set of rules into the initial configuration of the
     # transition system.
-    config = vis.natural4_rules_to_config(
+    config = natural4_rules_to_config(
       maude_main_mod, natural4_rules
     )
     # Do we need to worry about this being None?
