@@ -159,7 +159,7 @@ async def show_aasvg_image(
   )
 
 @curry
-def get_markdown_task(
+def get_markdown_tasks(
   uuiddir: str | os.PathLike,
   target_path: str | os.PathLike
 ) -> Generator[Awaitable[None], None, None]:
@@ -173,9 +173,11 @@ def get_markdown_task(
   print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
   print(f"hello.py child: {md_cmd}", file=sys.stderr)
 
-  yield subprocess.run(
-    md_cmd,
-    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  yield asyncio.to_thread(
+    subprocess.run(
+      md_cmd,
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
   )
 
   # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
@@ -303,7 +305,7 @@ async def process_csv() -> str:
   #           file=sys.stderr)
   #     print("hello.py main: %s" % (e), file=sys.stderr)
 
-  markdown_tasks = get_markdown_task(
+  markdown_tasks = get_markdown_tasks(
     Path(uuid) / spreadsheet_id / sheet_id,
     target_path
   )
