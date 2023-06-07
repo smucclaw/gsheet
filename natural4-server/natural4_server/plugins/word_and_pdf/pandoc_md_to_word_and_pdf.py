@@ -7,6 +7,7 @@ from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import pyrsistent as pyrs
+import pyrsistent.typing as pyrst
 
 import pypandoc
 
@@ -16,7 +17,7 @@ class PandocOutput(pyrs.PRecord):
     str, optional = True, initial = pyrs.pvector()
   )
 
-outputs: pyrs.PVector[PandocOutput] = pyrs.v(
+outputs:pyrst.PVector[PandocOutput] = pyrs.v(
   PandocOutput(
     file_extension = 'docx',
     extra_args = pyrs.v(
