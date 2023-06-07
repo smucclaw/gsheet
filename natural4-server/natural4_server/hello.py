@@ -351,11 +351,11 @@ async def process_csv() -> str:
 # call natural4-exe; this is the SECOND RUN for any slow transpilers
 # ---------------------------------------------
 
-  print(
-    "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
-    datetime.datetime.now() - start_time, ")",
-    file=sys.stderr
-  )
+  # print(
+  #   "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
+  #   datetime.datetime.now() - start_time, ")",
+  #   file=sys.stderr
+  # )
 
   # childpid = os.fork()
 
@@ -376,7 +376,7 @@ async def process_csv() -> str:
     print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
 
   # else:  # in the child
-  print('hello.py processCsv: fork(child): continuing to run', file=sys.stderr)
+  # print('hello.py processCsv: fork(child): continuing to run', file=sys.stderr)
 
   create_files: Sequence[str] = pyrs.v(
     natural4_exe,
@@ -390,13 +390,13 @@ async def process_csv() -> str:
     create_files,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
-  print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
-        file=sys.stderr)
+  # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
+  #       file=sys.stderr)
   print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
   print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
 
-  print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
-        ")", file=sys.stderr)
+  # print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
+  #       ")", file=sys.stderr)
 
   # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
   return json.dumps(pyrs.thaw(response))
