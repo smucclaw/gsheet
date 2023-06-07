@@ -200,7 +200,7 @@ def process_csv() -> str:
   print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
   nl4exe = subprocess.run(
-    create_files, shell=True,
+    [' '.join(create_files)], shell=True,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
   print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - start_time, ")", file=sys.stderr)
@@ -266,7 +266,7 @@ def process_csv() -> str:
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
-  v8kargs: Sequence[str] = [
+  v8kargs: Sequence[str] = pyrs.v(
     'python', v8k_path,
     f'--workdir={v8k_workdir}',
     'up',
@@ -276,11 +276,11 @@ def process_csv() -> str:
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
     f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
-  ]
+  )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
-    subprocess.run(v8kargs, shell=True, stdout=outfile, stderr=subprocess.PIPE)
+    subprocess.run([' '.join(v8kargs)], shell=True, stdout=outfile, stderr=subprocess.PIPE)
   # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
   print('hello.py main: v8k up returned', file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', "r") as read_file:
@@ -346,7 +346,7 @@ def process_csv() -> str:
     print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
     print(f"hello.py child: {create_files}", file=sys.stderr)
     nl4exe = subprocess.run(
-      create_files, shell=True,
+      [' '.join(create_files)], shell=True,
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
