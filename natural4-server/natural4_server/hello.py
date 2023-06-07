@@ -283,10 +283,14 @@ def process_csv() -> str:
 
   # Joe: subprocess.run is unfortunately too slow and causes this to timeout.
   # os.system is much faster, but rather unsafe.
-  # with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
-  #   subprocess.run([' '.join(v8kargs)], shell=True, stdout=outfile, stderr=subprocess.PIPE)
+  with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
+    subprocess.run(
+      # [' '.join(v8kargs)], shell=True,
+      v8kargs,
+      stdout=outfile, stderr=outfile
+    )
 
-  os.system(' '.join(v8kargs))
+  # os.system(' '.join(v8kargs))
   # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
   print('hello.py main: v8k up returned', file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', "r") as read_file:
@@ -353,7 +357,6 @@ def process_csv() -> str:
     print(f"hello.py child: {create_files}", file=sys.stderr)
     nl4exe = subprocess.run(
       create_files,
-      # [' '.join(create_files)], shell=True,
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
