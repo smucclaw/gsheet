@@ -389,9 +389,12 @@ async def process_csv() -> str:
     print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
           ")", file=sys.stderr)
 
-    with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
-      for task in concat(flowchart_tasks, pandoc_tasks, maude_tasks):
-        tasks.create_task(task)
+    try:
+      async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
+        for task in concat(flowchart_tasks, pandoc_tasks, maude_tasks):
+          tasks.create_task(task)
+    except TimeoutError as exc:
+      print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
