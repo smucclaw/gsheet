@@ -324,12 +324,12 @@ async def process_csv() -> str:
   maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
 
   Process(
-    target = postprocess,
+    target = compose_left(postprocess, asyncio.run),
     args = (chain(flowchart_tasks, markdown_tasks, maude_tasks),)
   ).start()
 
   Process(
-    target = postprocess,
+    target = compose_left(postprocess, asyncio.run),
     args = (pandoc_tasks,)
   ).start()
 
