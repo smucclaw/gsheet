@@ -276,7 +276,7 @@ def process_csv() -> str:
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
     f'{uuid_ss_folder / "purs" / "LATEST.purs"}',
-    f'> {uuid_ss_folder / "v8k.out"}'
+    # f'> {uuid_ss_folder / "v8k.out"}'
   )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
@@ -285,7 +285,6 @@ def process_csv() -> str:
   # os.system is much faster, but rather unsafe.
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
     subprocess.run(
-      # [' '.join(v8kargs)], shell=True,
       v8kargs,
       stdout=outfile, stderr=outfile
     )
