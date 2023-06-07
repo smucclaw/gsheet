@@ -21,6 +21,8 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
+import pyrsistent as pyrs
+
 from flask import Flask, request, send_file
 
 ##########################################################
@@ -239,52 +241,90 @@ def process_csv():
     # ---------------------------------------------
     uuid_ss_folder_path = Path(uuid_ss_folder)
 
-    md_file = pipe(
-      uuid_ss_folder_path / 'md',
-      do(lambda x: x.mkdir(parents = True, exist_ok = True)),
-      lambda x: x / 'LATEST.md' # f'{timestamp}.md'
-    )
+    md_file = uuid_ss_folder_path / 'md' / f'{timestamp}.md'
+    # pipe(
+    #   uuid_ss_folder_path / 'md',
+    #   do(lambda x: x.mkdir(parents=True, exist_ok=True)),
+    #   lambda x: x / f'{timestamp}.md' # 'LATEST.md'
+    # )
     
     if md_file.exists():
-      # print(f'Markdown file: {md_file}', file=sys.stderr)
-
-      docx_path = uuid_ss_folder_path / 'docx'
-      docx_path.mkdir(parents=True, exist_ok=True)
-      docx_file = docx_path / f'{timestamp}.docx'
-      # pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
-      # print("hello.py main: running: " + pandocRunLineDocx)
-      # os.system(pandocRunLineDocx)
-      convert_file(
-        md_file, 'docx', outputfile = str(docx_file),
-        extra_args = [
-          '-f', 'markdown+hard_line_breaks',
-          '-s',
-        ]
+      outputs = pyrs.s(
+        pyrs.freeze({
+          'file_extension': 'docx',
+          'extra_args': [
+            '-f', 'markdown+hard_line_breaks',
+            '-s'
+            ]
+        }),
+        pyrs.freeze({
+          'file_extension': 'pdf',
+          'extra_args': [
+            '--pdf-engine=xelatex',
+            '-V', 'CJKmainfont=Droid Sans Fallback',
+            '-f', 'markdown+hard_line_breaks',
+            '-s'
+          ]
+        })
       )
-      if (docx_path / 'LATEST.docx').exists():
-        os.unlink(str(docx_path / 'LATEST.docx'))
-      os.symlink(f'{timestamp}.docx', str(docx_path / 'LATEST.docx'))
 
-      pdf_path = uuid_ss_folder_path / 'pdf'
-      pdf_path.mkdir(parents=True, exist_ok=True)
-      pdf_file = pdf_path / f'{timestamp}.pdf'
-      # pandocRunLine = ("pandoc " + mdFile +
-      #                  " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " +
-      #                  pdfFile)
-      # print("hello.py main: running: " + pandocRunLine)
-      # os.system(pandocRunLine)
-      convert_file(
-        md_file, 'pdf', outputfile = str(pdf_file),
-        extra_args = [
-          '--pdf-engine=xelatex',
-          '-V', 'CJKmainfont=Droid Sans Fallback',
-          '-f', 'markdown+hard_line_breaks',
-          '-s',
-        ]
-      )
-      if (pdf_path / 'LATEST.pdf').exists():
-        os.unlink(str(pdf_path / 'LATEST.pdf'))
-      os.symlink(f'{timestamp}.pdf', str(pdf_path / 'LATEST.pdf'))
+      for output in outputs:
+        match output:
+          case {'file_extension': file_extension, 'extra_args': extra_args}:
+            outputpath = uuid_ss_folder_path / file_extension
+            outputpath.mkdir(parents=True, exist_ok=True)
+
+            timestamp_file = f'{timestamp}.{file_extension}'
+            outputfile = str(outputpath / timestamp_file)
+
+            print(f'Outputting to {file_extension}', file=sys.stderr)
+            convert_file(
+              md_file, file_extension,
+              outputfile = outputfile, extra_args = extra_args 
+            )
+
+            latest_file = outputpath / f'LATEST.{file_extension}'
+            if latest_file.exists():
+              os.unlink(latest_file)
+            os.symlink(timestamp_file, latest_file)
+
+      # docx_path = uuid_ss_folder_path / 'docx'
+      # docx_path.mkdir(parents=True, exist_ok=True)
+      # docx_file = docx_path / f'{timestamp}.docx'
+      # # pandocRunLineDocx = "pandoc " + mdFile + " -f markdown+hard_line_breaks -s -o " + docxFile
+      # # print("hello.py main: running: " + pandocRunLineDocx)
+      # # os.system(pandocRunLineDocx)
+      # convert_file(
+      #   md_file, 'docx', outputfile = str(docx_file),
+      #   extra_args = [
+      #     '-f', 'markdown+hard_line_breaks',
+      #     '-s',
+      #   ]
+      # )
+      # if (docx_path / 'LATEST.docx').exists():
+      #   os.unlink(str(docx_path / 'LATEST.docx'))
+      # os.symlink(f'{timestamp}.docx', str(docx_path / 'LATEST.docx'))
+
+      # pdf_path = uuid_ss_folder_path / 'pdf'
+      # pdf_path.mkdir(parents=True, exist_ok=True)
+      # pdf_file = pdf_path / f'{timestamp}.pdf'
+      # # pandocRunLine = ("pandoc " + mdFile +
+      # #                  " --pdf-engine=xelatex -V CJKmainfont=\"Droid Sans Fallback\" -f markdown+hard_line_breaks -s -o " +
+      # #                  pdfFile)
+      # # print("hello.py main: running: " + pandocRunLine)
+      # # os.system(pandocRunLine)
+      # convert_file(
+      #   md_file, 'pdf', outputfile = str(pdf_file),
+      #   extra_args = [
+      #     '--pdf-engine=xelatex',
+      #     '-V', 'CJKmainfont=Droid Sans Fallback',
+      #     '-f', 'markdown+hard_line_breaks',
+      #     '-s',
+      #   ]
+      # )
+      # if (pdf_path / 'LATEST.pdf').exists():
+      #   os.unlink(str(pdf_path / 'LATEST.pdf'))
+      # os.symlink(f'{timestamp}.pdf', str(pdf_path / 'LATEST.pdf'))
 
     # ---------------------------------------------
     # postprocessing: (re-)launch the vue web server
