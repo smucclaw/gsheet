@@ -111,24 +111,25 @@ async def get_workdir_file(
   )
 
   workdir_folder: Path = temp_dir / "workdir" / uuid / ssid / sid / channel
+  workdir_folder_filename = workdir_folder / filename
   empty_response: Response = Response(status = 204)
 
-  match (workdir_folder.exists(), (workdir_folder / filename).is_file()):
+  match (workdir_folder.exists(), workdir_folder_filename.is_file()):
     case (False, _):
-      print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
+      print(f'get_workdir_file: unable to find workdir_folder {workdir_folder}', file=sys.stderr)
       return empty_response
     case (_, False):
-      print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
+      print(f'get_workdir_file: unable to find file {workdir_folder_filename}', file=sys.stderr)
       return empty_response
     case _:
       exts: Collection[str] = pyrs.s(
         '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
       )
       if Path(filename).suffix in exts:
-        print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
+        print(f'get_workdir_file: returning text/plain {workdir_folder_filename}', file=sys.stderr)
         mimetype = 'text/plain'
       else:
-        print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
+        print(f'get_workdir_file: returning {workdir_folder_filename}', file=sys.stderr)
         mimetype = None
       return send_file(workdir_folder / filename, mimetype = mimetype)
 
