@@ -86,10 +86,10 @@ natural4_exe = os.environ.get("natural4_exe", default_filenm_natL4exe_from_stack
 
 
 # see gunicorn.conf.py for basedir, workdir, startport
-template_dir:Path = basedir / "template"
-temp_dir:Path = basedir / "temp"
-static_dir:Path = basedir / "static"
-natural4_dir:Path = temp_dir / "workdir"
+template_dir: Path = basedir / "template"
+temp_dir: Path = basedir / "temp"
+static_dir: Path = basedir / "static"
+natural4_dir: Path = temp_dir / "workdir"
 
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
