@@ -95,4 +95,4 @@ def run_pandoc_md_to_outputs(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> None:
-  asyncio.run(pandoc_md_to_output(uuid_ss_folder, timestamp))
+  asyncio.run(pandoc_md_to_outputs(uuid_ss_folder, timestamp))
