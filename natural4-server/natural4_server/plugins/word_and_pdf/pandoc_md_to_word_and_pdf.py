@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-import _typeshed
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -38,7 +37,7 @@ outputs: pyrs.PVector[PandocOutput] = pyrs.v(
 
 @curry
 def pandoc_md_to_word_and_pdf(
-  uuid_ss_folder: _typeshed.StrOrBytesPath,
+  uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> None:
   uuid_ss_folder_path = Path(uuid_ss_folder)
