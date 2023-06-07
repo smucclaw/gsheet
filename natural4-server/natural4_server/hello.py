@@ -275,8 +275,7 @@ def process_csv() -> str:
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
-    f'{uuid_ss_folder / "purs" / "LATEST.purs"}',
-    # f'> {uuid_ss_folder / "v8k.out"}'
+    f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
   )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
