@@ -275,12 +275,17 @@ def process_csv() -> str:
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
-    f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
+    f'{uuid_ss_folder / "purs" / "LATEST.purs"}',
+    f'> {uuid_ss_folder / "v8k.out"}'
   )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
-  with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
-    subprocess.run([' '.join(v8kargs)], shell=True, stdout=outfile, stderr=subprocess.PIPE)
+  # with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
+  #   subprocess.run([' '.join(v8kargs)], shell=True, stdout=outfile, stderr=subprocess.PIPE)
+  subprocess.run(
+    [' '.join(v8kargs)], shell=True,
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  )
   # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
   print('hello.py main: v8k up returned', file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', "r") as read_file:
