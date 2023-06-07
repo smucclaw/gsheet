@@ -271,20 +271,23 @@ def process_csv() -> str:
     f'--workdir={v8k_workdir}',
     'up',
     v8k_slots_arg,
-    f'{uuid_ss_folder / "purs" / "LATEST.purs"}',
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}',
-    f'--startport={v8k_startport}'
+    f'--startport={v8k_startport}',
+    f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
   )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
 
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
     subprocess.run(
-      v8kargs,
-      # [' '.join(v8kargs)], shell=True,
-      stdout=outfile, # stderr=outfile
+      # Joe: For some reason, passing these in as separate args results in the
+      # following error:
+      # usage: v8k [-h] [--workdir WORKDIR] {list,find,up,down,downdir} ...
+      # v8k: error: unrecognized arguments: temp/workdir/e62c137a-38f1-4acc-ad13-44c1005eb523/1leBCZhgDsn-Abg2H_OINGGv-8Gpf9mzuX1RR56v0Sss/1779650637/purs/LATEST.purs
+      [' '.join(v8kargs)], shell=True,
+      stdout=outfile # stderr=outfile
     )
 
   # os.system(' '.join(v8kargs))

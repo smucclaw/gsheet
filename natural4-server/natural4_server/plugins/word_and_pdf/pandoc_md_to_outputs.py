@@ -90,7 +90,7 @@ async def pandoc_md_to_outputs(
           tasks.create_task
         )
   except TimeoutError:
-    print("Pandoc timeout", file=sys.stderr)
+    print("Word and pdf pandoc timeout", file=sys.stderr)
 
 @curry
 def run_pandoc_md_to_outputs(

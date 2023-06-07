@@ -59,7 +59,6 @@ except ImportError:
     output_file: str | os.PathLike,
     args: Sequence[str]
   ) -> None:
-    # WARNING: Potentially unsafe.
     subprocess.run(
       # Log(n) concat go brr
       pyrse.sq('dot', f'{dot_file}') + args + pyrse.sq('-o', f'{output_file}'),
@@ -113,7 +112,7 @@ async def flowchart_dot_to_outputs(
           tasks.create_task
         )
   except TimeoutError:
-    print("Pandoc timeout", file=sys.stderr)
+    print("Flowchart graphviz timeout", file=sys.stderr)
 
 @curry
 def run_flowchart_dot_to_outputs(
