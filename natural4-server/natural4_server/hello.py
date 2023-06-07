@@ -379,7 +379,7 @@ async def process_csv() -> str:
     maude_output_path = uuid_ss_folder / 'maude'
     natural4_file = maude_output_path / 'LATEST.natural4'
 
-    analyse_state_space(natural4_file, maude_output_path)
+    run_analyse_state_space(natural4_file, maude_output_path)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
