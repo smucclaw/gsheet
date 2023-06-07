@@ -363,8 +363,8 @@ async def process_csv() -> str:
   # if childpid > 0:  # in the parent
     # print("hello.py processCsv parent returning at", datetime.datetime.now(),
     #                   "(total", datetime.datetime.now() - start_time, ")", file=sys.stderr)
-  print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
-        datetime.datetime.now() - start_time, ")", file=sys.stderr)
+  # print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
+  #       datetime.datetime.now() - start_time, ")", file=sys.stderr)
   # print(json.dumps(response), file=sys.stderr)
 
   try:
