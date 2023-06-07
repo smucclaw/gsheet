@@ -18,6 +18,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import Collection
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -105,17 +106,20 @@ async def get_workdir_file(
   channel: str | os.PathLike,
   filename: str | os.PathLike
 ) -> Response:
-  print("get_workdir_file: handling request for %s/%s/%s/%s/%s" % (uuid, ssid, sid, channel, filename), file=sys.stderr)
+  print(
+    f'get_workdir_file: handling request for {uuid}/{ssid}/{sid}/{channel}/{filename}',
+    file=sys.stderr
+  )
 
   workdir_folder: Path = temp_dir / "workdir" / uuid / ssid / sid / channel
 
   match (workdir_folder.exists(), (workdir_folder / filename).is_file()):
     case (False, _):
       print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
-    case (__, False):
+    case (_, False):
       print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
     case _:
-      exts:pyrst.PSet[str] = pyrs.s(
+      exts: Collection[str] = pyrs.s(
         '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
       )
       if Path(filename).suffix in exts:
@@ -177,9 +181,9 @@ async def process_csv() -> str:
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-  data: Mapping[str, str] = request.form.to_dict()
+  data: pyrst.PMap[str, str] = pyrs.pmap(request.form)
 
-  response: Mapping[str, str] = {}
+  response: pyrst.PMap[str, str] = pyrs.m()
 
   uuid = data['uuid']
   spreadsheet_id = data['spreadsheetId']
@@ -216,12 +220,15 @@ async def process_csv() -> str:
     create_files,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
-  print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - start_time, ")", file=sys.stderr)
+  print(
+    f'hello.py main: back from natural4-exe (took {datetime.datetime.now() - start_time})',
+    file=sys.stderr
+  )
 
   nl4_out, nl4_err = nl4exe.stdout.decode('utf-8'), nl4exe.stderr.decode('utf-8')
 
-  print(f"hello.py main: natural4-exe stdout length = {len(nl4_out)}", file=sys.stderr)
-  print(f"hello.py main: natural4-exe stderr length = {len(nl4_err)}", file=sys.stderr)
+  print(f'hello.py main: natural4-exe stdout length = {len(nl4_out)}', file=sys.stderr)
+  print(f'hello.py main: natural4-exe stderr length = {len(nl4_err)}', file=sys.stderr)
 
   short_err_maxlen, long_err_maxlen = 2_000, 20_000
 
@@ -233,8 +240,8 @@ async def process_csv() -> str:
   with open(target_folder / f'{time_now}.out', "w") as fout:
     fout.write(nl4_out)
 
-  response['nl4_stderr'] = nl4_err[:long_err_maxlen]
-  response['nl4_stdout'] = nl4_out[:long_err_maxlen]
+  response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
+  response = response.set('nl4_stdout', nl4_out[:long_err_maxlen])
 
   # ---------------------------------------------
   # postprocessing: for petri nets: turn the DOT files into PNGs
@@ -299,7 +306,7 @@ async def process_csv() -> str:
     f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
   )
 
-  print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
+  print(f'hello.py main: calling {" ".join(v8kargs)}', file=sys.stderr)
 
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
     subprocess.run(
@@ -313,10 +320,11 @@ async def process_csv() -> str:
 
   # os.system(' '.join(v8kargs))
   # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
+
   print('hello.py main: v8k up returned', file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', "r") as read_file:
     v8k_out = read_file.readline()
-  print(f"v8k.out: {v8k_out}", file=sys.stderr)
+  print(f'v8k.out: {v8k_out}', file=sys.stderr)
 
   print(
     f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',
@@ -326,34 +334,40 @@ async def process_csv() -> str:
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
     v8k_url = v8k_out.strip()
     print(f"v8k up succeeded with: {v8k_url}", file=sys.stderr)
-    response['v8k_url'] = v8k_url
+    response = response.set('v8k_url', v8k_url)
   else:
-    response['v8k_url'] = None
+    response = response.set('v8k_url', None)
 
 # ---------------------------------------------
 # load in the aasvg index HTML to pass back to sidebar
 # ---------------------------------------------
 
   with open(uuid_ss_folder / "aasvg" / "LATEST" / "index.html", "r") as read_file:
-    response['aasvg_index'] = read_file.read()
+    response = response.set('aasvg_index', read_file.read())
 
 # ---------------------------------------------
 # construct other response elements and log run-timings.
 # ---------------------------------------------
 
-  response['timestamp'] = f'{timestamp}'
+  response = response.set('timestamp', f'{timestamp}')
 
   end_time = datetime.datetime.now()
   elapsed_time = end_time - start_time
 
-  print("hello.py processCsv ready to return at", end_time, "(total", elapsed_time, ")", file=sys.stderr)
+  print(
+    f'hello.py processCsv ready to return at {end_time} (total {elapsed_time})',
+    file=sys.stderr
+  )
 
 # ---------------------------------------------
 # call natural4-exe; this is the SECOND RUN for any slow transpilers
 # ---------------------------------------------
 
-  print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
-        datetime.datetime.now() - start_time, ")", file=sys.stderr)
+  print(
+    "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
+    datetime.datetime.now() - start_time, ")",
+    file=sys.stderr
+  )
 
   childpid = os.fork()
 
@@ -373,7 +387,7 @@ async def process_csv() -> str:
     except TimeoutError as exc:
       print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
 
-    return json.dumps(response)
+    return json.dumps(pyrs.thaw(response))
   else:  # in the child
     print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
 
@@ -398,7 +412,7 @@ async def process_csv() -> str:
           ")", file=sys.stderr)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
-    return json.dumps(response)
+    return json.dumps(pyrs.thaw(response))
 
   # ---------------------------------------------
   # return to sidebar caller
