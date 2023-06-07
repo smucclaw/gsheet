@@ -241,7 +241,7 @@ def process_csv():
     # ---------------------------------------------
     uuid_ss_folder_path = Path(uuid_ss_folder)
 
-    md_file = uuid_ss_folder_path / 'md' / f'{timestamp}.md'
+    md_file = uuid_ss_folder_path / 'md' / 'LATEST.md' # f'{timestamp}.md'
     # pipe(
     #   uuid_ss_folder_path / 'md',
     #   do(lambda x: x.mkdir(parents=True, exist_ok=True)),
