@@ -39,7 +39,7 @@ pandoc_outputs:pyrst.PSet[PandocOutput] = pyrs.s(
 )
 
 @curry
-async def pandoc_md_to_output(
+def pandoc_md_to_output(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str,
   pandoc_output: PandocOutput
@@ -84,8 +84,10 @@ async def pandoc_md_to_outputs(
   try:
     async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
       for pandoc_output in pandoc_outputs:
-        tasks.create_task(
-          pandoc_md_to_output(uuid_ss_folder, timestamp, pandoc_output)
+        pipe(
+          (pandoc_md_to_output, uuid_ss_folder, timestamp, pandoc_output),
+          lambda x: asyncio.to_thread(*x),
+          tasks.create_task
         )
   except TimeoutError:
     print("Pandoc timeout", file=sys.stderr)
