@@ -10,7 +10,7 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Awaitable, Collection, Iterable, Sequence
 import datetime
 from itertools import chain
 import json
@@ -19,7 +19,6 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Collection
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -28,6 +27,7 @@ from cytoolz.curried import *
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
 
+from celery import Celery
 from flask import Flask, Response, request, send_file
 
 from plugins.natural4_maude import get_maude_tasks
@@ -91,6 +91,8 @@ static_dir: Path = basedir / "static"
 natural4_dir: Path = temp_dir / "workdir"
 
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+
+celery = Celery(app.name)
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
@@ -156,6 +158,18 @@ async def show_aasvg_image(
         print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)),
     send_file
   )
+
+@celery.task
+def postprocess(tasks: Iterable[Awaitable[None]]) -> Awaitable[None]:
+  async def _postprocess_async():
+    try:
+      async with (asyncio.timeout(10), asyncio.TaskGroup() as taskgroup):
+        for task in tasks:
+          print(f'Running task: {task}', file=sys.stderr)
+          taskgroup.create_task(task)
+    except TimeoutError as exc:
+      print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
+  return asyncio.run(_postprocess_async())
 
 # ################################################
 #                      main
@@ -367,29 +381,32 @@ async def process_csv() -> str:
   #       datetime.datetime.now() - start_time, ")", file=sys.stderr)
   # print(json.dumps(response), file=sys.stderr)
 
-  try:
-    async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
-      for task in chain(flowchart_tasks, pandoc_tasks, maude_tasks):
-        print(f'Running task: {task}', file=sys.stderr)
-        tasks.create_task(task)
-  except TimeoutError as exc:
-    print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
+  postprocess.delay(chain(flowchart_tasks, pandoc_tasks, maude_tasks))
+
+  # try:
+  #   async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
+  #     for task in chain(flowchart_tasks, pandoc_tasks, maude_tasks):
+  #       print(f'Running task: {task}', file=sys.stderr)
+  #       tasks.create_task(task)
+  # except TimeoutError as exc:
+  #   print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
 
   # else:  # in the child
   # print('hello.py processCsv: fork(child): continuing to run', file=sys.stderr)
 
-  create_files: Sequence[str] = pyrs.v(
-    natural4_exe,
-    '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
-    f'{target_path}'
-  )
-  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
-  print(f"hello.py child: {create_files}", file=sys.stderr)
-  nl4exe = subprocess.run(
-    create_files,
-    stdout=subprocess.PIPE, stderr=subprocess.PIPE
-  )
+  # Joe: Do we need to call natural4-exe for markdown again?
+  # create_files: Sequence[str] = pyrs.v(
+  #   natural4_exe,
+  #   '--only', 'tomd', f'--workdir={natural4_dir}',
+  #   f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
+  #   f'{target_path}'
+  # )
+  # print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
+  # print(f"hello.py child: {create_files}", file=sys.stderr)
+  # nl4exe = subprocess.run(
+  #   create_files,
+  #   stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  # )
   # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
   #       file=sys.stderr)
   print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
