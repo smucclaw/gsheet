@@ -273,6 +273,14 @@ async def process_csv() -> str:
   pandoc_outputs = run_pandoc_md_to_outputs(uuid_ss_folder, timestamp)
 
   # ---------------------------------------------
+  # postprocessing: use Maude to generate the state space and find race conditions
+  # ---------------------------------------------
+  maude_output_path = uuid_ss_folder / 'maude'
+  natural4_file = maude_output_path / 'LATEST.natural4'
+
+  maude_outputs = run_analyse_state_space(natural4_file, maude_output_path)
+
+  # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
@@ -357,6 +365,7 @@ async def process_csv() -> str:
     async with asyncio.TaskGroup() as tasks:
       tasks.create_task(flowchart_outputs)
       tasks.create_task(pandoc_outputs)
+      tasks.create_task(maude_outputs)
 
     return json.dumps(response)
   else:  # in the child
@@ -382,17 +391,6 @@ async def process_csv() -> str:
     print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
           ")", file=sys.stderr)
 
-    maude_output_path = uuid_ss_folder / 'maude'
-    natural4_file = maude_output_path / 'LATEST.natural4'
-
-    maude_outputs = run_analyse_state_space(natural4_file, maude_output_path)
-
-    await maude_outputs
-
-    # async with asyncio.TaskGroup() as tasks:
-    #   tasks.create_task(flowchart_outputs)
-    #   tasks.create_task(pandoc_outputs)
-    #   tasks.create_task(maude_outputs)
 
     # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
     return json.dumps(response)
