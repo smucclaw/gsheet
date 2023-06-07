@@ -131,7 +131,7 @@ async def get_workdir_file(
       else:
         print(f'get_workdir_file: returning {workdir_folder_filename}', file=sys.stderr)
         mimetype = None
-      return send_file(workdir_folder / filename, mimetype = mimetype)
+      return send_file(workdir_folder_filename, mimetype = mimetype)
 
 # ################################################
 #            SERVE SVG STATIC FILES
