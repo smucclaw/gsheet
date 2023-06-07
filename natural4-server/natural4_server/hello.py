@@ -20,7 +20,6 @@ from pathlib import Path
 
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
-import pyrsistent_extras as pyrse
 
 from flask import Flask, Response, request, send_file
 
@@ -267,7 +266,7 @@ def process_csv() -> str:
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
-  v8kargs:Sequence[str] = pyrse.sq(
+  v8kargs:Sequence[str] = pyrs.v(
     'python', v8k_path,
     f'--workdir={v8k_workdir}',
     'up',
@@ -280,7 +279,8 @@ def process_csv() -> str:
   )
 
   print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
-  subprocess.run(v8kargs + pyrse.sq('>', uuid_ss_folder / 'v8k.out'))
+  with open(uuid_ss_folder / 'v8k.out', 'w') as outfile:
+    subprocess.run(v8kargs, stdout=outfile, stderr=subprocess.PIPE)
   # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
   print('hello.py main: v8k up returned', file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', "r") as read_file:
