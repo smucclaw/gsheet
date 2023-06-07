@@ -83,7 +83,7 @@ async def pandoc_md_to_outputs(
 ) -> None:
   try:
     async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
-      async for pandoc_output in pandoc_outputs:
+      for pandoc_output in pandoc_outputs:
         tasks.create_task(
           pandoc_md_to_output(uuid_ss_folder, timestamp, pandoc_output)
         )
