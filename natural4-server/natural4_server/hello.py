@@ -10,7 +10,7 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import Awaitable, Collection, Iterable, Sequence
+from collections.abc import Awaitable, Collection, Generator, Iterable, Sequence
 import datetime
 from itertools import chain
 import json
@@ -41,7 +41,7 @@ from plugins.flowchart import get_flowchart_tasks
 
 import signal
 import resource
-  
+
 # checking time limit exceed
 def time_exceeded(signo, frame):
   print("hello.py: setrlimit time exceeded, exiting")
@@ -159,20 +159,34 @@ async def show_aasvg_image(
   )
 
 @curry
-async def postprocess(
-  cmd: Sequence[str],
-  tasks: Iterable[Awaitable[None]]
-) -> Awaitable[None]:
+def get_markdown_task(
+  uuiddir: str | os.PathLike,
+  target_path: str | os.PathLike
+) -> Generator[Awaitable[None], None, None]:
+  md_cmd: Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--only', 'tomd', f'--workdir={natural4_dir}',
+    f'--uuiddir={uuiddir}',
+    f'{target_path}'
+  )
 
-  nl4exe = subprocess.run(
-    cmd,
+  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
+  print(f"hello.py child: {md_cmd}", file=sys.stderr)
+
+  yield subprocess.run(
+    md_cmd,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
+
   # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
   #       file=sys.stderr)
-  print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
-  print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
+  # print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
+  # print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
 
+@curry
+async def postprocess(
+  tasks: Iterable[Awaitable[None]]
+) -> Awaitable[None]:
   try:
     async with (asyncio.timeout(15), asyncio.TaskGroup() as taskgroup):
       for task in tasks:
@@ -289,6 +303,11 @@ async def process_csv() -> str:
   #           file=sys.stderr)
   #     print("hello.py main: %s" % (e), file=sys.stderr)
 
+  markdown_tasks = get_markdown_task(
+    Path(uuid) / spreadsheet_id / sheet_id,
+    target_path
+  )
+
   # ---------------------------------------------
   # postprocessing: call pandoc to convert markdown to pdf and word docs
   # ---------------------------------------------
@@ -302,17 +321,14 @@ async def process_csv() -> str:
 
   maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
 
-  md_cmd: Sequence[str] = pyrs.v(
-    natural4_exe,
-    '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(uuid) / spreadsheet_id / sheet_id}',
-    f'{target_path}'
-  )
-  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
-  print(f"hello.py child: {create_files}", file=sys.stderr)
   Process(
-    target = compose_left(postprocess, asyncio.run),
-    args = [md_cmd, chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
+    target = postprocess,
+    args = (chain(flowchart_tasks, markdown_tasks, maude_tasks),)
+  ).start()
+
+  Process(
+    target = postprocess,
+    args = (pandoc_tasks,)
   ).start()
 
   # ---------------------------------------------
