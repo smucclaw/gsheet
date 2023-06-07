@@ -284,7 +284,7 @@ def process_csv() -> str:
   # os.system is much faster, but rather unsafe.
   with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
     subprocess.run(
-      [' '.join(v8kargs)],
+      [' '.join(v8kargs)], shell=True,
       stdout=outfile, # stderr=outfile
     )
 
