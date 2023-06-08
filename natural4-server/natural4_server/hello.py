@@ -317,9 +317,24 @@ async def process_csv() -> str:
   # to pdf and word docs
   # ---------------------------------------------
   uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
+  md_args: Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--only', 'tomd', f'--workdir={natural4_dir}',
+    f'--uuiddir={uuiddir}',
+    f'{target_path}'
+  )
+
+  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
+  print(f"hello.py child: {natural4_exe} {md_args}", file=sys.stderr)
+
+  md_coro = asyncio.subprocess.create_subprocess_exec(
+    natural4_exe, args = md_args,
+    stdout = asyncio.subprocess.PIPE,
+    stderr = asyncio.subprocess.PIPE
+  )
+
   pandoc_tasks = get_pandoc_tasks(
-    natural4_exe, natural4_dir, uuiddir, target_path,
-    uuid_ss_folder, timestamp
+    md_coro, uuid_ss_folder, timestamp
   )
 
   # ---------------------------------------------
@@ -401,7 +416,7 @@ async def process_csv() -> str:
 
   Process(
     target = compose_left(postprocess, asyncio.run),
-    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
+    args = [chain(flowchart_tasks, await pandoc_tasks, maude_tasks)]
   ).start()
 
   # print(
