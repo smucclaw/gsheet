@@ -228,6 +228,26 @@ async def process_csv() -> str:
 
   # target_path is for CSV data
 
+  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
+
+  md_cmd: Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--only', 'tomd', f'--workdir={natural4_dir}',
+    f'--uuiddir={Path(*uuiddir)}',
+    f'{target_path}'
+  )
+
+  print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
+  print(f'hello.py child: {md_cmd}', file=sys.stderr)
+
+  md_coro: Awaitable[asyncio.subprocess.Process] = (
+    asyncio.subprocess.create_subprocess_exec(
+      *md_cmd,
+      stdout = asyncio.subprocess.PIPE,
+      stderr = asyncio.subprocess.PIPE
+    )
+  )
+
   # ---------------------------------------------
   # call natural4-exe, wait for it to complete. see SECOND RUN below.
   # ---------------------------------------------
@@ -316,27 +336,8 @@ async def process_csv() -> str:
   # call natural4-exe to generate markdown and then call pandoc to convert that
   # to pdf and word docs
   # ---------------------------------------------
-  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
 
-  md_cmd: Sequence[str] = pyrs.v(
-    natural4_exe,
-    '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(*uuiddir)}',
-    f'{target_path}'
-  )
-
-  print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
-  print(f'hello.py child: {md_cmd}', file=sys.stderr)
-
-  # md_coro = asyncio.subprocess.create_subprocess_exec(
-  #   natural4_exe, *md_args,
-  #   stdout = asyncio.subprocess.PIPE,
-  #   stderr = asyncio.subprocess.PIPE
-  # )
-
-  pandoc_tasks = get_pandoc_tasks(
-    md_cmd, uuid_ss_folder, timestamp
-  )
+  pandoc_tasks = get_pandoc_tasks(uuid_ss_folder, timestamp)
 
   # ---------------------------------------------
   # postprocessing: use Maude to generate the state space and find race conditions
@@ -416,8 +417,8 @@ async def process_csv() -> str:
   )
 
   Process(
-    target = compose_left(postprocess, asyncio.run),
-    args = [chain(flowchart_tasks, await pandoc_tasks, maude_tasks)]
+    target = compose_left(lambda: await md_coro, postprocess, asyncio.run),
+    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
   ).start()
 
   # print(

@@ -78,18 +78,10 @@ def pandoc_md_to_output(
         # os.symlink(timestamp_file, latest_file)
 
 @curry
-async def get_pandoc_tasks(
-  md_cmd: Sequence[str],
+def get_pandoc_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> Generator[Awaitable[None], None, None]:
-  print(f'Running markdown: {md_cmd}', file=sys.stderr)
-  await asyncio.subprocess.create_subprocess_exec(
-    *md_cmd,
-    stdout = asyncio.subprocess.PIPE,
-    stderr = asyncio.subprocess.PIPE
-  )
-
   return pipe(
     pandoc_outputs,
     map(
