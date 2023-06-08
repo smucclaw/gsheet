@@ -90,8 +90,7 @@ def flowchart_dot_to_output(
 
         latest_file = output_path / f'LATEST{suffix}.{file_extension}'
         try:
-          if latest_file.exists():
-            latest_file.unlink()
+          latest_file.unlink(missing_ok = True)
           latest_file.symlink_to(timestamp_file)
           # os.symlink(timestamp_file, latest_file)
         except Exception as e:
