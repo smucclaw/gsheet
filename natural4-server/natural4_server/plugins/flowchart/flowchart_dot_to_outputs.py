@@ -49,7 +49,8 @@ try:
     pipe(
       dot_file,
       AGraph,
-      do(lambda graph: graph.draw(output_file, args = args))
+      do(lambda graph: graph.layout(prog = 'dot')),
+      do(lambda graph: graph._draw(output_file, args = args))
     )
 
 except ImportError:
