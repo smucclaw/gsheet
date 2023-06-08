@@ -55,7 +55,7 @@ try:
           graph.draw(
             output_file,
             format = Path(output_file).suffix[1:],
-            prog = 'dot'
+            prog = 'dot',
             args = ' '.join(args)
           )
       )
