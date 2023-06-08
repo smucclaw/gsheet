@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import aiostream
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -103,7 +104,7 @@ async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ): #  -> Generator[Awaitable[None], None, None]:
-  for flowchart_output in flowchart_outputs:
+  async for flowchart_output in aiostream.stream.iterate(flowchart_outputs):
     yield asyncio.to_thread(
       flowchart_dot_to_output, uuid_ss_folder, timestamp, flowchart_output
     )
