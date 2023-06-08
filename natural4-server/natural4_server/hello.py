@@ -327,13 +327,13 @@ async def process_csv() -> str:
   print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
   print(f'hello.py child: {natural4_exe} {md_args}', file=sys.stderr)
 
-  md_coro = asyncio.subprocess.create_subprocess_exec(
+  md_coro = await asyncio.subprocess.create_subprocess_exec(
     natural4_exe, *md_args,
     stdout = asyncio.subprocess.PIPE,
     stderr = asyncio.subprocess.PIPE
   )
 
-  pandoc_tasks = await get_pandoc_tasks(
+  pandoc_tasks = get_pandoc_tasks(
     md_coro, uuid_ss_folder, timestamp
   )
 
