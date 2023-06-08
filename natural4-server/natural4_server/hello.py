@@ -25,6 +25,7 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import typing
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -50,11 +51,11 @@ import signal
 import resource
 
 # checking time limit exceed
-def time_exceeded(signo, frame):
+def time_exceeded(signo, frame) -> typing.NoReturn:
   print("hello.py: setrlimit time exceeded, exiting")
   raise SystemExit(1)
 
-def set_max_runtime(seconds):
+def set_max_runtime(seconds) -> None:
   # setting up the resource limit
   soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
   resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
@@ -67,29 +68,30 @@ set_max_runtime(10000)
 
 basedir = Path(os.environ.get("basedir", "."))
 
-if "V8K_WORKDIR" in os.environ:
-  v8k_workdir = os.environ["V8K_WORKDIR"]
-else:
-  print("V8K_WORKDIR not set in os.environ -- check your gunicorn config!!", file=sys.stderr)
+try:
+  v8k_workdir = Path(os.environ['V8K_WORKDIR'])
+except KeyError:
+  print(
+    'V8K_WORKDIR not set in os.environ -- check your gunicorn config!!',
+    file=sys.stderr
+  )
+  v8k_workdir = Path()
 
-if "V8K_SLOTS" in os.environ:
-  v8k_slots_arg = "--poolsize " + os.environ["V8K_SLOTS"]
-else:
-  v8k_slots_arg = ""
+try:
+  v8k_slots_arg: str = f'--poolsize {os.environ["V8K_SLOTS"]}'
+except KeyError:
+  v8k_slots_arg = ''
 
-if "v8k_startport" in os.environ:
-  v8k_startport = os.environ["v8k_startport"]
+v8k_startport: str = os.environ.get('v8k_startport', '')
 
-if "v8k_path" in os.environ:
-  v8k_path = os.environ["v8k_path"]
-
+v8k_path: str = os.environ.get('v8k_path', '')
 
 default_filenm_natL4exe_from_stack_install = "natural4-exe"
-natural4_exe = os.environ.get("natural4_exe", default_filenm_natL4exe_from_stack_install)
+natural4_exe: str = os.environ.get('natural4_exe', default_filenm_natL4exe_from_stack_install)
+
 # sometimes it is desirable to override the default name
 # that `stack install` uses with a particular binary from a particular commit
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
-
 
 # see gunicorn.conf.py for basedir, workdir, startport
 template_dir: Path = basedir / "template"
@@ -106,7 +108,7 @@ app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 @app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
 async def get_workdir_file(
-  uuid: str | os.PathLike, 
+  uuid: str | os.PathLike,
   ssid: str | os.PathLike,
   sid: str | os.PathLike,
   channel: str | os.PathLike,
@@ -117,27 +119,39 @@ async def get_workdir_file(
     file=sys.stderr
   )
 
-  workdir_folder: Path = temp_dir / "workdir" / uuid / ssid / sid / channel
-  workdir_folder_filename = workdir_folder / filename
+  workdir_folder: Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
+  workdir_folder_filename: Path = workdir_folder / filename
   empty_response: Response = Response(status = 204)
 
+  response = empty_response
   if not workdir_folder.exists():
-    print(f'get_workdir_file: unable to find workdir_folder {workdir_folder}', file=sys.stderr)
-    return empty_response
+    print(
+      f'get_workdir_file: unable to find workdir_folder {workdir_folder}',
+      file=sys.stderr
+    )
   elif not workdir_folder_filename.is_file():
-    print(f'get_workdir_file: unable to find file {workdir_folder_filename}', file=sys.stderr)
-    return empty_response
+    print(
+      f'get_workdir_file: unable to find file {workdir_folder_filename}',
+      file=sys.stderr
+    )
   else:
     exts: Collection[str] = pyrs.s(
       '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
     )
-    if Path(filename).suffix in exts:
-      print(f'get_workdir_file: returning text/plain {workdir_folder_filename}', file=sys.stderr)
-      mimetype = 'text/plain'
-    else:
-      print(f'get_workdir_file: returning {workdir_folder_filename}', file=sys.stderr)
-      mimetype = None
-    return send_file(workdir_folder_filename, mimetype = mimetype)
+
+    mimetype: typing.Literal['text/plain'] | None = (
+      'text/plain' if Path(filename).suffix in exts else None
+    )
+    mimetype_str: typing.Literal['text/plain', ''] = (
+      mimetype if mimetype else ''
+    )
+    print(
+      f'get_workdir_file: returning {mimetype_str} {workdir_folder_filename}',
+      file=sys.stderr
+    )
+    response: Response = send_file(workdir_folder_filename, mimetype = mimetype)
+
+  return response
 
 # ################################################
 #            SERVE SVG STATIC FILES
@@ -188,7 +202,7 @@ async def run_tasks(
 
 @app.route('/post', methods=['GET', 'POST'])
 async def process_csv() -> str:
-  start_time = datetime.datetime.now()
+  start_time: datetime.datetime = datetime.datetime.now()
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
@@ -196,15 +210,15 @@ async def process_csv() -> str:
 
   response: pyrst.PMap[str, str | None] = pyrs.m()
 
-  uuid = data['uuid']
-  spreadsheet_id = data['spreadsheetId']
-  sheet_id = data['sheetId']
-  target_folder = Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
+  uuid: str = data['uuid']
+  spreadsheet_id: str = data['spreadsheetId']
+  sheet_id: str = data['sheetId']
+  target_folder: Path = Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
   print(target_folder)
-  time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
+  time_now: str = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
   target_file = Path(f'{time_now}.csv')
   # target_path is for CSV data
-  target_path = target_folder / target_file
+  target_path: Path = target_folder / target_file
 
   target_folder.mkdir(parents=True, exist_ok=True)
 
@@ -212,12 +226,12 @@ async def process_csv() -> str:
     fout.write(data['csvString'])
 
   # Generate markdown files asynchronously in the background.
-  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
+  uuiddir: Path = Path(uuid) / spreadsheet_id / sheet_id
 
   markdown_cmd: Sequence[str] = pyrs.v(
     natural4_exe,
     '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(*uuiddir)}',
+    f'--uuiddir={uuiddir}',
     f'{target_path}'
   )
 
@@ -283,9 +297,9 @@ async def process_csv() -> str:
   # postprocessing: for petri nets: turn the DOT files into PNGs
   # we run this asynchronously and block at the end before returning.
   # ---------------------------------------------
-  uuid_ss_folder = temp_dir / "workdir" / uuid / spreadsheet_id / sheet_id
-  petri_folder = uuid_ss_folder / "petri"
-  dot_path = petri_folder / "LATEST.dot"
+  uuid_ss_folder: Path = temp_dir / "workdir" / uuid / spreadsheet_id / sheet_id
+  petri_folder: Path = uuid_ss_folder / "petri"
+  dot_path: Path = petri_folder / "LATEST.dot"
   timestamp = Path(dot_path.readlink().stem)
 
   flowchart_coro: Awaitable[None] = pipe(
@@ -303,16 +317,20 @@ async def process_csv() -> str:
   # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
 
-  pandoc_tasks = get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
+  pandoc_tasks: AsyncGenerator[Awaitable[None], None] = (
+    get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
+  )
 
   # ---------------------------------------------
   # postprocessing:
   # Use Maude to generate the state space and find race conditions
   # ---------------------------------------------
-  maude_output_path = uuid_ss_folder / 'maude'
-  natural4_file = maude_output_path / 'LATEST.natural4'
+  maude_output_path: Path = uuid_ss_folder / 'maude'
+  natural4_file: Path = maude_output_path / 'LATEST.natural4'
 
-  maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
+  maude_tasks: AsyncGenerator[Awaitable[None], None] = (
+    get_maude_tasks(natural4_file, maude_output_path)
+  )
 
   slow_tasks = stream.chain(maude_tasks, pandoc_tasks)
   Process(
@@ -350,7 +368,7 @@ async def process_csv() -> str:
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', 'r') as read_file:
-    v8k_out = read_file.readline()
+    v8k_out: str = read_file.readline()
   print(f'v8k.out: {v8k_out}', file=sys.stderr)
 
   print(
@@ -359,7 +377,7 @@ async def process_csv() -> str:
   )
 
   if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
-    v8k_url = v8k_out.strip()
+    v8k_url: str = v8k_out.strip()
     print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
     response = response.set('v8k_url', v8k_url)
   else:
@@ -378,8 +396,8 @@ async def process_csv() -> str:
 
   response = response.set('timestamp', f'{timestamp}')
 
-  end_time = datetime.datetime.now()
-  elapsed_time = end_time - start_time
+  end_time: datetime.datetime = datetime.datetime.now()
+  elapsed_time: datetime.timedelta = end_time - start_time
 
   print(
     f'hello.py process_csv ready to return at {end_time} (total {elapsed_time})',
@@ -392,8 +410,6 @@ async def process_csv() -> str:
   #   file=sys.stderr
   # )
 
-  # childpid = os.fork()
-
   # if this leads to trouble we may need to double-fork with grandparent-wait
   # if childpid > 0:  # in the parent
     # print("hello.py processCsv parent returning at", datetime.datetime.now(),
@@ -404,7 +420,6 @@ async def process_csv() -> str:
 
   # else:  # in the child
   # print('hello.py processCsv: fork(child): continuing to run', file=sys.stderr)
-
 
   # print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
   #       ")", file=sys.stderr)

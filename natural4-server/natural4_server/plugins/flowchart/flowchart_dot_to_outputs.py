@@ -42,8 +42,8 @@ try:
 
   @curry
   def _dot_file_to_output(
-    dot_file: str | os.PathLike,
-    output_file: str | os.PathLike,
+    dot_file: str | os.PathLike[str],
+    output_file: str | os.PathLike[str],
     args: Sequence[str]
   ) -> None:
     args = ' '.join(args)
@@ -64,8 +64,8 @@ try:
 except ImportError:
   @curry
   def _dot_file_to_output(
-    dot_file: str | os.PathLike,
-    output_file: str | os.PathLike,
+    dot_file: str | os.PathLike[str],
+    output_file: str | os.PathLike[str],
     args: Sequence[str]
   ) -> None:
     graphviz_cmd: Sequence[str] = (
@@ -88,36 +88,36 @@ def flowchart_dot_to_output(
   flowchart_output: FlowchartOutput
 ) -> None:
   uuid_ss_folder_path = Path(uuid_ss_folder)
-  output_path = uuid_ss_folder_path / 'petri'
+  output_path: Path = uuid_ss_folder_path / 'petri'
   output_path.mkdir(parents=True, exist_ok=True)
-  dot_file = output_path / 'LATEST.dot'
+  dot_file: Path = output_path / 'LATEST.dot'
 
   if dot_file.exists():
     match flowchart_output:
       case {'suffix': suffix, 'file_extension': file_extension, 'args': args}:
-        timestamp_file = f'{timestamp}{suffix}.{file_extension}'
-        output_file = f'{output_path / timestamp_file}'
+        timestamp_file: str = f'{timestamp}{suffix}.{file_extension}'
+        output_file: str = f'{output_path / timestamp_file}'
 
         print(f'Drawing {file_extension} from dot file', file=sys.stderr)
         print(f'Output file: {output_file}', file=sys.stderr)
         _dot_file_to_output(dot_file, output_file, args)
 
-        latest_file = output_path / f'LATEST{suffix}.{file_extension}'
+        latest_file: Path = output_path / f'LATEST{suffix}.{file_extension}'
         try:
           latest_file.unlink(missing_ok = True)
           latest_file.symlink_to(timestamp_file)
           # os.symlink(timestamp_file, latest_file)
-        except Exception as e:
+        except Exception as exc:
           print(
             'hello.py main: got some kind of OS error to do with the unlinking and the symlinking',
             file=sys.stderr
           )
-          print(f'hello.py main: {e}', file=sys.stderr)
+          print(f'hello.py main: {exc}', file=sys.stderr)
 
 @curry
 async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
-  timestamp: str
+  timestamp: str | os.PathLike
 ) -> AsyncGenerator[Awaitable[None], None]:
   for output in flowchart_outputs:
     yield asyncio.to_thread(

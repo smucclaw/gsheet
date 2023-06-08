@@ -9,7 +9,7 @@ try:
 except ImportError:
   @curry
   async def get_maude_tasks(
-    natural4_file: str | os.PathLike,
-    output_path: str | os.PathLike
+    _natural4_file: str | os.PathLike,
+    _output_path: str | os.PathLike
   ) -> AsyncGenerator[Awaitable[None], None]:
     yield asyncio.to_thread(lambda: None)

@@ -15,7 +15,7 @@ from .visualise import (
   natural4_rules_to_race_cond_htmls
 )
 
-maude_main_file = Path('plugins') / 'natural4_maude' / 'main.maude'
+maude_main_file: Path = Path('plugins') / 'natural4_maude' / 'main.maude'
 maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 @curry
@@ -67,14 +67,14 @@ async def get_maude_tasks(
   output_path.mkdir(parents=True, exist_ok=True)
   # natural4_file = maude_path / 'LATEST.natural4'
   with open(natural4_file) as f:
-    natural4_rules = f.read()
+    natural4_rules: str = f.read()
 
   # We don't proceed with post processing if the natural4 file is empty or
   # contains only whitespaces.
   if natural4_rules.strip():
     # Transform the set of rules into the initial configuration of the
     # transition system.
-    config = natural4_rules_to_config(
+    config: maude.Term | None = natural4_rules_to_config(
       maude_main_mod, natural4_rules
     )
     # Do we need to worry about this being None?

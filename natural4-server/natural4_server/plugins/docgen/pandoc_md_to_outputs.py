@@ -1,7 +1,6 @@
 import asyncio
 from collections.abc import AsyncGenerator, Awaitable, Collection
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -45,7 +44,7 @@ def pandoc_md_to_output(
   pandoc_output: PandocOutput
 ) -> None:
   uuid_ss_folder_path = Path(uuid_ss_folder)
-  md_file = uuid_ss_folder_path / 'md' / 'LATEST.md' # f'{timestamp}.md'
+  md_file: Path = uuid_ss_folder_path / 'md' / 'LATEST.md' # f'{timestamp}.md'
   # pipe(
   #   uuid_ss_folder_path / 'md',
   #   do(lambda x: x.mkdir(parents=True, exist_ok=True)),
@@ -56,8 +55,8 @@ def pandoc_md_to_output(
         outputpath:Path = uuid_ss_folder_path / file_extension
         outputpath.mkdir(parents=True, exist_ok=True)
 
-        timestamp_file = f'{timestamp}.{file_extension}'
-        outputfile = f'{outputpath / timestamp_file}'
+        timestamp_file: str = f'{timestamp}.{file_extension}'
+        outputfile: str = f'{outputpath / timestamp_file}'
 
         print(f'Outputting to {file_extension}', file=sys.stderr)
         try:
@@ -71,10 +70,9 @@ def pandoc_md_to_output(
             file=sys.stderr
           )
 
-        latest_file = outputpath / f'LATEST.{file_extension}'
+        latest_file: Path = outputpath / f'LATEST.{file_extension}'
         latest_file.unlink(missing_ok = True)
         latest_file.symlink_to(timestamp_file)
-        # os.symlink(timestamp_file, latest_file)
 
 @curry
 async def get_pandoc_tasks(
