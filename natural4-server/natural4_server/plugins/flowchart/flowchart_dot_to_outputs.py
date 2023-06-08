@@ -70,7 +70,7 @@ except ImportError:
 @curry
 def flowchart_dot_to_output(
   uuid_ss_folder: str | os.PathLike,
-  timestamp: str,
+  timestamp: str | os.PathLike,
   flowchart_output: FlowchartOutput
 ) -> None:
   uuid_ss_folder_path = Path(uuid_ss_folder)
