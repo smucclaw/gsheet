@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import Awaitable, Collection, Generator, Sequence
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -78,19 +79,27 @@ def pandoc_md_to_output(
 
 @curry
 async def get_pandoc_tasks(
-  markdown_coro: Awaitable[asyncio.subprocess.Process],
+  md_cmd: Sequence[str],
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> Generator[Awaitable[None], None, None]:
-  await markdown_coro
-  return pipe(
-    pandoc_outputs,
-    map(
-      partial(
-        asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
+  match md_cmd:
+    case [natural4_exe, *args]:
+      asyncio.subprocess.create_subprocess_exec(
+        natural4_exe, *args,
+        stdout = asyncio.subprocess.PIPE,
+        stderr = asyncio.subprocess.PIPE
       )
-    )
-  )
+
+      return pipe(
+        pandoc_outputs,
+        map(
+          partial(
+            asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
+          )
+        )
+      )
+    case _: return
 
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
