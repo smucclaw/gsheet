@@ -59,12 +59,16 @@ except ImportError:
     output_file: str | os.PathLike,
     args: Sequence[str]
   ) -> None:
-    print(f'Flowchart output file: {output_file}', file=sys.stderr)
-    subprocess.run(
-      # Log(n) concat go brr
+    graphviz_cmd = (
       pyrse.sq('dot', f'-T{Path(output_file).suffix}', f'{dot_file}') +
       args +
-      pyrse.sq('-o', f'{output_file}'),
+      pyrse.sq('-o', f'{output_file}')
+    )
+    print(f'Calling graphviz with: {" ".join(graphviz_cmd)}', file=sys.stderr)
+
+    subprocess.run(
+      # Log(n) concat go brr
+      graphviz_cmd,
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
 
