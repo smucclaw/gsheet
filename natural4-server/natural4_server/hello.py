@@ -10,9 +10,8 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import Awaitable, Collection, Iterable, Sequence
+from collections.abc import AsyncGenerator, Awaitable, Collection, Sequence
 import datetime
-from itertools import chain
 import json
 from multiprocessing import Process
 import os
@@ -25,7 +24,7 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
-import aiostream
+from aiostream import stream
 
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
@@ -48,13 +47,13 @@ import resource
 def time_exceeded(signo, frame):
   print("hello.py: setrlimit time exceeded, exiting")
   raise SystemExit(1)
-  
+
 def set_max_runtime(seconds):
   # setting up the resource limit
   soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
   resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
   signal.signal(signal.SIGXCPU, time_exceeded)
-  
+
 # max run time
 set_max_runtime(10000)
 
@@ -185,7 +184,7 @@ async def show_aasvg_image(
 
 @curry
 async def postprocess(
-  tasks # : Iterable[Awaitable[None]]
+  tasks: AsyncGenerator[Awaitable[None], None]
 ) -> Awaitable[None]:
   try:
     async with (asyncio.timeout(20), asyncio.TaskGroup() as taskgroup):
@@ -302,7 +301,12 @@ async def process_csv() -> str:
    #timestamp = Path(timestamp)
   timestamp = Path(dot_path.readlink().stem)
 
-  flowchart_tasks = get_flowchart_tasks(uuid_ss_folder, timestamp)
+  # flowchart_tasks = get_flowchart_tasks(uuid_ss_folder, timestamp)
+  flowchart_coro = pipe(
+    (uuid_ss_folder, timestamp),
+    lambda x: get_flowchart_tasks(*x),
+    postprocess
+  )
 
   # if not os.path.exists(petri_folder):
   #   print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
@@ -347,9 +351,10 @@ async def process_csv() -> str:
 
   maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
 
+  slow_tasks = stream.chain(maude_tasks, pandoc_tasks)
   Process(
     target = compose_left(postprocess, asyncio.run),
-    args = [aiostream.stream.chain(flowchart_tasks, maude_tasks, pandoc_tasks)]
+    args = (slow_tasks,)
   ).start()
 
   # ---------------------------------------------
@@ -444,7 +449,8 @@ async def process_csv() -> str:
   # print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
   #       ")", file=sys.stderr)
 
-  # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
+  await flowchart_coro
+
   return json.dumps(pyrs.thaw(response))
 
   # ---------------------------------------------
