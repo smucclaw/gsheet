@@ -123,7 +123,7 @@ async def get_workdir_file(
   workdir_folder_filename: Path = workdir_folder / filename
   empty_response: Response = Response(status = 204)
 
-  response = empty_response
+  response: Response = empty_response
   if not workdir_folder.exists():
     print(
       f'get_workdir_file: unable to find workdir_folder {workdir_folder}',
@@ -139,12 +139,8 @@ async def get_workdir_file(
       '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
     )
 
-    mimetype: typing.Literal['text/plain'] | None = (
-      'text/plain' if Path(filename).suffix in exts else None
-    )
-    mimetype_str: typing.Literal['text/plain', ''] = (
-      mimetype if mimetype else ''
-    )
+    mimetype = 'text/plain' if Path(filename).suffix in exts else None
+    mimetype_str = mimetype if mimetype else ''
     print(
       f'get_workdir_file: returning {mimetype_str} {workdir_folder_filename}',
       file=sys.stderr
@@ -178,7 +174,6 @@ async def show_aasvg_image(
     send_file
   )
 
-@curry
 async def run_tasks(
   tasks: AsyncGenerator[Coroutine, None]
 ) -> None:
@@ -300,7 +295,7 @@ async def process_csv() -> str:
   uuid_ss_folder: Path = temp_dir / "workdir" / uuid / spreadsheet_id / sheet_id
   petri_folder: Path = uuid_ss_folder / "petri"
   dot_path: Path = petri_folder / "LATEST.dot"
-  timestamp = Path(dot_path.readlink().stem)
+  timestamp: Path = Path(dot_path.readlink().stem)
 
   flowchart_coro: Awaitable[None] = pipe(
     (uuid_ss_folder, timestamp),
