@@ -59,12 +59,12 @@ except ImportError:
     output_file: str | os.PathLike,
     args: Sequence[str]
   ) -> None:
-    print(f'Flowchart output file: {Path(*output_file)}', file=sys.stderr)
+    print(f'Flowchart output file: {output_file}', file=sys.stderr)
     subprocess.run(
       # Log(n) concat go brr
       pyrse.sq('dot', f'{dot_file}') +
       args +
-      pyrse.sq('-o', f'{Path(*output_file)}'),
+      pyrse.sq('-o', f'{output_file}'),
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
 
