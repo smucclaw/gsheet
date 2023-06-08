@@ -62,7 +62,7 @@ except ImportError:
     print(f'Flowchart output file: {output_file}', file=sys.stderr)
     subprocess.run(
       # Log(n) concat go brr
-      pyrse.sq('dot', f'{dot_file}') +
+      pyrse.sq('dot', f'-T{Path(output_file).suffix}', f'{dot_file}') +
       args +
       pyrse.sq('-o', f'{output_file}'),
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
