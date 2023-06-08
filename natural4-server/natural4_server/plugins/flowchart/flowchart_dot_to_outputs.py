@@ -50,7 +50,7 @@ try:
       dot_file,
       AGraph,
       do(lambda graph: graph.layout(prog = 'dot')),
-      do(lambda graph: graph._draw(output_file, args = ' '.join(args)))
+      do(lambda graph: graph.draw(output_file, args = ' '.join(args)))
     )
 
 except ImportError:
