@@ -188,7 +188,7 @@ async def postprocess(
   tasks # : Iterable[Awaitable[None]]
 ) -> Awaitable[None]:
   try:
-    async with (asyncio.timeout(15), asyncio.TaskGroup() as taskgroup):
+    async with (asyncio.timeout(30), asyncio.TaskGroup() as taskgroup):
       async for task in tasks:
         print(f'Running task: {task}', file=sys.stderr)
         taskgroup.create_task(task)
