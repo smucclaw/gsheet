@@ -188,7 +188,7 @@ async def postprocess(
   tasks # : Iterable[Awaitable[None]]
 ) -> Awaitable[None]:
   try:
-    async with (asyncio.timeout(30), asyncio.TaskGroup() as taskgroup):
+    async with (asyncio.timeout(20), asyncio.TaskGroup() as taskgroup):
       async for task in tasks:
         print(f'Running task: {task}', file=sys.stderr)
         taskgroup.create_task(task)
@@ -256,8 +256,8 @@ async def process_csv() -> str:
   create_files: Sequence[str] = pyrs.v(
     natural4_exe,
     '--tomd', '--toasp', '--toepilog',
-    f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
+    f'--workdir={Path(*natural4_dir)}',
+    f'--uuiddir={Path(Path(uuid) / spreadsheet_id/ sheet_id)}',
     f'{target_path}'
   )
 
@@ -347,6 +347,10 @@ async def process_csv() -> str:
 
   maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
 
+  Process(
+    target = compose_left(postprocess, asyncio.run),
+    args = [aiostream.stream.chain(flowchart_tasks, maude_tasks, pandoc_tasks)]
+  ).start()
 
   # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server
@@ -416,11 +420,6 @@ async def process_csv() -> str:
     f'hello.py processCsv ready to return at {end_time} (total {elapsed_time})',
     file=sys.stderr
   )
-
-  Process(
-    target = compose_left(postprocess, asyncio.run),
-    args = [aiostream.stream.chain(flowchart_tasks, maude_tasks, pandoc_tasks)]
-  ).start()
 
   # print(
   #   "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
