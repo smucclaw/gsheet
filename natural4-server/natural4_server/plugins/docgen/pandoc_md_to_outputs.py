@@ -1,14 +1,15 @@
 import asyncio
-from collections.abc import Awaitable, Collection, Generator, Sequence
+from collections.abc import AsyncGenerator, Awaitable, Collection
 import os
 import subprocess
 import sys
 from pathlib import Path
-import aiostream
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
+
+from aiostream import stream, pipe
 
 import pyrsistent as pyrs
 
@@ -83,12 +84,14 @@ async def get_pandoc_tasks(
   md_coro,
   uuid_ss_folder: str | os.PathLike,
   timestamp: str,
-): # -> Awaitable[Generator[Awaitable[None], None, None]]:
-  await md_coro 
-  async for pandoc_output in aiostream.stream.iterate(pandoc_outputs):
-    yield asyncio.to_thread(
-      pandoc_md_to_output, uuid_ss_folder, timestamp, pandoc_output
-    )
+) -> AsyncGenerator[Awaitable[None], None]:
+  await md_coro
+  (pandoc_outputs
+    | stream.iterate
+    | stream.map(partial(
+        asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
+      ))
+  )
 
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):

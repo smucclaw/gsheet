@@ -1,14 +1,15 @@
 import asyncio
-from collections.abc import Awaitable, Collection, Generator, Sequence
+from collections.abc import AsyncGenerator, Awaitable, Collection, Sequence
 import os
 from pathlib import Path
 import subprocess
 import sys
-import aiostream
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
+
+from aiostream import stream, pipe
 
 import pyrsistent as pyrs
 import pyrsistent_extras as pyrse
@@ -103,11 +104,13 @@ def flowchart_dot_to_output(
 async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
-): #  -> Generator[Awaitable[None], None, None]:
-  async for flowchart_output in aiostream.stream.iterate(flowchart_outputs):
-    yield asyncio.to_thread(
-      flowchart_dot_to_output, uuid_ss_folder, timestamp, flowchart_output
-    )
+) -> AsyncGenerator[Awaitable[None], None]:
+  (flowchart_outputs
+    | stream.iterate
+    | stream.map(partial(
+        asyncio.to_thread, flowchart_dot_to_output, uuid_ss_folder, timestamp
+      ))
+  )
 
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
