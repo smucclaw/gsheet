@@ -49,7 +49,7 @@ try:
     pipe(
       dot_file,
       AGraph,
-      do(lambda graph: graph.layout(prog = 'dot')),
+      do(lambda graph: graph.layout()),
       do(lambda graph: graph.draw(output_file, args = ' '.join(args)))
     )
 
