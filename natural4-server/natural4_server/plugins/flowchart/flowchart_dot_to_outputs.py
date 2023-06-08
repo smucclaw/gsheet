@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from aiostream import stream
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -62,7 +61,7 @@ except ImportError:
   ) -> None:
     subprocess.run(
       # Log(n) concat go brr
-      pyrse.sq('dot', f'{dot_file}', f'-T{Path(output_file).suffix}') +
+      pyrse.sq('dot', f'{dot_file}') +
       args +
       pyrse.sq('-o', f'{output_file}'),
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -106,7 +105,7 @@ async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> AsyncGenerator[Awaitable[None], None]:
-  async for output in stream.iterate(flowchart_outputs):
+  for output in flowchart_outputs:
     yield asyncio.to_thread(
       flowchart_dot_to_output, uuid_ss_folder, timestamp, output
     )
