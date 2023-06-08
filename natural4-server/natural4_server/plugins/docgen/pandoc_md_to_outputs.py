@@ -1,7 +1,6 @@
 import asyncio
-from collections.abc import AsyncGenerator, Awaitable, Collection, Sequence
+from collections.abc import AsyncGenerator, Awaitable, Collection
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -79,21 +78,12 @@ def pandoc_md_to_output(
 
 @curry
 async def get_pandoc_tasks(
-  # md_coro: Awaitable[None],
-  md_cmd: Sequence[str],
+  md_coro: Awaitable[None],
   uuid_ss_folder: str | os.PathLike,
   timestamp: str,
 ) -> AsyncGenerator[Awaitable[None], None, None]:
-  # await md_coro
-  print(f'hello.py child: calling natural4-exe (slowly) for tomd', file=sys.stderr)
-  print(f'hello.py child: {md_cmd}', file=sys.stderr)
-
-  subprocess.run(
-    md_cmd,
-    stdout=subprocess.PIPE, stderr=subprocess.PIPE
-  )
-
-  for output in pandoc_outputs:
+  await md_coro
+  async for output in stream.iterate(pandoc_outputs):
     yield asyncio.to_thread(
       pandoc_md_to_output, uuid_ss_folder, timestamp, output
     )

@@ -122,7 +122,7 @@ async def get_workdir_file(
   if not workdir_folder.exists():
     print(f'get_workdir_file: unable to find workdir_folder {workdir_folder}', file=sys.stderr)
     return empty_response
-  elif not workdir_folder_filename.resolve().is_file():
+  elif not workdir_folder_filename.is_file():
     print(f'get_workdir_file: unable to find file {workdir_folder_filename}', file=sys.stderr)
     return empty_response
   elif Path(filename).suffix in exts:
@@ -225,6 +225,26 @@ async def process_csv() -> str:
   with open(target_path, 'w') as fout:
     fout.write(data['csvString'])
 
+  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
+
+  md_cmd: Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--only', 'tomd', f'--workdir={natural4_dir}',
+    f'--uuiddir={Path(*uuiddir)}',
+    f'{target_path}'
+  )
+
+  print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
+  print(f'hello.py child: {md_cmd}', file=sys.stderr)
+
+  md_coro: Awaitable[asyncio.subprocess.Process] = (
+    asyncio.subprocess.create_subprocess_exec(
+      *md_cmd,
+      stdout = asyncio.subprocess.PIPE,
+      stderr = asyncio.subprocess.PIPE
+    )
+  )
+
   # target_path is for CSV data
 
   # ---------------------------------------------
@@ -316,16 +336,8 @@ async def process_csv() -> str:
   # call natural4-exe to generate markdown and then call pandoc to convert that
   # to pdf and word docs
   # ---------------------------------------------
-  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
 
-  md_cmd: Sequence[str] = pyrs.v(
-    natural4_exe,
-    '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(*uuiddir)}',
-    f'{target_path}'
-  )
-
-  pandoc_tasks = get_pandoc_tasks(md_cmd, uuid_ss_folder, timestamp)
+  pandoc_tasks = get_pandoc_tasks(md_coro, uuid_ss_folder, timestamp)
 
   # ---------------------------------------------
   # postprocessing: use Maude to generate the state space and find race conditions
