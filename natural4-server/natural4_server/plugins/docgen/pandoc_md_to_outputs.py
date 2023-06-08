@@ -8,6 +8,8 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
+from aiostream import stream
+
 import pyrsistent as pyrs
 
 import pypandoc
