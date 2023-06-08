@@ -333,7 +333,7 @@ async def process_csv() -> str:
     stderr = asyncio.subprocess.PIPE
   )
 
-  pandoc_tasks = get_pandoc_tasks(
+  pandoc_tasks = await get_pandoc_tasks(
     md_coro, uuid_ss_folder, timestamp
   )
 
@@ -416,7 +416,7 @@ async def process_csv() -> str:
 
   Process(
     target = compose_left(postprocess, asyncio.run),
-    args = [chain(flowchart_tasks, await pandoc_tasks, maude_tasks)]
+    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
   ).start()
 
   # print(
