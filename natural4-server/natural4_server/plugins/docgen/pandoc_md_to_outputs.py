@@ -80,7 +80,8 @@ def pandoc_md_to_output(
 @curry
 def get_pandoc_tasks(
   uuid_ss_folder: str | os.PathLike,
-  timestamp: str
+  timestamp: str,
+  _
 ) -> Generator[Awaitable[None], None, None]:
   return pipe(
     pandoc_outputs,

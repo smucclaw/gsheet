@@ -417,8 +417,8 @@ async def process_csv() -> str:
   )
 
   Process(
-    target = compose_left(lambda: await md_coro, postprocess, asyncio.run),
-    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
+    target = compose_left(postprocess, asyncio.run),
+    args = [chain(flowchart_tasks, pandoc_tasks(await md_coro), maude_tasks)]
   ).start()
 
   # print(
