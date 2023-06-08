@@ -304,7 +304,7 @@ async def process_csv() -> str:
   # (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
   timestamp = dot_path.resolve()
 
-  flowchart_tasks = get_flowchart_tasks(uuid_ss_folder, timestamp)
+  flowchart_tasks = get_flowchart_tasks(uuid_ss_folder, timestamp.stem)
 
   # if not os.path.exists(petri_folder):
   #   print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
