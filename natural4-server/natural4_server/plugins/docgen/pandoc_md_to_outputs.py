@@ -41,7 +41,7 @@ pandoc_outputs: Collection[PandocOutput] = pyrs.s(
 @curry
 def pandoc_md_to_output(
   uuid_ss_folder: str | os.PathLike,
-  timestamp: str,
+  timestamp: str | os.PathLike,
   pandoc_output: PandocOutput
 ) -> None:
   uuid_ss_folder_path = Path(uuid_ss_folder)
@@ -78,11 +78,11 @@ def pandoc_md_to_output(
 
 @curry
 async def get_pandoc_tasks(
-  md_coro: Awaitable[None],
+  markdown_coro: Awaitable[asyncio.subprocess.Process],
   uuid_ss_folder: str | os.PathLike,
-  timestamp: str,
-) -> AsyncGenerator[Awaitable[None], None, None]:
-  await md_coro
+  timestamp: str | os.PathLike,
+) -> AsyncGenerator[Awaitable[None], None]:
+  await markdown_coro
   for output in pandoc_outputs:
     yield asyncio.to_thread(
       pandoc_md_to_output, uuid_ss_folder, timestamp, output

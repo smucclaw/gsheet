@@ -5,8 +5,6 @@ from pathlib import Path
 import subprocess
 import sys
 
-import aiostream
-
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
@@ -70,11 +68,11 @@ except ImportError:
     output_file: str | os.PathLike,
     args: Sequence[str]
   ) -> None:
-    graphviz_cmd = (
+    graphviz_cmd: Sequence[str] = (
       pyrse.sq('dot', f'-T{Path(output_file).suffix[1:]}', f'{dot_file}') +
-      args +
+      pyrse.psequence(args) +
       pyrse.sq('-o', f'{output_file}')
-    )
+    ) # type: ignore
     print(f'Calling graphviz with: {" ".join(graphviz_cmd)}', file=sys.stderr)
 
     subprocess.run(

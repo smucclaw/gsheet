@@ -10,7 +10,13 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import AsyncGenerator, Awaitable, Collection, Sequence
+from collections.abc import (
+  AsyncGenerator,
+  Awaitable,
+  Collection,
+  Coroutine,
+  Sequence
+)
 import datetime
 import json
 from multiprocessing import Process
@@ -160,7 +166,7 @@ async def show_aasvg_image(
 
 @curry
 async def run_tasks(
-  tasks: AsyncGenerator[Awaitable[None], None]
+  tasks: AsyncGenerator[Coroutine, None]
 ) -> None:
   '''
   Runs tasks asynchronously in the background.
@@ -188,7 +194,7 @@ async def process_csv() -> str:
 
   data: pyrst.PMap[str, str] = pyrs.pmap(request.form)
 
-  response: pyrst.PMap[str, str] = pyrs.m()
+  response: pyrst.PMap[str, str | None] = pyrs.m()
 
   uuid = data['uuid']
   spreadsheet_id = data['spreadsheetId']
