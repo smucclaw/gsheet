@@ -50,7 +50,6 @@ try:
     pipe(
       dot_file,
       AGraph,
-      # do(lambda graph: graph.layout()),
       do(lambda graph:
           graph._draw(
             output_file,
