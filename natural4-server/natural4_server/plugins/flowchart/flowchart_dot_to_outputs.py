@@ -54,7 +54,7 @@ try:
       do(lambda graph:
           graph.draw(
             output_file,
-            format = Path(output_file.suffix)[1:],
+            format = Path(output_file).suffix[1:],
             args = ' '.join(args)
           )
       )
