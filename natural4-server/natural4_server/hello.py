@@ -114,9 +114,6 @@ async def get_workdir_file(
   workdir_folder: Path = temp_dir / "workdir" / uuid / ssid / sid / channel
   workdir_folder_filename = workdir_folder / filename
   empty_response: Response = Response(status = 204)
-  exts: Collection[str] = pyrs.s(
-    '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
-  )
 
   if not workdir_folder.exists():
     print(f'get_workdir_file: unable to find workdir_folder {workdir_folder}', file=sys.stderr)
@@ -124,12 +121,17 @@ async def get_workdir_file(
   elif not workdir_folder_filename.is_file():
     print(f'get_workdir_file: unable to find file {workdir_folder_filename}', file=sys.stderr)
     return empty_response
-  elif Path(filename).suffix in exts:
-    print(f'get_workdir_file: returning text/plain {workdir_folder_filename}', file=sys.stderr)
-    return send_file(workdir_folder_filename, mimetype = 'text/plain')
   else:
-    print(f'get_workdir_file: returning {workdir_folder_filename}', file=sys.stderr)
-    return send_file(workdir_folder_filename)
+    exts: Collection[str] = pyrs.s(
+      '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
+    )
+    if Path(filename).suffix in exts:
+      print(f'get_workdir_file: returning text/plain {workdir_folder_filename}', file=sys.stderr)
+      mimetype = 'text/plain'
+    else:
+      print(f'get_workdir_file: returning {workdir_folder_filename}', file=sys.stderr)
+      mimetype = None
+    return send_file(workdir_folder_filename, mimetype = mimetype)
 
 # ################################################
 #            SERVE SVG STATIC FILES
@@ -156,36 +158,10 @@ async def show_aasvg_image(
     send_file
   )
 
-# @curry
-# def get_markdown_tasks(
-#   uuiddir: str | os.PathLike,
-#   target_path: str | os.PathLike
-# ) -> Generator[Awaitable[None], None, None]:
-#   md_cmd: Sequence[str] = pyrs.v(
-#     natural4_exe,
-#     '--only', 'tomd', f'--workdir={natural4_dir}',
-#     f'--uuiddir={uuiddir}',
-#     f'{target_path}'
-#   )
-
-#   print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
-#   print(f"hello.py child: {md_cmd}", file=sys.stderr)
-
-#   yield asyncio.to_thread(
-#     subprocess.run,
-#     md_cmd,
-#     stdout=subprocess.PIPE, stderr=subprocess.PIPE
-#   )
-
-  # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
-  #       file=sys.stderr)
-  # print(f'hello.py child: natural4-exe stdout length = {len(nl4exe.stdout.decode("utf-8"))}', file=sys.stderr)
-  # print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
-
 @curry
 async def run_tasks(
   tasks: AsyncGenerator[Awaitable[None], None]
-) -> Awaitable[None]:
+) -> None:
   '''
   Runs tasks asynchronously in the background.
   '''
@@ -232,7 +208,7 @@ async def process_csv() -> str:
   # Generate markdown files asynchronously in the background.
   uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
 
-  md_cmd: Sequence[str] = pyrs.v(
+  markdown_cmd: Sequence[str] = pyrs.v(
     natural4_exe,
     '--only', 'tomd', f'--workdir={natural4_dir}',
     f'--uuiddir={Path(*uuiddir)}',
@@ -240,11 +216,13 @@ async def process_csv() -> str:
   )
 
   print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
-  print(f'hello.py child: {md_cmd}', file=sys.stderr)
+  print(f'hello.py child: {markdown_cmd}', file=sys.stderr)
 
-  md_coro: Awaitable[asyncio.subprocess.Process] = (
+  # Coroutine which is awaited before pandoc is called to generate documents
+  # (ie word and pdf) from the markdown file.
+  markdown_coro: Awaitable[asyncio.subprocess.Process] = (
     asyncio.subprocess.create_subprocess_exec(
-      *md_cmd,
+      *markdown_cmd,
       stdout = asyncio.subprocess.PIPE,
       stderr = asyncio.subprocess.PIPE
     )
@@ -267,10 +245,11 @@ async def process_csv() -> str:
   print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
 
-  nl4exe = subprocess.run(
+  nl4exe: subprocess.CompletedProcess[bytes] = subprocess.run(
     create_files,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
+
   print(
     f'hello.py main: back from natural4-exe (took {datetime.datetime.now() - start_time})',
     file=sys.stderr
@@ -303,7 +282,7 @@ async def process_csv() -> str:
   dot_path = petri_folder / "LATEST.dot"
   timestamp = Path(dot_path.readlink().stem)
 
-  flowchart_coro = pipe(
+  flowchart_coro: Awaitable[None] = pipe(
     (uuid_ss_folder, timestamp),
     lambda x: get_flowchart_tasks(*x),
     run_tasks
@@ -315,14 +294,14 @@ async def process_csv() -> str:
 
   # ---------------------------------------------
   # postprocessing:
-  # call natural4-exe to generate markdown and then call pandoc to convert that
-  # to pdf and word docs
+  # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
 
-  pandoc_tasks = get_pandoc_tasks(md_coro, uuid_ss_folder, timestamp)
+  pandoc_tasks = get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
 
   # ---------------------------------------------
-  # postprocessing: use Maude to generate the state space and find race conditions
+  # postprocessing:
+  # Use Maude to generate the state space and find race conditions
   # ---------------------------------------------
   maude_output_path = uuid_ss_folder / 'maude'
   natural4_file = maude_output_path / 'LATEST.natural4'
@@ -363,9 +342,6 @@ async def process_csv() -> str:
       stdout=outfile # stderr=outfile
     )
 
-  # os.system(' '.join(v8kargs))
-  # os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
-
   print('hello.py main: v8k up returned', file=sys.stderr)
   with open(uuid_ss_folder / 'v8k.out', 'r') as read_file:
     v8k_out = read_file.readline()
@@ -383,16 +359,16 @@ async def process_csv() -> str:
   else:
     response = response.set('v8k_url', None)
 
-# ---------------------------------------------
-# load in the aasvg index HTML to pass back to sidebar
-# ---------------------------------------------
+  # ---------------------------------------------
+  # load in the aasvg index HTML to pass back to sidebar
+  # ---------------------------------------------
 
   with open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r') as read_file:
     response = response.set('aasvg_index', read_file.read())
 
-# ---------------------------------------------
-# construct other response elements and log run-timings.
-# ---------------------------------------------
+  # ---------------------------------------------
+  # construct other response elements and log run-timings.
+  # ---------------------------------------------
 
   response = response.set('timestamp', f'{timestamp}')
 
@@ -400,7 +376,7 @@ async def process_csv() -> str:
   elapsed_time = end_time - start_time
 
   print(
-    f'hello.py processCsv ready to return at {end_time} (total {elapsed_time})',
+    f'hello.py process_csv ready to return at {end_time} (total {elapsed_time})',
     file=sys.stderr
   )
 
