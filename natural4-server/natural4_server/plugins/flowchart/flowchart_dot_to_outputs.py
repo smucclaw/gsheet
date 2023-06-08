@@ -59,6 +59,7 @@ except ImportError:
     output_file: str | os.PathLike,
     args: Sequence[str]
   ) -> None:
+    print('HELLO', file=sys.stderr)
     subprocess.run(
       # Log(n) concat go brr
       pyrse.sq('dot', f'{dot_file}') +
