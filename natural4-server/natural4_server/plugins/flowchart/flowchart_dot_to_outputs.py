@@ -61,9 +61,10 @@ except ImportError:
   ) -> None:
     subprocess.run(
       # Log(n) concat go brr
-      pyrse.sq('dot', f'{dot_file}') +
-      args +
-      pyrse.sq('-o', f'{Path(*output_file)}'),
+      [' '.join(pyrse.sq('dot', f'{dot_file}') +
+        args +
+        pyrse.sq('-o', f'{Path(*output_file)}')
+      )],
       stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
 

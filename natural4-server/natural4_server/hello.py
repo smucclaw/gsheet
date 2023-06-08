@@ -256,8 +256,8 @@ async def process_csv() -> str:
   create_files: Sequence[str] = pyrs.v(
     natural4_exe,
     '--tomd', '--toasp', '--toepilog',
-    f'--workdir={Path(*natural4_dir)}',
-    f'--uuiddir={Path(Path(uuid) / spreadsheet_id/ sheet_id)}',
+    f'--workdir={natural4_dir}',
+    f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
     f'{target_path}'
   )
 
