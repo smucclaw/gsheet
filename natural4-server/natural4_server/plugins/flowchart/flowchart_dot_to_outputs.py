@@ -60,7 +60,7 @@ except ImportError:
     args: Sequence[str]
   ) -> None:
     graphviz_cmd = (
-      pyrse.sq('dot', f'-T{Path(output_file).suffix}', f'{dot_file}') +
+      pyrse.sq('dot', f'-T{Path(output_file).suffix[1:]}', f'{dot_file}') +
       args +
       pyrse.sq('-o', f'{output_file}')
     )
