@@ -25,6 +25,8 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
+import aiostream
+
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
 
@@ -186,11 +188,11 @@ async def show_aasvg_image(
 
 @curry
 async def postprocess(
-  tasks: Iterable[Awaitable[None]]
+  tasks # : Iterable[Awaitable[None]]
 ) -> Awaitable[None]:
   try:
     async with (asyncio.timeout(15), asyncio.TaskGroup() as taskgroup):
-      for task in tasks:
+      async for task in tasks:
         print(f'Running task: {task}', file=sys.stderr)
         taskgroup.create_task(task)
   except TimeoutError as exc:
@@ -227,26 +229,6 @@ async def process_csv() -> str:
     fout.write(data['csvString'])
 
   # target_path is for CSV data
-
-  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
-
-  md_cmd: Sequence[str] = pyrs.v(
-    natural4_exe,
-    '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(*uuiddir)}',
-    f'{target_path}'
-  )
-
-  print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
-  print(f'hello.py child: {md_cmd}', file=sys.stderr)
-
-  md_coro: Awaitable[asyncio.subprocess.Process] = (
-    asyncio.subprocess.create_subprocess_exec(
-      *md_cmd,
-      stdout = asyncio.subprocess.PIPE,
-      stderr = asyncio.subprocess.PIPE
-    )
-  )
 
   # ---------------------------------------------
   # call natural4-exe, wait for it to complete. see SECOND RUN below.
@@ -337,7 +319,28 @@ async def process_csv() -> str:
   # to pdf and word docs
   # ---------------------------------------------
 
-  pandoc_tasks = get_pandoc_tasks(uuid_ss_folder, timestamp)
+  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
+
+  md_cmd: Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--only', 'tomd', f'--workdir={natural4_dir}',
+    f'--uuiddir={Path(*uuiddir)}',
+    f'{target_path}'
+  )
+
+  print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
+  print(f'hello.py child: {md_cmd}', file=sys.stderr)
+
+  md_coro: Awaitable[asyncio.subprocess.Process] = (
+    asyncio.subprocess.create_subprocess_exec(
+      *md_cmd,
+      stdout = asyncio.subprocess.PIPE,
+      stderr = asyncio.subprocess.PIPE
+    )
+  )
+
+
+  pandoc_tasks = get_pandoc_tasks(md_coro, uuid_ss_folder, timestamp)
 
   # ---------------------------------------------
   # postprocessing: use Maude to generate the state space and find race conditions
@@ -418,7 +421,7 @@ async def process_csv() -> str:
 
   Process(
     target = compose_left(postprocess, asyncio.run),
-    args = [chain(flowchart_tasks, pandoc_tasks(md_coro), maude_tasks)]
+    args = [aiostream.stream.chain(flowchart_tasks, maude_tasks, pandoc_tasks)]
   ).start()
 
   # print(

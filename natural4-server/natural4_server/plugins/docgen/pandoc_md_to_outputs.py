@@ -78,20 +78,16 @@ def pandoc_md_to_output(
         # os.symlink(timestamp_file, latest_file)
 
 @curry
-def get_pandoc_tasks(
+async def get_pandoc_tasks(
+  md_coro,
   uuid_ss_folder: str | os.PathLike,
   timestamp: str,
-  md_coro
-) -> Generator[Awaitable[None], None, None]:
-  asyncio.run(md_coro)
-  return pipe(
-    pandoc_outputs,
-    map(
-      partial(
-        asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
-      )
+): # -> Awaitable[Generator[Awaitable[None], None, None]]:
+  await md_coro 
+  for pandoc_output in pandoc_outputs:
+    yield asyncio.to_thread(
+      pandoc_md_to_output, uuid_ss_folder, timestamp, pandoc_output
     )
-  )
 
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
