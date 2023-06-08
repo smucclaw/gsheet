@@ -84,11 +84,11 @@ async def get_pandoc_tasks(
   md_coro,
   uuid_ss_folder: str | os.PathLike,
   timestamp: str,
-): # -> AsyncGenerator[Awaitable[None], None, None]:
+) -> AsyncGenerator[Awaitable[None], None, None]:
   await md_coro
   return (pandoc_outputs
     | stream.iterate
-    | stream.map(partial(
+    | pipe.map(partial(
         asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
       ))
   )

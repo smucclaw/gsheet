@@ -1,5 +1,5 @@
 import asyncio
-from collections.abc import Awaitable, Generator
+from collections.abc import AsyncGenerator, Awaitable
 import os
 
 from cytoolz.functoolz import curry
@@ -12,5 +12,5 @@ except ImportError:
     markdown_coro: Awaitable[asyncio.subprocess.Process],
     uuid_ss_folder: str | os.PathLike,
     timestamp: str
-  ): # -> Generator[Awaitable[None], None, None]:
+  ) -> AsyncGenerator[Awaitable[None], None, None]:
     return

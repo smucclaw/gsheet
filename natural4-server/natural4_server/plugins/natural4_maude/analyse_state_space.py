@@ -55,7 +55,7 @@ def find_race_cond(
 async def get_maude_tasks(
   natural4_file: str | os.PathLike,
   output_path: str | os.PathLike
-): # -> AsyncGenerator[Awaitable[None], None]:
+) -> AsyncGenerator[Awaitable[None], None]:
   '''
   Post process textual natural4 files by using Maude to generate a state space
   and find a race condition trace.

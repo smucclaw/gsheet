@@ -104,10 +104,10 @@ def flowchart_dot_to_output(
 async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
-): # -> AsyncGenerator[Awaitable[None], None]:
+) -> AsyncGenerator[Awaitable[None], None]:
   return (flowchart_outputs
     | stream.iterate
-    | stream.map(partial(
+    | pipe.map(partial(
         asyncio.to_thread, flowchart_dot_to_output, uuid_ss_folder, timestamp
       ))
   )
