@@ -10,7 +10,7 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import Awaitable, Collection, Generator, Iterable, Sequence
+from collections.abc import Awaitable, Collection, Iterable, Sequence
 import datetime
 from itertools import chain
 import json
@@ -31,7 +31,7 @@ import pyrsistent.typing as pyrst
 from flask import Flask, Response, request, send_file
 
 from plugins.natural4_maude import get_maude_tasks
-from plugins.word_and_pdf import get_pandoc_tasks
+from plugins.docgen import get_pandoc_tasks
 from plugins.flowchart import get_flowchart_tasks
 
 ##########################################################
@@ -158,26 +158,26 @@ async def show_aasvg_image(
     send_file
   )
 
-@curry
-def get_markdown_tasks(
-  uuiddir: str | os.PathLike,
-  target_path: str | os.PathLike
-) -> Generator[Awaitable[None], None, None]:
-  md_cmd: Sequence[str] = pyrs.v(
-    natural4_exe,
-    '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={uuiddir}',
-    f'{target_path}'
-  )
+# @curry
+# def get_markdown_tasks(
+#   uuiddir: str | os.PathLike,
+#   target_path: str | os.PathLike
+# ) -> Generator[Awaitable[None], None, None]:
+#   md_cmd: Sequence[str] = pyrs.v(
+#     natural4_exe,
+#     '--only', 'tomd', f'--workdir={natural4_dir}',
+#     f'--uuiddir={uuiddir}',
+#     f'{target_path}'
+#   )
 
-  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
-  print(f"hello.py child: {md_cmd}", file=sys.stderr)
+#   print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
+#   print(f"hello.py child: {md_cmd}", file=sys.stderr)
 
-  yield asyncio.to_thread(
-    subprocess.run,
-    md_cmd,
-    stdout=subprocess.PIPE, stderr=subprocess.PIPE
-  )
+#   yield asyncio.to_thread(
+#     subprocess.run,
+#     md_cmd,
+#     stdout=subprocess.PIPE, stderr=subprocess.PIPE
+#   )
 
   # print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
   #       file=sys.stderr)
@@ -241,8 +241,10 @@ async def process_csv() -> str:
     f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
     f'{target_path}'
   )
+
   print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
+
   nl4exe = subprocess.run(
     create_files,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -304,10 +306,10 @@ async def process_csv() -> str:
   #           file=sys.stderr)
   #     print("hello.py main: %s" % (e), file=sys.stderr)
 
-  markdown_tasks = get_markdown_tasks(
-    Path(uuid) / spreadsheet_id / sheet_id,
-    target_path
-  )
+  # markdown_tasks = get_markdown_tasks(
+  #   Path(uuid) / spreadsheet_id / sheet_id,
+  #   target_path
+  # )
 
   # ---------------------------------------------
   # postprocessing: call pandoc to convert markdown to pdf and word docs
@@ -324,12 +326,7 @@ async def process_csv() -> str:
 
   Process(
     target = compose_left(postprocess, asyncio.run),
-    args = (chain(flowchart_tasks, markdown_tasks, maude_tasks),)
-  ).start()
-
-  Process(
-    target = compose_left(postprocess, asyncio.run),
-    args = (pandoc_tasks,)
+    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
   ).start()
 
   # ---------------------------------------------

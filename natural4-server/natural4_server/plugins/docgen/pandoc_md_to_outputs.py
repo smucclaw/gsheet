@@ -1,6 +1,7 @@
 import asyncio
-from collections.abc import Awaitable, Collection, Generator
+from collections.abc import Awaitable, Collection, Generator, Sequence
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -78,9 +79,28 @@ def pandoc_md_to_output(
 
 @curry
 def get_pandoc_tasks(
+  natural4_exe: str,
+  natural4_dir: str | os.PathLike,
+  uuiddir: str | os.PathLike,
+  target_path: str | os.PathLike,
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> Generator[Awaitable[None], None, None]:
+  md_cmd: Sequence[str] = pyrs.v(
+    natural4_exe,
+    '--only', 'tomd', f'--workdir={natural4_dir}',
+    f'--uuiddir={uuiddir}',
+    f'{target_path}'
+  )
+
+  print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
+  print(f"hello.py child: {md_cmd}", file=sys.stderr)
+
+  subprocess.run(
+    md_cmd,
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  )
+
   return pipe(
     pandoc_outputs,
     map(
