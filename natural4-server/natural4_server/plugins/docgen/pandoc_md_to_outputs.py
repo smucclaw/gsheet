@@ -97,7 +97,7 @@ def get_pandoc_tasks(
   print(f"hello.py child: {md_cmd}", file=sys.stderr)
 
   subprocess.run(
-    md_cmd,
+    md_cmd, shell=True,
     stdout=subprocess.PIPE, stderr=subprocess.PIPE
   )
 
