@@ -85,7 +85,7 @@ async def get_pandoc_tasks(
 ) -> Generator[Awaitable[None], None, None]:
   match md_cmd:
     case [natural4_exe, *args]:
-      asyncio.subprocess.create_subprocess_exec(
+      await asyncio.subprocess.create_subprocess_exec(
         natural4_exe, *args,
         stdout = asyncio.subprocess.PIPE,
         stderr = asyncio.subprocess.PIPE
