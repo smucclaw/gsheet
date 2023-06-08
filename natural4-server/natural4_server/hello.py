@@ -347,10 +347,6 @@ async def process_csv() -> str:
 
   maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
 
-  Process(
-    target = compose_left(postprocess, asyncio.run),
-    args = [aiostream.stream.chain(flowchart_tasks, maude_tasks, pandoc_tasks)]
-  ).start()
 
   # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server
@@ -420,6 +416,11 @@ async def process_csv() -> str:
     f'hello.py processCsv ready to return at {end_time} (total {elapsed_time})',
     file=sys.stderr
   )
+
+  Process(
+    target = compose_left(postprocess, asyncio.run),
+    args = [aiostream.stream.chain(flowchart_tasks, maude_tasks, pandoc_tasks)]
+  ).start()
 
   # print(
   #   "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
