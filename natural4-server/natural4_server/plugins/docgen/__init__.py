@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Awaitable, Generator
 import os
 
@@ -7,12 +8,9 @@ try:
   from .pandoc_md_to_outputs import get_pandoc_tasks
 except ImportError:
   @curry
-  def get_pandoc_tasks(
-    natural4_exe: str,
-    natural4_dir: str | os.PathLike,
-    uuiddir: str | os.PathLike,
-    target_path: str | os.PathLike,
+  async def get_pandoc_tasks(
+    markdown_coro: Awaitable[asyncio.subprocess.Process],
     uuid_ss_folder: str | os.PathLike,
     timestamp: str
-  ) -> Generator[Awaitable[None], None, None]:
+  ): # -> Generator[Awaitable[None], None, None]:
     return
