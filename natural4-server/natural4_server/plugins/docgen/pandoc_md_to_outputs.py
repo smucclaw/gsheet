@@ -83,6 +83,7 @@ async def get_pandoc_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> Generator[Awaitable[None], None, None]:
+  print(f'Running markdown: {md_cmd}', file=sys.stderr)
   match md_cmd:
     case [natural4_exe, *args]:
       await asyncio.subprocess.create_subprocess_exec(
@@ -99,7 +100,6 @@ async def get_pandoc_tasks(
           )
         )
       )
-    case _: return
 
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
