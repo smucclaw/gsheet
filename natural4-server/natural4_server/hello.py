@@ -312,9 +312,15 @@ async def process_csv() -> str:
   # )
 
   # ---------------------------------------------
-  # postprocessing: call pandoc to convert markdown to pdf and word docs
+  # postprocessing:
+  # call natural4-exe to generate markdown and then call pandoc to convert that
+  # to pdf and word docs
   # ---------------------------------------------
-  pandoc_tasks = get_pandoc_tasks(uuid_ss_folder, timestamp)
+  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
+  pandoc_tasks = get_pandoc_tasks(
+    natural4_exe, natural4_dir, uuiddir, target_path,
+    uuid_ss_folder, timestamp
+  )
 
   # ---------------------------------------------
   # postprocessing: use Maude to generate the state space and find race conditions
