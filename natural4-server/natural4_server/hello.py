@@ -302,9 +302,8 @@ async def process_csv() -> str:
   petri_folder = uuid_ss_folder / "petri"
   dot_path = petri_folder / "LATEST.dot"
   # (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
-  (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
-  timestamp = Path(timestamp)
-  # timestamp = dot_path.resolve().stem
+   #timestamp = Path(timestamp)
+  timestamp = dot_path.readlink().stem
 
   flowchart_tasks = get_flowchart_tasks(uuid_ss_folder, timestamp)
 
