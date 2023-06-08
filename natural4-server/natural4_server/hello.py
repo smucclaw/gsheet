@@ -316,12 +316,12 @@ async def process_csv() -> str:
   # call natural4-exe to generate markdown and then call pandoc to convert that
   # to pdf and word docs
   # ---------------------------------------------
-  uuiddir: Path = Path(uuid) / spreadsheet_id / sheet_id,
+  uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
 
   md_cmd: Sequence[str] = pyrs.v(
     natural4_exe,
     '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={uuiddir}',
+    f'--uuiddir={Path(*uuiddir)}',
     f'{target_path}'
   )
 
