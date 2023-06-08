@@ -85,6 +85,7 @@ def flowchart_dot_to_output(
         output_file = f'{output_path / timestamp_file}'
 
         print(f'Drawing {file_extension} from dot file', file=sys.stderr)
+        print(f'Output file: {output_file}', file=sys.stderr)
         _dot_file_to_output(dot_file, output_file, args)
 
         latest_file = output_path / f'LATEST{suffix}.{file_extension}'

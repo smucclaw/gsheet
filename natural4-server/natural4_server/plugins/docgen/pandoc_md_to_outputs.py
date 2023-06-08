@@ -81,7 +81,7 @@ def pandoc_md_to_output(
 
 @curry
 async def get_pandoc_tasks(
-  md_coro,
+  md_coro: Awaitable[None],
   uuid_ss_folder: str | os.PathLike,
   timestamp: str,
 ) -> AsyncGenerator[Awaitable[None], None, None]:
