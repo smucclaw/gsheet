@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import aiostream
+
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
@@ -83,16 +85,16 @@ async def get_pandoc_tasks(
   timestamp: str,
 ) -> AsyncGenerator[Awaitable[None], None, None]:
   await md_coro
-  for output in pandoc_outputs:
-    yield asyncio.to_thread(
-      pandoc_md_to_output, uuid_ss_folder, timestamp, output
-    )
-  # return (pandoc_outputs
-  #   | stream.iterate
-  #   | pipe.map(partial(
-  #       asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
-  #     ))
-  # )
+  # for output in pandoc_outputs:
+  #   yield asyncio.to_thread(
+  #     pandoc_md_to_output, uuid_ss_folder, timestamp, output
+  #   )
+  return (pandoc_outputs
+    | aiostream.stream.iterate
+    | aiostream.pipe.map(partial(
+        asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
+      ))
+  )
 
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):

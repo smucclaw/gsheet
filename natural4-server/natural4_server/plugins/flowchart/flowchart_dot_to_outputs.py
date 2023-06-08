@@ -5,6 +5,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+import aiostream
+
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
@@ -46,7 +48,8 @@ try:
     output_file: str | os.PathLike,
     args: Sequence[str]
   ) -> None:
-    print(f'Graphviz args: {" ".join(args)}', file=sys.stderr)
+    args = ' '.join(args)
+    print(f'Graphviz args: {args}', file=sys.stderr)
     pipe(
       dot_file,
       AGraph,
@@ -55,7 +58,7 @@ try:
             output_file,
             format = Path(output_file).suffix[1:],
             prog = 'dot',
-            args = ' '.join(args)
+            args = args
           )
       )
     )
@@ -118,16 +121,16 @@ async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> AsyncGenerator[Awaitable[None], None]:
-  for output in flowchart_outputs:
-    yield asyncio.to_thread(
-      flowchart_dot_to_output, uuid_ss_folder, timestamp, output
-    )
-  # return (flowchart_outputs
-  #   | stream.iterate
-  #   | pipe.map(partial(
-  #       asyncio.to_thread, flowchart_dot_to_output, uuid_ss_folder, timestamp
-  #     ))
-  # )
+  # for output in flowchart_outputs:
+  #   yield asyncio.to_thread(
+  #     flowchart_dot_to_output, uuid_ss_folder, timestamp, output
+  #   )
+  return (flowchart_outputs
+    | aiostream.stream.iterate
+    | aiostream.pipe.map(partial(
+        asyncio.to_thread, flowchart_dot_to_output, uuid_ss_folder, timestamp
+      ))
+  )
 
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):

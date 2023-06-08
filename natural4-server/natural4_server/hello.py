@@ -183,9 +183,13 @@ async def show_aasvg_image(
   # print(f'hello.py child: natural4-exe stderr length = {len(nl4exe.stderr.decode("utf-8"))}', file=sys.stderr)
 
 @curry
-async def postprocess(
+async def run_tasks(
   tasks: AsyncGenerator[Awaitable[None], None]
 ) -> Awaitable[None]:
+  '''
+  Runs tasks asynchronously in the background.
+  '''
+
   try:
     async with (asyncio.timeout(20), asyncio.TaskGroup() as taskgroup):
       async for task in tasks:
@@ -217,6 +221,7 @@ async def process_csv() -> str:
   print(target_folder)
   time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
   target_file = Path(f'{time_now}.csv')
+  # target_path is for CSV data
   target_path = target_folder / target_file
 
   target_folder.mkdir(parents=True, exist_ok=True)
@@ -224,6 +229,7 @@ async def process_csv() -> str:
   with open(target_path, 'w') as fout:
     fout.write(data['csvString'])
 
+  # Generate markdown files asynchronously in the background.
   uuiddir = Path(uuid) / spreadsheet_id / sheet_id,
 
   md_cmd: Sequence[str] = pyrs.v(
@@ -244,10 +250,8 @@ async def process_csv() -> str:
     )
   )
 
-  # target_path is for CSV data
-
   # ---------------------------------------------
-  # call natural4-exe, wait for it to complete. see SECOND RUN below.
+  # call natural4-exe, wait for it to complete.
   # ---------------------------------------------
 
   # one can leave out the markdown by adding the --tomd option
@@ -292,48 +296,22 @@ async def process_csv() -> str:
 
   # ---------------------------------------------
   # postprocessing: for petri nets: turn the DOT files into PNGs
+  # we run this asynchronously and block at the end before returning.
   # ---------------------------------------------
-
   uuid_ss_folder = temp_dir / "workdir" / uuid / spreadsheet_id / sheet_id
   petri_folder = uuid_ss_folder / "petri"
   dot_path = petri_folder / "LATEST.dot"
-  # (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
-   #timestamp = Path(timestamp)
   timestamp = Path(dot_path.readlink().stem)
 
-  # flowchart_tasks = get_flowchart_tasks(uuid_ss_folder, timestamp)
   flowchart_coro = pipe(
     (uuid_ss_folder, timestamp),
     lambda x: get_flowchart_tasks(*x),
-    postprocess
+    run_tasks
   )
 
-  # if not os.path.exists(petri_folder):
-  #   print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
-  # else:
-  #   petri_path_svg = petri_folder + timestamp + ".svg"
-  #   petri_path_png = petri_folder + timestamp + ".png"
-  #   small_petri_path = petri_folder + timestamp + "-small.png"
-  #   print("hello.py main: running: dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &", file=sys.stderr)
-  #   os.system("dot -Tpng -Gdpi=72  " + dot_path + " -o " + small_petri_path + " &")
-  #   os.system("dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &")
-  #   os.system("dot -Tsvg           " + dot_path + " -o " + petri_path_svg + " &")
-  #   try:
-  #     if os.path.isfile(petri_folder + "LATEST.svg"):       os.unlink(petri_folder + "LATEST.svg")
-  #     if os.path.isfile(petri_folder + "LATEST.png"):       os.unlink(petri_folder + "LATEST.png")
-  #     if os.path.isfile(petri_folder + "LATEST-small.png"): os.unlink(petri_folder + "LATEST-small.png")
-  #     os.symlink(os.path.basename(petri_path_svg), petri_folder + "LATEST.svg")
-  #     os.symlink(os.path.basename(petri_path_png), petri_folder + "LATEST.png")
-  #     os.symlink(os.path.basename(small_petri_path), petri_folder + "LATEST-small.png")
-  #   except Exception as e:
-  #     print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking",
-  #           file=sys.stderr)
-  #     print("hello.py main: %s" % (e), file=sys.stderr)
-
-  # markdown_tasks = get_markdown_tasks(
-  #   Path(uuid) / spreadsheet_id / sheet_id,
-  #   target_path
-  # )
+  # Slow tasks below.
+  # Thes are forked into a separate process, in which they are run
+  # asynchronously via the run_tasks coroutine.
 
   # ---------------------------------------------
   # postprocessing:
@@ -353,7 +331,7 @@ async def process_csv() -> str:
 
   slow_tasks = stream.chain(maude_tasks, pandoc_tasks)
   Process(
-    target = compose_left(postprocess, asyncio.run),
+    target = compose_left(run_tasks, asyncio.run),
     args = (slow_tasks,)
   ).start()
 
@@ -449,6 +427,7 @@ async def process_csv() -> str:
   # print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
   #       ")", file=sys.stderr)
 
+  # Block and wait for the flowcharts to be generated before returning.
   await flowchart_coro
 
   return json.dumps(pyrs.thaw(response))
