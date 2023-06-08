@@ -330,11 +330,6 @@ async def process_csv() -> str:
 
   maude_tasks = get_maude_tasks(natural4_file, maude_output_path)
 
-  Process(
-    target = compose_left(postprocess, asyncio.run),
-    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
-  ).start()
-
   # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
@@ -404,6 +399,11 @@ async def process_csv() -> str:
     file=sys.stderr
   )
 
+  Process(
+    target = compose_left(postprocess, asyncio.run),
+    args = [chain(flowchart_tasks, pandoc_tasks, maude_tasks)]
+  ).start()
+
   # print(
   #   "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
   #   datetime.datetime.now() - start_time, ")",
@@ -419,14 +419,6 @@ async def process_csv() -> str:
   # print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
   #       datetime.datetime.now() - start_time, ")", file=sys.stderr)
   # print(json.dumps(response), file=sys.stderr)
-
-  # try:
-  #   async with (asyncio.timeout(10), asyncio.TaskGroup() as tasks):
-  #     for task in chain(flowchart_tasks, pandoc_tasks, maude_tasks):
-  #       print(f'Running task: {task}', file=sys.stderr)
-  #       tasks.create_task(task)
-  # except TimeoutError as exc:
-  #   print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
 
   # else:  # in the child
   # print('hello.py processCsv: fork(child): continuing to run', file=sys.stderr)
