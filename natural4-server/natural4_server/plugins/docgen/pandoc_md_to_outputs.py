@@ -82,7 +82,6 @@ def get_pandoc_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str,
   md_coro
-  _
 ) -> Generator[Awaitable[None], None, None]:
   asyncio.run(md_coro)
   return pipe(
