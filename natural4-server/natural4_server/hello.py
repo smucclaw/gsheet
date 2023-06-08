@@ -334,7 +334,7 @@ async def process_csv() -> str:
   )
 
   pandoc_tasks = get_pandoc_tasks(
-    md_coro, uuid_ss_folder, timestamp
+    uuid_ss_folder, timestamp
   )
 
   # ---------------------------------------------
