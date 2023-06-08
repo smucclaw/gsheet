@@ -81,15 +81,3 @@ async def get_maude_tasks(
     if config:
       yield find_race_cond(output_path, natural4_rules)
       yield gen_state_space(output_path, config)
-
-      # try:
-      #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
-      #     tasks.create_task(find_race_cond(output_path, natural4_rules))
-      #     tasks.create_task(gen_state_space(output_path, config))
-      # except TimeoutError:
-      #   # Continue along the happy path even if we get a timeout
-      #   print("Natural4 Maude timeout", file=sys.stderr)
-
-# run_analyse_state_space = compose_left(
-#   analyse_state_space, asyncio.run
-# )

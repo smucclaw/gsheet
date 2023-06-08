@@ -121,31 +121,7 @@ async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str
 ) -> AsyncGenerator[Awaitable[None], None]:
-  # for output in flowchart_outputs:
-  #   yield asyncio.to_thread(
-  #     flowchart_dot_to_output, uuid_ss_folder, timestamp, output
-  #   )
-  return (flowchart_outputs
-    | aiostream.stream.iterate
-    | aiostream.pipe.map(partial(
-        asyncio.to_thread, flowchart_dot_to_output, uuid_ss_folder, timestamp
-      ))
-  )
-
-  # try:
-  #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
-  #     for flowchart_output in flowchart_outputs:
-  #       pipe(
-  #         (flowchart_dot_to_output, uuid_ss_folder, timestamp, flowchart_output),
-  #         lambda x: asyncio.to_thread(*x),
-  #         tasks.create_task
-  #       )
-  # except TimeoutError:
-  #   print("Flowchart graphviz timeout", file=sys.stderr)
-
-# @curry
-# def run_flowchart_dot_to_outputs(
-#   uuid_ss_folder: str | os.PathLike,
-#   timestamp: str
-# ) -> None:
-#   asyncio.run(flowchart_dot_to_outputs(uuid_ss_folder, timestamp))
+  for output in flowchart_outputs:
+    yield asyncio.to_thread(
+      flowchart_dot_to_output, uuid_ss_folder, timestamp, output
+    )
