@@ -46,6 +46,7 @@ try:
     output_file: str | os.PathLike,
     args: Sequence[str]
   ) -> None:
+    print(f'Graphviz args: {" ".join(args)}', file=sys.stderr)
     pipe(
       dot_file,
       AGraph,
