@@ -122,7 +122,7 @@ async def get_workdir_file(
   if not workdir_folder.exists():
     print(f'get_workdir_file: unable to find workdir_folder {workdir_folder}', file=sys.stderr)
     return empty_response
-  elif not workdir_folder_filename.exists():
+  elif not os.path.isfile(workdir_folder_filename):
     print(f'get_workdir_file: unable to find file {workdir_folder_filename}', file=sys.stderr)
     return empty_response
   elif Path(filename).suffix in exts:
