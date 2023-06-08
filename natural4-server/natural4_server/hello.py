@@ -119,19 +119,18 @@ async def get_workdir_file(
     '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
   )
 
-  match (workdir_folder.exists(), workdir_folder_filename.exists()):
-    case (False, _):
-      print(f'get_workdir_file: unable to find workdir_folder {workdir_folder}', file=sys.stderr)
-      return empty_response
-    case (_, False):
-      print(f'get_workdir_file: unable to find file {workdir_folder_filename}', file=sys.stderr)
-      return empty_response
-    case _ if Path(filename).suffix in exts:
-      print(f'get_workdir_file: returning text/plain {workdir_folder_filename}', file=sys.stderr)
-      return send_file(workdir_folder_filename, mimetype = 'text/plain')
-    case _:
-      print(f'get_workdir_file: returning {workdir_folder_filename}', file=sys.stderr)
-      return send_file(workdir_folder_filename)
+  if not workdir_folder.exists():
+    print(f'get_workdir_file: unable to find workdir_folder {workdir_folder}', file=sys.stderr)
+    return empty_response
+  elif not workdir_folder_filename.exists():
+    print(f'get_workdir_file: unable to find file {workdir_folder_filename}', file=sys.stderr)
+    return empty_response
+  elif Path(filename).suffix in exts:
+    print(f'get_workdir_file: returning text/plain {workdir_folder_filename}', file=sys.stderr)
+    return send_file(workdir_folder_filename, mimetype = 'text/plain')
+  else:
+    print(f'get_workdir_file: returning {workdir_folder_filename}', file=sys.stderr)
+    return send_file(workdir_folder_filename)
 
 # ################################################
 #            SERVE SVG STATIC FILES
