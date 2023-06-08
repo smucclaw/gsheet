@@ -84,22 +84,20 @@ async def get_pandoc_tasks(
   timestamp: str
 ) -> Generator[Awaitable[None], None, None]:
   print(f'Running markdown: {md_cmd}', file=sys.stderr)
-  match md_cmd:
-    case [natural4_exe, *args]:
-      await asyncio.subprocess.create_subprocess_exec(
-        natural4_exe, *args,
-        stdout = asyncio.subprocess.PIPE,
-        stderr = asyncio.subprocess.PIPE
-      )
+  await asyncio.subprocess.create_subprocess_exec(
+    *md_cmd,
+    stdout = asyncio.subprocess.PIPE,
+    stderr = asyncio.subprocess.PIPE
+  )
 
-      return pipe(
-        pandoc_outputs,
-        map(
-          partial(
-            asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
-          )
-        )
+  return pipe(
+    pandoc_outputs,
+    map(
+      partial(
+        asyncio.to_thread, pandoc_md_to_output, uuid_ss_folder, timestamp
       )
+    )
+  )
 
   # try:
   #   async with (asyncio.timeout(15), asyncio.TaskGroup() as tasks):
