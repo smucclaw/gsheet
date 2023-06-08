@@ -1,12 +1,12 @@
 from collections.abc import Awaitable, Generator
 import os
 
-from cytoolz.functoolz import curry
+# from cytoolz.functoolz import curry
 
 try:
   from .pandoc_md_to_outputs import get_pandoc_tasks
 except ImportError:
-  @curry
+  # @curry
   def get_pandoc_tasks(
     natural4_exe: str,
     natural4_dir: str | os.PathLike,
