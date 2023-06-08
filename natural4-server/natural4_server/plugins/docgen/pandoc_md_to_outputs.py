@@ -86,7 +86,7 @@ async def get_pandoc_tasks(
   timestamp: str,
 ) -> AsyncGenerator[Awaitable[None], None, None]:
   await md_coro
-  async for output in stream.iterate(pandoc_outputs):
+  for output in pandoc_outputs:
     yield asyncio.to_thread(
       pandoc_md_to_output, uuid_ss_folder, timestamp, output
     )
