@@ -217,7 +217,7 @@ def do_up(
     rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
     print(rsync_command, file=sys.stderr)
     subprocess.run([rsync_command], shell=True)
-    subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
+    subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "Interview.purs")])
 
     with open(join(server_config['dir'], "v8k.json"), "w") as write_file:
       json.dump(server_config, write_file)
