@@ -44,10 +44,9 @@ from pathlib import Path
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from cytoolz.functoolz import *
-from cytoolz.curried import *
+from cytoolz.functoolz import curry
 
-import pyrsistent as pyrs
+import pyrsistent_extras as pyrse
 
 try:
   v8k_workdir: Path = Path(os.environ['V8K_WORKDIR'])
@@ -324,18 +323,16 @@ def main(
   uuid_ss_folder: str | os.PathLike,
   v8k_outfile: str | os.PathLike
 ) -> None:
-  v8k_args: Sequence[str] = pyrs.v(
+  v8k_args: Sequence[str] = pyrse.sq(
     f'--workdir={v8k_workdir}',
-    'up',
+    'up'
+  ) + (pyrse.sq(v8k_slots_arg) if v8k_slots_arg else pyrse.sq()) + pyrse.sq(
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
     f'{Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
-  )
-
-  if v8k_slots_arg:
-    v8k_args = v8k_args.append(v8k_slots_arg)
+  ) # type: ignore
 
   print(f'hello.py main: calling {" ".join(v8k_args)}', file=sys.stderr)
 
