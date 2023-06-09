@@ -343,7 +343,7 @@ async def process_csv() -> str:
 
   v8k_outfile: Path = uuid_ss_folder / 'v8k.out'
   v8k_outfile.unlink(missing_ok = True)
-  v8k_outfile.touch(mode = 755)
+  v8k_outfile.touch(mode = 777)
 
   v8k.main(uuid, spreadsheet_id, sheet_id, uuid_ss_folder, v8k_outfile)
   # with (
