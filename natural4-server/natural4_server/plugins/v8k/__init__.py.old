@@ -76,7 +76,7 @@ else:
       f'--startport={v8k_startport}',
       f'{Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
     )
-    
+
     print(f'hello.py main: calling v8k with {" ".join(v8k_args)}', file=sys.stderr)
 
     parser: ArgumentParser = v8k.setup_argparser()

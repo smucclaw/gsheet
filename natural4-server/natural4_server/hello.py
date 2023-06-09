@@ -42,7 +42,7 @@ from flask import Flask, Response, request, send_file
 from plugins.docgen import get_pandoc_tasks
 from plugins.flowchart import get_flowchart_tasks
 from plugins.natural4_maude import get_maude_tasks
-from plugins.v8k_wrapper import v8k_main
+import plugins.v8k as v8k
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -339,27 +339,11 @@ async def process_csv() -> str:
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
-  # v8kargs: Sequence[str] = pyrs.v(
-  #   'python', v8k_path,
-  #   f'--workdir={v8k_workdir}',
-  #   'up',
-  #   v8k_slots_arg,
-  #   f'--uuid={uuid}',
-  #   f'--ssid={spreadsheet_id}',
-  #   f'--sheetid={sheet_id}',
-  #   f'--startport={v8k_startport}',
-  #   f'{uuid_ss_folder / "purs" / "LATEST.purs"}'
-  # )
-
-  # print(f'hello.py main: calling {" ".join(v8kargs)}', file=sys.stderr)
 
   with (
     open(uuid_ss_folder / 'v8k.out', 'w+') as outfile,
     contextlib.redirect_stdout(outfile)
-  ):
-    v8k_main(
-      uuid, spreadsheet_id, sheet_id, uuid_ss_folder
-    )
+  ): v8k.main(uuid, spreadsheet_id, sheet_id, uuid_ss_folder)
     # subprocess.run(
     #   # Joe: For some reason, passing these in as separate args results in the
     #   # following error:
