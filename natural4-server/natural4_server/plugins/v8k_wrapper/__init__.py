@@ -30,6 +30,7 @@ if not spec or not spec.loader:
     return
 else:
   # Dynamically load and import v8k from its path.
+  print(f'Loading v8k from {v8k_path}', file=sys.stderr)
   v8k: ModuleType = importlib.util.module_from_spec(spec)
   sys.modules['v8k'] = v8k
   spec.loader.exec_module(v8k)
