@@ -56,9 +56,9 @@ except KeyError:
   v8k_workdir: Path = Path()
 
 try:
-  v8k_slots_arg: str = f'--poolsize {os.environ["V8K_SLOTS"]}'
+  v8k_slots_arg: str | None = f'--poolsize {os.environ["V8K_SLOTS"]}'
 except KeyError:
-  v8k_slots_arg = ''
+  v8k_slots_arg = None
 
 v8k_startport: str = os.environ.get('v8k_startport', '')
 
@@ -322,9 +322,9 @@ def main(
   v8k_outfile: str | os.PathLike
 ) -> None:
   v8k_args: Sequence[str] = [
-    'v8k', 'up',
-    f'--workdir={v8k_workdir}',
-    v8k_slots_arg,
+    'up',
+    f'--workdir={v8k_workdir}'
+  ] + ([v8k_slots_arg] if v8k_slots_arg else []) + [
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}',
