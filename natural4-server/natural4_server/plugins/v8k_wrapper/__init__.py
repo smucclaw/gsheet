@@ -83,9 +83,9 @@ else:
     args: Namespace = parser.parse_args(args = v8k_args)
 
     if not hasattr(args, 'func'):
-      print("v8k: list / find / up / down / downdir")
+      print("v8k: list / find / up / down / downdir", file=sys.stderr)
       if "V8K_WORKDIR" in os.environ:
-        print(f"V8K_WORKDIR = {os.environ['V8K_WORKDIR']}")
+        print(f"V8K_WORKDIR = {os.environ['V8K_WORKDIR']}", file=sys.stderr)
     else:
       if args.workdir is not None:
         workdir = args.workdir
