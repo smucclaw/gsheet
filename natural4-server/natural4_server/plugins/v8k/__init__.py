@@ -155,7 +155,7 @@ def do_up(
         print("refreshing the purs file", file=sys.stderr)
         # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
         #  reread the file too soon, when the cp hasn't completed.
-        purs_file = join(e['dir'], "src", "RuleLib", "Interview.purs")
+        purs_file = join(e['dir'], "src", "RuleLib", "PDPADBNO.purs")
         print(f"cp {args.filename} {purs_file}", file=sys.stderr)
         subprocess.run(["cp", args.filename, purs_file])
         subprocess.run(["touch", join(e['dir'], "v8k.json")])
@@ -217,7 +217,7 @@ def do_up(
     rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
     print(rsync_command, file=sys.stderr)
     subprocess.run([rsync_command], shell=True)
-    subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "Interview.purs")])
+    subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
 
     with open(join(server_config['dir'], "v8k.json"), "w") as write_file:
       json.dump(server_config, write_file)
@@ -264,6 +264,7 @@ def do_down(
     print_server_info(js['port'])
     take_down(vuedict, s)
 
+@curry
 def do_downdir(
   v8k_outfile: str | os.PathLike,
   args: argparse.Namespace,
