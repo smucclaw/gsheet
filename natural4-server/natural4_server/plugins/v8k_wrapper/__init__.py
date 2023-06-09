@@ -19,6 +19,8 @@ spec: ModuleSpec | None = importlib.util.spec_from_file_location(
   name='v8k', location=v8k_path
 )
 
+print(f'v8k spec: {spec}', file=sys.stderr)
+
 if not spec or not spec.loader:
   @curry
   def v8k_main(
