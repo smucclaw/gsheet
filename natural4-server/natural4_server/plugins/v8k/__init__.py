@@ -322,8 +322,8 @@ def main(
   v8k_outfile: str | os.PathLike
 ) -> None:
   v8k_args: Sequence[str] = [
-    'up',
-    f'--workdir={v8k_workdir}'
+    f'--workdir={v8k_workdir}',
+    'up'
   ] + ([v8k_slots_arg] if v8k_slots_arg else []) + [
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
