@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser, Namespace
 from collections.abc import Sequence
-from importlib.machinery import ModuleSpec
+from importlib.machinery import ModuleSpec, SOURCE_SUFFIXES
 from pathlib import Path
 import importlib.util
 import os
@@ -16,6 +16,9 @@ import pyrsistent
 v8k_path: str = os.environ.get('v8k_path', '')
 
 print(f'v8k path: {v8k_path}', file=sys.stderr)
+
+# Allow importing Python files without the .py extension.
+SOURCE_SUFFIXES.append('')
 
 spec: ModuleSpec | None = importlib.util.spec_from_file_location(
   name='v8k', location=v8k_path
