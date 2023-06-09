@@ -17,6 +17,7 @@ from collections.abc import (
   Coroutine,
   Sequence
 )
+import contextlib
 import datetime
 import json
 from multiprocessing import Process
@@ -352,7 +353,10 @@ async def process_csv() -> str:
 
   # print(f'hello.py main: calling {" ".join(v8kargs)}', file=sys.stderr)
 
-  with open(uuid_ss_folder / 'v8k.out', 'w+') as outfile:
+  with (
+    open(uuid_ss_folder / 'v8k.out', 'w+') as outfile,
+    contextlib.redirect_stdout(outfile)
+  ):
     v8k_main(
       uuid, spreadsheet_id, sheet_id, uuid_ss_folder
     )
