@@ -339,6 +339,7 @@ async def process_csv() -> str:
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
   # ---------------------------------------------
+  print('Running v8k', file=sys.stderr)
 
   with (
     open(uuid_ss_folder / 'v8k.out', 'w+') as outfile,
