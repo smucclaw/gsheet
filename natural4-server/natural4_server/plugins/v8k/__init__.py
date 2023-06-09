@@ -322,9 +322,8 @@ def main(
   v8k_outfile: str | os.PathLike
 ) -> None:
   v8k_args: Sequence[str] = [
-    'v8k.py',
-    f'--workdir={v8k_workdir}',
     'up',
+    f'--workdir={v8k_workdir}',
     v8k_slots_arg,
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
