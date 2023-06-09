@@ -92,7 +92,7 @@ def print_server_info(portnum: int) -> Sequence[Any]:
 def do_list(
   v8k_outfile: str | os.PathLike,
   args: argparse.Namespace,
-  workdir: str
+  workdir: str | os.PathLike
 ) -> None:
     descriptors = read_all(workdir)
     for descriptor in sorted(descriptors.values(), key=lambda js: int(js['slot'])):
@@ -103,7 +103,7 @@ def do_list(
 def do_find(
   v8k_outfile : str | os.PathLike,
   args: argparse.Namespace,
-  workdir: str
+  workdir: str | os.PathLike
 ) -> None:
     vuedict = read_all(workdir)
     # is there already a server running on the desired uuid-ssid-sheetid?
@@ -123,7 +123,7 @@ def do_find(
 def do_up(
   v8k_outfile: str | os.PathLike,
   args: argparse.Namespace,
-  workdir: str
+  workdir: str | os.PathLike
 ) -> None:
     vuedict = read_all(workdir)
 
@@ -244,7 +244,11 @@ def take_down(vuedict, slot) -> None:
         print(f"unable to find pid running vue server on port {portnum}", file=sys.stderr)
 
 @curry
-def do_down(args: argparse.Namespace, workdir: str) -> None:
+def do_down(
+  v8k_outfile: str | os.PathLike,
+  args: argparse.Namespace,
+  workdir: str | os.PathLike
+) -> None:
   vuedict = read_all(workdir)
   # is there already a server running on the desired uuid-ssid-sheetid?
   existing = {s: js for (s, js) in vuedict.items()
@@ -258,7 +262,11 @@ def do_down(args: argparse.Namespace, workdir: str) -> None:
     print_server_info(js['port'])
     take_down(vuedict, s)
 
-def do_downdir(args: argparse.Namespace, workdir: str) -> None:
+def do_downdir(
+  v8k_outfile: str | os.PathLike,
+  args: argparse.Namespace,
+  workdir: str | os.PathLike
+) -> None:
   vuedict = read_all(workdir)
   match vuedict:
     case {args.slotname: _}:
