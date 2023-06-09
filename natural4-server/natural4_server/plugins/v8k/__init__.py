@@ -90,14 +90,22 @@ def print_server_info(portnum: int) -> Sequence[Any]:
     return mymatches
 
 @curry
-def do_list(args: argparse.Namespace, workdir: str) -> None:
+def do_list(
+  v8k_outfile: str | os.PathLike,
+  args: argparse.Namespace,
+  workdir: str
+) -> None:
     descriptors = read_all(workdir)
     for descriptor in sorted(descriptors.values(), key=lambda js: int(js['slot'])):
         print(f"* {descriptor['dir']}", file=sys.stderr)
         print_server_info(descriptor['port'])
 
 @curry
-def do_find(args: argparse.Namespace, workdir: str) -> None:
+def do_find(
+  v8k_outfile : str | os.PathLike,
+  args: argparse.Namespace,
+  workdir: str
+) -> None:
     vuedict = read_all(workdir)
     # is there already a server running on the desired uuid-ssid-sheetid?
     existing = {s: js for (s, js) in vuedict.items()
@@ -109,10 +117,15 @@ def do_find(args: argparse.Namespace, workdir: str) -> None:
         print(f"* found allocated server on our uuid/ssid/sheetid: {js['slot']}", file=sys.stderr)
         mymatches = print_server_info(js['port'])
         if mymatches:
-            print(f":{js['port']}/{js['base_url']}", file=sys.stdout) # match the STDOUT convention in do_up
+          with open(v8k_outfile, 'w') as outfile:
+            print(f":{js['port']}/{js['base_url']}", file=outfile) # match the STDOUT convention in do_up
 
 @curry
-def do_up(args: argparse.Namespace, workdir: str) -> None:
+def do_up(
+  v8k_outfile: str | os.PathLike,
+  args: argparse.Namespace,
+  workdir: str
+) -> None:
     vuedict = read_all(workdir)
 
     if not isfile(args.filename):
@@ -145,7 +158,8 @@ def do_up(args: argparse.Namespace, workdir: str) -> None:
         print(f"cp {args.filename} {purs_file}", file=sys.stderr)
         subprocess.run(["cp", args.filename, purs_file])
         subprocess.run(["touch", join(e['dir'], "v8k.json")])
-        print(f":{e['port']}{e['base_url']}", file=sys.stdout) # the port and base_url returned on STDOUT are read by the caller hello.py
+        with open(v8k_outfile, 'w') as outfile:
+          print(f":{e['port']}{e['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
       else:
         print("but the server isn't running any longer.", file=sys.stderr)
         dead_slots.append(str(e['slot']))
@@ -193,7 +207,8 @@ def do_up(args: argparse.Namespace, workdir: str) -> None:
     # if this leads to trouble we may need to double-fork with grandparent-wait
     if child_pid > 0:  # in the parent
       print(f"v8k: fork(parent): returning port {portnum}", file=sys.stderr)
-      print(f":{server_config['port']}{server_config['base_url']}", file=sys.stdout) # the port and base_url returned on STDOUT are read by the caller hello.py
+      with open(v8k_outfile, 'w') as outfile:
+        print(f":{server_config['port']}{server_config['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
       return
     else:  # in the child
       print("v8k: fork(child): continuing to run", file=sys.stderr)
@@ -296,7 +311,8 @@ def main(
   uuid: str,
   spreadsheet_id: str,
   sheet_id: str,
-  uuid_ss_folder: str | os.PathLike
+  uuid_ss_folder: str | os.PathLike,
+  v8k_outfile: str | os.PathLike
 ) -> None:
   v8k_args: Sequence[str] = pyrsistent.v(
     f'--workdir={v8k_workdir}',
@@ -327,7 +343,7 @@ def main(
       print("v8k: you need to export V8K_WORKDIR=\"/home/something/multivue\"", file=sys.stderr)
       return
       # sys.exit(1)
-    args.func(args, workdir)
+    args.func(v8k_outfile, args, workdir)
 
 # if __name__ == '__main__':
 #   main(sys.argv)
