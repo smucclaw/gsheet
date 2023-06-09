@@ -116,7 +116,7 @@ def do_find(
         print(f"* found allocated server on our uuid/ssid/sheetid: {js['slot']}", file=sys.stderr)
         mymatches = print_server_info(js['port'])
         if mymatches:
-          with open(v8k_outfile, 'w') as outfile:
+          with open(v8k_outfile, 'a+') as outfile:
             print(f":{js['port']}/{js['base_url']}", file=outfile) # match the STDOUT convention in do_up
 
 @curry
@@ -157,7 +157,7 @@ def do_up(
         print(f"cp {args.filename} {purs_file}", file=sys.stderr)
         subprocess.run(["cp", args.filename, purs_file])
         subprocess.run(["touch", join(e['dir'], "v8k.json")])
-        with open(v8k_outfile, 'w') as outfile:
+        with open(v8k_outfile, 'a+') as outfile:
           print(f":{e['port']}{e['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
       else:
         print("but the server isn't running any longer.", file=sys.stderr)
@@ -206,7 +206,7 @@ def do_up(
     # if this leads to trouble we may need to double-fork with grandparent-wait
     if child_pid > 0:  # in the parent
       print(f"v8k: fork(parent): returning port {portnum}", file=sys.stderr)
-      with open(v8k_outfile, 'w') as outfile:
+      with open(v8k_outfile, 'a+') as outfile:
         print(f":{server_config['port']}{server_config['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
       return
     else:  # in the child
