@@ -342,9 +342,11 @@ async def process_csv() -> str:
   print('Running v8k', file=sys.stderr)
 
   v8k_outfile: Path = uuid_ss_folder / 'v8k.out'
-  v8k.main(
-    uuid, spreadsheet_id, sheet_id, uuid_ss_folder, v8k_outfile
-  )
+  with (
+    open(v8k_outfile) as outfile,
+    contextlib.redirect_stdout(outfile)
+  ): v8k.main(uuid, spreadsheet_id, sheet_id, uuid_ss_folder)
+
     # subprocess.run(
     #   # Joe: For some reason, passing these in as separate args results in the
     #   # following error:
