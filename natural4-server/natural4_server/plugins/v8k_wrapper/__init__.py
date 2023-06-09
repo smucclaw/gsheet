@@ -15,13 +15,19 @@ import pyrsistent
 
 v8k_path: str = os.environ.get('v8k_path', '')
 
-spec: ModuleSpec | None = importlib.util.spec_from_file_location(
-  name='v8k', location=v8k_path
-)
+# spec: ModuleSpec | None = importlib.util.spec_from_file_location(
+#   name='v8k', location=v8k_path
+# )
 
-print(f'v8k spec: {spec}', file=sys.stderr)
+# print(f'v8k spec: {spec}', file=sys.stderr)
 
-if not spec or not spec.loader:
+print(f'Loading v8k from {v8k_path}', file=sys.stderr)
+
+try:
+  # Dynamically load and import v8k from its path.
+  v8k: ModuleType = importlib.import_module(v8k_path)
+except ModuleNotFoundError:
+  print('v8k not found', file=sys.stderr)
   @curry
   def v8k_main(
     uuid: str,
@@ -31,12 +37,6 @@ if not spec or not spec.loader:
   ) -> None:
     return
 else:
-  # Dynamically load and import v8k from its path.
-  print(f'Loading v8k from {v8k_path}', file=sys.stderr)
-  v8k: ModuleType = importlib.util.module_from_spec(spec)
-  sys.modules['v8k'] = v8k
-  spec.loader.exec_module(v8k)
-
   try:
     v8k_workdir: Path = Path(os.environ['V8K_WORKDIR'])
   except KeyError:
