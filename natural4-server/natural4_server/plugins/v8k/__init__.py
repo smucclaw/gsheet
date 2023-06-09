@@ -155,7 +155,7 @@ def do_up(
         print("refreshing the purs file", file=sys.stderr)
         # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
         #  reread the file too soon, when the cp hasn't completed.
-        purs_file = join(e['dir'], "src", "RuleLib", "PDPADBNO.purs")
+        purs_file = join(e['dir'], "src", "RuleLib", "Interview.purs")
         print(f"cp {args.filename} {purs_file}", file=sys.stderr)
         subprocess.run(["cp", args.filename, purs_file])
         subprocess.run(["touch", join(e['dir'], "v8k.json")])
