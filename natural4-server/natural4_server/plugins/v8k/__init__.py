@@ -33,6 +33,7 @@
 # v8k downdir slotname
 #     Delete an existing vue server by slot number.
 
+import asyncio
 import shutil
 import sys
 import os
@@ -44,6 +45,8 @@ import subprocess
 from pathlib import Path
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
+
+import aiostream
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -182,10 +185,10 @@ def do_up(
 
     match (len(available_slots), len(existing), len(vuedict) >= pool_size):
       case (0, _ , _) | (_, 0, True):
-        oldest = sorted(vuedict.values(), key=lambda js: js['modtime'])[0]
+        oldest = min(vuedict.values(), key=lambda js: js['modtime'])
         print(f"oldest = {oldest}", file=sys.stderr)
         print(f"** pool size reached, will replace oldest server {oldest['slot']}", file=sys.stderr)
-        take_down(vuedict, oldest['slot'])
+        asyncio.run(take_down(vuedict, oldest['slot']))
         available_slots = {oldest['slot']}
       case _: pass
 
@@ -260,16 +263,16 @@ def do_up(
     # sys.exit(0)
 
 @curry
-def take_down(vuedict, slot) -> None:
+async def take_down(vuedict, slot) -> None:
   portnum = vuedict[slot]['port']
   if not portnum:
     print("unable to resolve portnum for slot " + slot + "; exiting", file=sys.stderr)
     # sys.exit(2)
   mymatches = print_server_info(portnum)
   if mymatches:
-    for mymatch in mymatches:
+    async for mymatch in aiostream.stream.just(mymatches):
       print("killing pid " + mymatch[0] + " running vue server on port " + mymatch[1], file=sys.stderr)
-      subprocess.run('kill', mymatch[0])
+      asyncio.subprocess.create_subprocess_exec('kill', mymatch[0])
   else:
     print(f"unable to find pid running vue server on port {portnum}", file=sys.stderr)
 
