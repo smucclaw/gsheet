@@ -161,10 +161,10 @@ def do_up(
         #  reread the file too soon, when the cp hasn't completed.
         purs_file = join(e['dir'], "src", "RuleLib", "PDPADBNO.purs")
         print(f"cp {args.filename} {purs_file}", file=sys.stderr)
-        shutil.copy(args.filename, purs_file)
         # subprocess.run(["cp", args.filename, purs_file])
-        (Path(e['dir']) / purs_file).touch()
+        shutil.copy(args.filename, purs_file)
         # subprocess.run(["touch", join(e['dir'], "v8k.json")])
+        (Path(e['dir']) / 'v8k.json').touch()
         with open(v8k_outfile, 'a+') as outfile:
           print(f":{e['port']}{e['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
       else:
