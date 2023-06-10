@@ -228,17 +228,18 @@ def do_up(
     #  print("v8k: fork(child): continuing to run", file=sys.stderr)
 
     async def vue_purs_post_process():
-      vue_small_dir = Path(workdir) / 'vue-small'
+      # rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
+      # subprocess.run([rsync_command], shell=True)
       rsync_command = pyrs.v(
         'rsync', '-a',
-        '--exclude', f'{vue_small_dir / "src" / "RuleLib"}/*',
-        f'{vue_small_dir}',
+        f'{Path(workdir) / "vue-small"}/',
         f'{server_config_dir}/'
       )
 
       print(rsync_command, file=sys.stderr)
       rsync_coro = asyncio.subprocess.create_subprocess_exec(*rsync_command)
 
+      # subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
       cp_coro = aioshutil.copy(
         args.filename,
         server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
@@ -246,23 +247,17 @@ def do_up(
 
       os.environ["BASE_URL"] = server_config['base_url']
 
-      # Concurrently rsync and cp
-      async with asyncio.TaskGroup() as taskgroup:
-        taskgroup.create_task(rsync_coro)
-        taskgroup.create_task(cp_coro)
-
-      # Concurrently do "npm run serve" and dump the json to v8k.json
       async with (
         asyncio.TaskGroup() as taskgroup,
         aiofiles.open(server_config_dir / 'v8k.json', 'w+') as write_file
       ):
-        vue_purs_coro = asyncio.subprocess.create_subprocess_exec(
-          server_config_cli, cwd = server_config_dir
-        )
-        taskgroup.create_task(vue_purs_coro)
+        taskgroup.create_task(rsync_coro)
+        taskgroup.create_task(cp_coro)
+        await write_file.write(json.dumps(server_config))
 
-        json_dump_coro = write_file.write(json.dumps(server_config))
-        taskgroup.create_task(json_dump_coro)
+      # os.chdir(server_config['dir'])
+      # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
+      runvue = subprocess.run(server_config_cli, cwd = server_config_dir)
 
     print("v8k: fork(child): exiting", file=sys.stderr)
 
