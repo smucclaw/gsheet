@@ -131,7 +131,10 @@ def do_up(
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> Mapping[str, str | Callable[[], None]]:
-    vuedict = read_all(workdir)
+    try:
+      vuedict = read_all(workdir)
+    except:
+      vuedict = {}
 
     if not isfile(args.filename):
       print(f"have you got the right filename? I can't see {args.filename} from here", file=sys.stderr)
