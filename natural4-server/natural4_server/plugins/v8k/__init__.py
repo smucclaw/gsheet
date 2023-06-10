@@ -220,7 +220,7 @@ def do_up(
     # else:  # in the child
     #  print("v8k: fork(child): continuing to run", file=sys.stderr)
 
-    def post_process():
+    def vue_purs_post_process():
       # rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
       # subprocess.run([rsync_command], shell=True)
       rsync_command = pyrs.v(
@@ -252,8 +252,10 @@ def do_up(
     print("v8k: fork(child): exiting", file=sys.stderr)
 
     return pyrs.m(
-      v8k_out = f":{server_config['port']}{server_config['base_url']}",
-      v8k_post_process = post_process
+      # v8k_out = f":{server_config['port']}{server_config['base_url']}",
+      port = server_config['port'],
+      base_url = server_config['base_url'],
+      vue_purs_post_process = vue_purs_post_process
     )
     # sys.exit(0)
 

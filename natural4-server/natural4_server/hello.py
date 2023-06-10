@@ -322,18 +322,22 @@ async def process_csv() -> str:
     uuid, spreadsheet_id, sheet_id, uuid_ss_folder
   )
   match v8k_up_result:
-    case {'v8k_out': v8k_out, 'v8k_post_process': v8k_post_process}:
-      v8k_out = v8k_out
-      v8k_tasks = pipe(
-        v8k_post_process, asyncio.to_thread, aiostream.stream.just
+    case {
+      'port': v8k_port,
+      'base_url': v8k_base_url,
+      'vue_purs_post_process': vue_purs_post_process
+    }:
+      v8k_out = f':{v8k_port}{v8k_base_url}'
+      response = response.set('v8k_url', v8k_port)
+      vue_purs_tasks = pipe(
+        vue_purs_post_process, asyncio.to_thread, aiostream.stream.just
       )
     case _:
       v8k_out = ''
-      v8k_tasks = aiostream.stream.empty()
+      response = response.set('v8k_url', None)
+      vue_purs_tasks = aiostream.stream.empty()
 
   print('hello.py main: v8k up returned', file=sys.stderr)
-  # with open(uuid_ss_folder / 'v8k.out', 'r') as read_file:
-  #   v8k_out: str = read_file.readline()
   print(f'v8k.out: {v8k_out}', file=sys.stderr)
 
   print(
@@ -341,17 +345,20 @@ async def process_csv() -> str:
     file=sys.stderr
   )
 
-  if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
-    v8k_url: str = v8k_out.strip()
-    print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
-    response = response.set('v8k_url', v8k_url)
-  else:
-    response = response.set('v8k_url', None)
+  if response.get('v8k_url', None):
+    print(f'v8k up succeeded with: {v8k_port}', file=sys.stderr)
 
-  # Create a new process and run all the slow tasks.
+  # if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
+  #   v8k_url: str = v8k_out.strip()
+  #   print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
+  #   response = response.set('v8k_url', v8k_url)
+  # else:
+  #   response = response.set('v8k_url', None)
+
+  # Create a new process which runs all the slow tasks asynchronously.
   slow_tasks = aiostream.stream.chain(
     maude_tasks,
-    v8k_tasks,
+    vue_purs_tasks,
     pandoc_tasks
   )
   Process(
