@@ -325,7 +325,7 @@ async def process_csv() -> str:
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
-      'vue_purs_post_process': vue_purs_tasks
+      'vue_purs_tasks': vue_purs_tasks
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'.strip()
       response = response.set('v8k_url', v8k_url)
