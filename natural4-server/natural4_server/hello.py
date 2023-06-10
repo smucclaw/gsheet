@@ -22,7 +22,6 @@ import json
 from multiprocessing import Process
 import os
 from pathlib import Path
-import re
 import subprocess
 import sys
 import typing
@@ -35,7 +34,6 @@ import aiostream
 
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
-import pyrsistent_extras as pyrse
 
 from flask import Flask, Response, request, send_file
 
