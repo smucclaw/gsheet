@@ -230,16 +230,14 @@ def do_up(
     async def vue_purs_post_process():
       # rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
       # subprocess.run([rsync_command], shell=True)
-      rsync_args = pyrs.v(
-        '-a',
+      rsync_command = pyrs.v(
+        'rsync', '-a',
         f'{Path(workdir) / "vue-small"}/',
         f'{server_config_dir}/'
       )
 
-      print(f'rsync {rsync_args}', file=sys.stderr)
-      rsync_coro = asyncio.subprocess.create_subprocess_exec(
-        'rsync', rsync_args
-      )
+      print(rsync_command, file=sys.stderr)
+      rsync_coro = asyncio.subprocess.create_subprocess_exec(*rsync_command)
 
       # subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
       cp_coro = aioshutil.copy(
