@@ -200,6 +200,9 @@ def do_up(
     portnum = int(start_port) + int(chosen_slot)
     print(f"** chose {chosen_slot} out of available slots {available_slots}, port={portnum}", file=sys.stderr)
 
+    server_config_dir = Path("/") / args.uuid / args.ssid / args.sheetid
+    server_config_cli = ['npm', 'run', 'serve', '--', f'--port={portnum}']
+
     server_config = {
       "ssid": args.ssid,
       "sheetid": args.sheetid,
@@ -207,11 +210,10 @@ def do_up(
       "port": portnum,
       "slot": chosen_slot,
       "dir": f'{Path(workdir) / f"vue-{chosen_slot}"}',
-      "base_url": f'{Path("/") / args.uuid / args.ssid / args.sheetid}',
+      "base_url": f'{server_config_dir}',
       # "cli": ['npm', 'run', 'serve', '--', f'--port={portnum}']
-      "cli": f"npm run serve -- --port={portnum} &"
+      "cli": f'{" ".join(server_config_cli)}'
     }
-    server_config_cli = ['npm', 'run', 'serve', '--', f'--port={portnum}']
 
     # child_pid = os.fork()
     # # if this leads to trouble we may need to double-fork with grandparent-wait
@@ -229,7 +231,7 @@ def do_up(
       rsync_command = pyrs.v(
         'rsync', '-a',
         f'{Path(workdir) / "vue-small"}/',
-        f'{server_config["dir"]}/'
+        f'{server_config_dir}/'
       )
 
       print(rsync_command, file=sys.stderr)
@@ -238,7 +240,7 @@ def do_up(
       # subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
       shutil.copy(
         args.filename,
-        Path(server_config['dir']) / 'src' / 'RuleLib' / 'Interview.purs'
+        server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
       )
 
       with open(Path(server_config['dir']) / "v8k.json", "w") as write_file:
@@ -246,11 +248,9 @@ def do_up(
 
       os.environ["BASE_URL"] = server_config['base_url']
 
-      os.chdir(server_config['dir'])
-      # with Path(server_config['dir']):
-        # runvue = subprocess.run([server_config['cli']], shell=True)
-        # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
-      runvue = subprocess.run(server_config_cli)
+      # os.chdir(server_config['dir'])
+      # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
+      runvue = subprocess.run(server_config_cli, cwd = server_config_dir)
 
     print("v8k: fork(child): exiting", file=sys.stderr)
 
