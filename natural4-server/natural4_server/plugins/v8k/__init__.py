@@ -247,11 +247,11 @@ def do_up(
 
       os.environ["BASE_URL"] = server_config['base_url']
 
-      # os.chdir(server_config['dir'])
-      with Path(server_config['dir']):
+      os.chdir(server_config['dir'])
+      # with Path(server_config['dir']):
         # runvue = subprocess.run([server_config['cli']], shell=True)
         # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
-        runvue = subprocess.run(server_config_cli)
+      runvue = subprocess.run(server_config_cli)
 
     print("v8k: fork(child): exiting", file=sys.stderr)
 
