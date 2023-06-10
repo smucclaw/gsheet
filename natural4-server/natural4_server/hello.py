@@ -69,24 +69,6 @@ set_max_runtime(10000)
 
 basedir = Path(os.environ.get("basedir", "."))
 
-try:
-  v8k_workdir = Path(os.environ['V8K_WORKDIR'])
-except KeyError:
-  print(
-    'V8K_WORKDIR not set in os.environ -- check your gunicorn config!!',
-    file=sys.stderr
-  )
-  v8k_workdir = Path()
-
-try:
-  v8k_slots_arg: str = f'--poolsize {os.environ["V8K_SLOTS"]}'
-except KeyError:
-  v8k_slots_arg = ''
-
-v8k_startport: str = os.environ.get('v8k_startport', '')
-
-v8k_path: str = os.environ.get('v8k_path', '')
-
 default_filenm_natL4exe_from_stack_install = "natural4-exe"
 natural4_exe: str = os.environ.get('natural4_exe', default_filenm_natL4exe_from_stack_install)
 
