@@ -206,7 +206,7 @@ def do_up(
       "port": portnum,
       "slot": chosen_slot,
       "dir": Path(workdir) / f'vue-{chosen_slot}',
-      "base_url": "/" + join(args.uuid, args.ssid, args.sheetid),
+      "base_url": Path('/') / args.uuid / args.ssid / args.sheetid,
       "cli": ['npm', 'run', 'serve', '--', f'--port={portnum}']
       # "cli": f"npm run serve -- --port={portnum} &"
     }
