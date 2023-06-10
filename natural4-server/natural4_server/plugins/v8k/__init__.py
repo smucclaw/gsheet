@@ -68,10 +68,11 @@ except KeyError:
 
 v8k_startport: str = os.environ.get('v8k_startport', '')
 
-def getjson(pathin: Path):
+def getjson(pathin: str | os.PathLike):
+  pathin = Path(pathin)
   with open(pathin, 'r') as read_file:
     json_str = read_file.read().strip()
-    print(f'getjson: {pathin} {json_str}', file=sys.stderr)
+    # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
     data = json.loads(json_str)
     data['jsonfile'] = pathin
     data['modtime'] = getmtime(pathin)
@@ -98,18 +99,16 @@ def print_server_info(portnum: int) -> Sequence[Any]:
 
 @curry
 def do_list(
-  v8k_outfile: str | os.PathLike,
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> None:
-    descriptors = read_all(workdir)
-    for descriptor in sorted(descriptors.values(), key=lambda js: int(js['slot'])):
-        print(f"* {descriptor['dir']}", file=sys.stderr)
-        print_server_info(descriptor['port'])
+  descriptors = read_all(workdir)
+  for descriptor in sorted(descriptors.values(), key=lambda js: int(js['slot'])):
+    print(f"* {descriptor['dir']}", file=sys.stderr)
+    print_server_info(descriptor['port'])
 
 @curry
 def do_find(
-  v8k_outfile : str | os.PathLike,
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> None:
@@ -124,12 +123,10 @@ def do_find(
         print(f"* found allocated server on our uuid/ssid/sheetid: {js['slot']}", file=sys.stderr)
         mymatches = print_server_info(js['port'])
         if mymatches:
-          with open(v8k_outfile, 'a+') as outfile:
-            print(f":{js['port']}/{js['base_url']}", file=outfile) # match the STDOUT convention in do_up
+          print(f":{js['port']}/{js['base_url']}") # match the STDOUT convention in do_up
 
 @curry
 def do_up(
-  v8k_outfile: str | os.PathLike,
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> Mapping[str, str | Callable[[], None]]:
@@ -167,8 +164,7 @@ def do_up(
         shutil.copy(args.filename, purs_file)
         # subprocess.run(["touch", join(e['dir'], "v8k.json")])
         (Path(e['dir']) / 'v8k.json').touch()
-        with open(v8k_outfile, 'a+') as outfile:
-          print(f":{e['port']}{e['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
+        print(f":{e['port']}{e['base_url']}") # the port and base_url returned on STDOUT are read by the caller hello.py
       else:
         print("but the server isn't running any longer.", file=sys.stderr)
         dead_slots.append(str(e['slot']))
@@ -277,7 +273,6 @@ def take_down(vuedict, slot) -> None:
 
 @curry
 def do_down(
-  v8k_outfile: str | os.PathLike,
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> None:
@@ -296,7 +291,6 @@ def do_down(
 
 @curry
 def do_downdir(
-  v8k_outfile: str | os.PathLike,
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> None:
@@ -352,7 +346,6 @@ def main(
   spreadsheet_id: str,
   sheet_id: str,
   uuid_ss_folder: str | os.PathLike,
-  v8k_outfile: str | os.PathLike
 ) -> Mapping[str, str | Callable[[], None]] | None:
   v8k_args: Sequence[str] = pyrse.sq(
     f'--workdir={v8k_workdir}',
@@ -383,7 +376,7 @@ def main(
       print("v8k: you need to export V8K_WORKDIR=\"/home/something/multivue\"", file=sys.stderr)
       return
       # sys.exit(1)
-    return args.func(v8k_outfile, args, workdir)
+    return args.func(args, workdir)
 
 # if __name__ == '__main__':
 #   main(sys.argv)

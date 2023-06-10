@@ -294,7 +294,6 @@ async def process_csv() -> str:
   # postprocessing:
   # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
-
   pandoc_tasks: AsyncGenerator[Awaitable[None], None] = (
     get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
   )
@@ -320,7 +319,7 @@ async def process_csv() -> str:
   v8k_outfile.unlink(missing_ok = True)
 
   v8k_up_result = v8k.main(
-    uuid, spreadsheet_id, sheet_id, uuid_ss_folder, v8k_outfile
+    uuid, spreadsheet_id, sheet_id, uuid_ss_folder
   )
   match v8k_up_result:
     case {'v8k_out': v8k_out, 'v8k_post_process': v8k_post_process}:
@@ -331,16 +330,6 @@ async def process_csv() -> str:
     case _:
       v8k_out = ''
       v8k_tasks = aiostream.stream.empty()
-
-  slow_tasks = aiostream.stream.chain(
-    maude_tasks,
-    v8k_tasks,
-    pandoc_tasks
-  )
-  Process(
-    target = compose_left(run_tasks, asyncio.run),
-    args = (slow_tasks,)
-  ).start()
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   # with open(uuid_ss_folder / 'v8k.out', 'r') as read_file:
@@ -358,6 +347,17 @@ async def process_csv() -> str:
     response = response.set('v8k_url', v8k_url)
   else:
     response = response.set('v8k_url', None)
+
+  # Create a new process and run all the slow tasks.
+  slow_tasks = aiostream.stream.chain(
+    maude_tasks,
+    v8k_tasks,
+    pandoc_tasks
+  )
+  Process(
+    target = compose_left(run_tasks, asyncio.run),
+    args = (slow_tasks,)
+  ).start()
 
   # ---------------------------------------------
   # load in the aasvg index HTML to pass back to sidebar
