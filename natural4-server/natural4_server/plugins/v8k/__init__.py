@@ -46,8 +46,6 @@ from pathlib import Path
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
-import aiofiles
-import aioshutil
 import aiostream
 
 from cytoolz.functoolz import *
@@ -203,7 +201,7 @@ def do_up(
     print(f"** chose {chosen_slot} out of available slots {available_slots}, port={portnum}", file=sys.stderr)
 
     server_config_dir = Path(workdir) / f"vue-{chosen_slot}"
-    server_config_cli = ('npm', 'run', 'serve', '--', f'--port={portnum}')
+    server_config_cli = ['npm', 'run', 'serve', '--', f'--port={portnum}']
 
     server_config = {
       "ssid": args.ssid,
@@ -227,7 +225,7 @@ def do_up(
     # else:  # in the child
     #  print("v8k: fork(child): continuing to run", file=sys.stderr)
 
-    async def vue_purs_post_process():
+    def vue_purs_post_process():
       # rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
       # subprocess.run([rsync_command], shell=True)
       rsync_command = pyrs.v(
@@ -237,23 +235,18 @@ def do_up(
       )
 
       print(rsync_command, file=sys.stderr)
-      rsync_coro = asyncio.subprocess.run(rsync_command)
+      subprocess.run(rsync_command)
 
       # subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
-      cp_coro = aioshutil.copy(
+      shutil.copy(
         args.filename,
         server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
       )
 
-      os.environ["BASE_URL"] = server_config['base_url']
+      with open(Path(server_config['dir']) / "v8k.json", "w") as write_file:
+        json.dump(server_config, write_file)
 
-      async with (
-        asyncio.TaskGroup() as taskgroup,
-        aiofiles.open(server_config_dir / 'v8k.json', 'w') as write_file
-      ):
-        taskgroup.create_task(rsync_coro)
-        taskgroup.create_task(cp_coro)
-        await write_file.write(json.dumps(server_config))
+      os.environ["BASE_URL"] = server_config['base_url']
 
       # os.chdir(server_config['dir'])
       # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
@@ -265,7 +258,7 @@ def do_up(
       port = server_config['port'],
       base_url = server_config['base_url'],
       vue_purs_tasks = pipe(
-        vue_purs_post_process, aiostream.stream.just
+        vue_purs_post_process, asyncio.to_thread, aiostream.stream.just
       )
     )
     # sys.exit(0)
