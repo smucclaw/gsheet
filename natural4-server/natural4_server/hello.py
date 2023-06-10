@@ -322,17 +322,15 @@ async def process_csv() -> str:
   v8k_up_result = v8k.main(
     uuid, spreadsheet_id, sheet_id, uuid_ss_folder, v8k_outfile
   )
-  v8k_out = v8k_up_result.get(
-    'v8k_out', None
-  ) 
-  v8k_post_process = v8k_up_result.get(
-    'v8k_post_process', lambda: None
-  )
-  v8k_tasks = pipe(
-    v8k_post_process,
-    asyncio.to_thread,
-    aiostream.stream.just
-  )
+  match v8k_up_result:
+    case {'v8k_out': v8k_out, 'v8k_post_process': v8k_post_process}:
+      v8k_out = v8k_out
+      v8k_tasks = pipe(
+        v8k_post_process, asyncio.to_thread, aiostream.stream.just
+      )
+    case _:
+      v8k_out = None
+      v8k_tasks = aiostream.stream.empty()
 
   slow_tasks = aiostream.stream.chain(
     maude_tasks,
