@@ -319,15 +319,9 @@ async def process_csv() -> str:
   v8k_outfile: Path = uuid_ss_folder / 'v8k.out'
   v8k_outfile.unlink(missing_ok = True)
 
-  v8k_args: Sequence[str] = pyrse.sq(
-    'up',
-    f'--uuid={uuid}',
-    f'--ssid={spreadsheet_id}',
-    f'--sheetid={sheet_id}',
-    f'{Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
-  ) # type: ignore
-
-  v8k_up_result = v8k.main(v8k_args)
+  v8k_up_result = v8k.main(
+    'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
+  )
 
   match v8k_up_result:
     case {

@@ -350,18 +350,24 @@ def setup_argparser() -> argparse.ArgumentParser:
 
 @curry
 def main(
-  v8k_args: Sequence[str]
+  command: str,
+  uuid: str,
+  spreadsheet_id: str,
+  sheet_id: str,
+  uuid_ss_folder: str | os.PathLike,
 ) -> Mapping[str, str | Callable[[], None]] | None:
-  v8k_args: Sequence[str] = (
-    pyrse.sq(
-      f'--workdir={v8k_workdir}',
-      f'--startport={v8k_startport}'
-    )
-    + (pyrse.sq(v8k_slots_arg) if v8k_slots_arg else pyrse.sq())
-    + pyrse.psequence(v8k_args)
+  v8k_args: Sequence[str] = pyrse.sq(
+    f'--workdir={v8k_workdir}',
+    command,
+  ) + (pyrse.sq(v8k_slots_arg) if v8k_slots_arg else pyrse.sq()) + pyrse.sq(
+    f'--uuid={uuid}',
+    f'--ssid={spreadsheet_id}',
+    f'--sheetid={sheet_id}',
+    f'--startport={v8k_startport}',
+    f'{Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
   ) # type: ignore
 
-  print(f'hello.py main: calling v8k {" ".join(v8k_args)}', file=sys.stderr)
+  print(f'hello.py main: calling {" ".join(v8k_args)}', file=sys.stderr)
 
   parser: argparse.ArgumentParser = setup_argparser()
   args: argparse.Namespace = parser.parse_args(v8k_args)
@@ -381,5 +387,5 @@ def main(
       # sys.exit(1)
     return args.func(args, workdir)
 
-if __name__ == '__main__':
-  main(sys.argv[1:])
+# if __name__ == '__main__':
+#   main(sys.argv)
