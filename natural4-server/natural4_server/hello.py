@@ -31,7 +31,7 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
-from aiostream import stream
+import aiostream
 
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
@@ -349,10 +349,10 @@ async def process_csv() -> str:
   v8k_tasks = pipe(
     v8k_post_process,
     asyncio.to_thread,
-    stream.just
+    aiostream.stream.just
   )
 
-  slow_tasks = stream.chain(
+  slow_tasks = aiostream.stream.chain(
     maude_tasks,
     v8k_tasks,
     pandoc_tasks
