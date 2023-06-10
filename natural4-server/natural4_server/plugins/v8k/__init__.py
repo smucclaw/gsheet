@@ -70,8 +70,8 @@ v8k_startport: str = os.environ.get('v8k_startport', '')
 
 def getjson(pathin: Path):
   with open(pathin, "r") as read_file:
-    print(f'getjson: {pathin} {read_file.readline()}', file=sys.stderr)
-    data = json.loads(read_file.readline())
+    print(f'getjson: {pathin} {read_file.read()}', file=sys.stderr)
+    data = json.loads(read_file.read())
     data['jsonfile'] = pathin
     data['modtime'] = getmtime(pathin)
   return data
