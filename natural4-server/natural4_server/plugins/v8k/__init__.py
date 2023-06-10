@@ -200,7 +200,7 @@ def do_up(
     portnum = int(start_port) + int(chosen_slot)
     print(f"** chose {chosen_slot} out of available slots {available_slots}, port={portnum}", file=sys.stderr)
 
-    server_config_dir = Path("/") / args.uuid / args.ssid / args.sheetid
+    server_config_dir = Path(workdir) / f"vue-{chosen_slot}"
     server_config_cli = ['npm', 'run', 'serve', '--', f'--port={portnum}']
 
     server_config = {
@@ -209,8 +209,8 @@ def do_up(
       "uuid": args.uuid,
       "port": portnum,
       "slot": chosen_slot,
-      "dir": f'{Path(workdir) / f"vue-{chosen_slot}"}',
-      "base_url": f'{server_config_dir}',
+      "dir": f'{server_config_dir}',
+      "base_url": f'{Path("/") / args.uuid / args.ssid / args.sheetid}',
       # "cli": ['npm', 'run', 'serve', '--', f'--port={portnum}']
       "cli": f'{" ".join(server_config_cli)}'
     }
