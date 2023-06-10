@@ -264,9 +264,7 @@ def do_up(
     return pyrs.m(
       port = server_config['port'],
       base_url = server_config['base_url'],
-      vue_purs_tasks = pipe(
-        vue_purs_post_process, aiostream.stream.just
-      )
+      vue_purs_tasks = aiostream.stream.just(vue_purs_post_process())
     )
     # sys.exit(0)
 
