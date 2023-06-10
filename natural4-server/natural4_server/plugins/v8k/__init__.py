@@ -207,9 +207,10 @@ def do_up(
       "slot": chosen_slot,
       "dir": Path(workdir) / f'vue-{chosen_slot}',
       "base_url": f'{Path("/") / args.uuid / args.ssid / args.sheetid}',
-      "cli": ['npm', 'run', 'serve', '--', f'--port={portnum}']
+      # "cli": ['npm', 'run', 'serve', '--', f'--port={portnum}']
       # "cli": f"npm run serve -- --port={portnum} &"
     }
+    server_config_cli = ['npm', 'run', 'serve', '--', f'--port={portnum}']
 
     # child_pid = os.fork()
     # # if this leads to trouble we may need to double-fork with grandparent-wait
@@ -247,7 +248,7 @@ def do_up(
       with Path(server_config['dir']):
         # runvue = subprocess.run([server_config['cli']], shell=True)
         # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
-        runvue = subprocess.run(server_config['cli'])
+        runvue = subprocess.run(server_config_cli)
 
     print("v8k: fork(child): exiting", file=sys.stderr)
 
