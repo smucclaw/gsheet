@@ -228,12 +228,12 @@ def do_up(
       # subprocess.run([rsync_command], shell=True)
       rsync_command = pyrs.v(
         'rsync', '-a',
-        f'{Path(workdir) / "vue-small"}',
-        f'{server_config["dir"]}'
+        f'{Path(workdir) / "vue-small"}/',
+        f'{server_config["dir"]}/'
       )
 
       print(rsync_command, file=sys.stderr)
-      subprocess.run(rsync_command, shell=True)
+      subprocess.run(rsync_command)
 
       # subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
       shutil.copy(
