@@ -239,9 +239,6 @@ def do_up(
         Path(server_config['dir']) / 'src' / 'RuleLib' / 'PDPADBNO.purs'
       )
 
-      with open(Path(server_config['dir']) / "v8k.json", "w") as write_file:
-        json.dump(server_config, write_file)
-
       os.environ["BASE_URL"] = server_config['base_url']
 
       # os.chdir(server_config['dir'])
@@ -249,6 +246,9 @@ def do_up(
         # runvue = subprocess.run([server_config['cli']], shell=True)
         # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
         runvue = subprocess.run(server_config_cli)
+
+    with open(Path(server_config['dir']) / "v8k.json", "w") as write_file:
+      json.dump(server_config, write_file)
 
     print("v8k: fork(child): exiting", file=sys.stderr)
 
