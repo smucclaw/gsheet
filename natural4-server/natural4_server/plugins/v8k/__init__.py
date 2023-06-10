@@ -358,7 +358,7 @@ def main(
       f'--startport={v8k_startport}'
     )
     + pyrse.sq(v8k_slots_arg) if v8k_slots_arg else pyrse.sq()
-    + pyrse.sq(v8k_args)
+    + pyrse.psequence(v8k_args)
   ) # type: ignore
 
   print(f'hello.py main: calling v8k {" ".join(v8k_args)}', file=sys.stderr)
