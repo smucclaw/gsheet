@@ -33,6 +33,7 @@
 # v8k downdir slotname
 #     Delete an existing vue server by slot number.
 
+import shutil
 import sys
 import os
 import re
@@ -41,11 +42,14 @@ import argparse
 import json
 import subprocess
 from pathlib import Path
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
-from cytoolz.functoolz import curry
+from cytoolz.functoolz import *
+from cytoolz.itertoolz import *
+from cytoolz.curried import *
 
+import pyrsistent as pyrs
 import pyrsistent_extras as pyrse
 
 try:
@@ -126,7 +130,7 @@ def do_up(
   v8k_outfile: str | os.PathLike,
   args: argparse.Namespace,
   workdir: str | os.PathLike
-) -> None:
+) -> Mapping[str, str | Callable[[], None]]:
     vuedict = read_all(workdir)
 
     if not isfile(args.filename):
@@ -157,8 +161,10 @@ def do_up(
         #  reread the file too soon, when the cp hasn't completed.
         purs_file = join(e['dir'], "src", "RuleLib", "PDPADBNO.purs")
         print(f"cp {args.filename} {purs_file}", file=sys.stderr)
-        subprocess.run(["cp", args.filename, purs_file])
-        subprocess.run(["touch", join(e['dir'], "v8k.json")])
+        shutil.copy(args.filename, purs_file)
+        # subprocess.run(["cp", args.filename, purs_file])
+        (Path(e['dir']) / purs_file).touch()
+        # subprocess.run(["touch", join(e['dir'], "v8k.json")])
         with open(v8k_outfile, 'a+') as outfile:
           print(f":{e['port']}{e['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
       else:
@@ -166,7 +172,7 @@ def do_up(
         dead_slots.append(str(e['slot']))
 
     if not need_to_relaunch:
-      return
+      return pyrs.m()
 
     server_slots = {f"{n:02}" for n in range(0, pool_size)}
     available_slots = server_slots - set(vuedict.keys()) | set(dead_slots)
@@ -199,51 +205,71 @@ def do_up(
       "uuid": args.uuid,
       "port": portnum,
       "slot": chosen_slot,
-      "dir": join(workdir, f"vue-{chosen_slot}"),
+      "dir": Path(workdir) / f'vue-{chosen_slot}',
       "base_url": "/" + join(args.uuid, args.ssid, args.sheetid),
-      "cli": f"npm run serve -- --port={portnum} &"
+      "cli": ['npm', 'run', 'serve', '--', f'--port={portnum}']
+      # "cli": f"npm run serve -- --port={portnum} &"
     }
 
-    child_pid = os.fork()
-    # if this leads to trouble we may need to double-fork with grandparent-wait
-    if child_pid > 0:  # in the parent
-      print(f"v8k: fork(parent): returning port {portnum}", file=sys.stderr)
-      with open(v8k_outfile, 'a+') as outfile:
-        print(f":{server_config['port']}{server_config['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
-      return
-    else:  # in the child
-      print("v8k: fork(child): continuing to run", file=sys.stderr)
+    # child_pid = os.fork()
+    # # if this leads to trouble we may need to double-fork with grandparent-wait
+    # if child_pid > 0:  # in the parent
+    #   print(f"v8k: fork(parent): returning port {portnum}", file=sys.stderr)
+    #   with open(v8k_outfile, 'a+') as outfile:
+    #     print(f":{server_config['port']}{server_config['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
+    #   return
+    # else:  # in the child
+    #  print("v8k: fork(child): continuing to run", file=sys.stderr)
 
-    rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
-    print(rsync_command, file=sys.stderr)
-    subprocess.run([rsync_command], shell=True)
-    subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
+    def post_process():
+      # rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
+      # subprocess.run([rsync_command], shell=True)
+      rsync_command = pyrs.v(
+        'rsync', '-a',
+        f'{Path(workdir) / "vue-small" / server_config["dir"]}'
+      )
 
-    with open(join(server_config['dir'], "v8k.json"), "w") as write_file:
-      json.dump(server_config, write_file)
+      print(rsync_command, file=sys.stderr)
+      subprocess.run(rsync_command)
 
-    os.environ["BASE_URL"] = server_config['base_url']
+      # subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
+      shutil.copy(
+        args.filename,
+        Path(server_config['dir']) / 'src' / 'RuleLib' / 'PDPADBNO.purs'
+      )
 
-    os.chdir(server_config['dir'])
-    runvue = subprocess.run([server_config['cli']], shell=True)
-    # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
+      with open(join(server_config['dir'], "v8k.json"), "w") as write_file:
+        json.dump(server_config, write_file)
+
+      os.environ["BASE_URL"] = server_config['base_url']
+
+      # os.chdir(server_config['dir'])
+      with Path(server_config['dir']):
+        # runvue = subprocess.run([server_config['cli']], shell=True)
+        # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
+        runvue = subprocess.run(server_config['cli'])
 
     print("v8k: fork(child): exiting", file=sys.stderr)
+
+    return pyrs.m(
+      v8k_out = f":{server_config['port']}{server_config['base_url']}",
+      v8k_post_process = post_process
+    )
     # sys.exit(0)
 
 @curry
 def take_down(vuedict, slot) -> None:
-    portnum = vuedict[slot]['port']
-    if not portnum:
-        print("unable to resolve portnum for slot " + slot + "; exiting", file=sys.stderr)
-        # sys.exit(2)
-    mymatches = print_server_info(portnum)
-    if mymatches:
-        for mymatch in mymatches:
-            print("killing pid " + mymatch[0] + " running vue server on port " + mymatch[1], file=sys.stderr)
-            subprocess.run(["kill", mymatch[0]])
-    else:
-        print(f"unable to find pid running vue server on port {portnum}", file=sys.stderr)
+  portnum = vuedict[slot]['port']
+  if not portnum:
+    print("unable to resolve portnum for slot " + slot + "; exiting", file=sys.stderr)
+    # sys.exit(2)
+  mymatches = print_server_info(portnum)
+  if mymatches:
+    for mymatch in mymatches:
+      print("killing pid " + mymatch[0] + " running vue server on port " + mymatch[1], file=sys.stderr)
+      subprocess.run('kill', mymatch[0])
+  else:
+    print(f"unable to find pid running vue server on port {portnum}", file=sys.stderr)
 
 @curry
 def do_down(
@@ -323,7 +349,7 @@ def main(
   sheet_id: str,
   uuid_ss_folder: str | os.PathLike,
   v8k_outfile: str | os.PathLike
-) -> None:
+) -> Mapping[str, str | Callable[[], None]] | None:
   v8k_args: Sequence[str] = pyrse.sq(
     f'--workdir={v8k_workdir}',
     'up'
@@ -353,7 +379,7 @@ def main(
       print("v8k: you need to export V8K_WORKDIR=\"/home/something/multivue\"", file=sys.stderr)
       return
       # sys.exit(1)
-    args.func(v8k_outfile, args, workdir)
+    return args.func(v8k_outfile, args, workdir)
 
 # if __name__ == '__main__':
 #   main(sys.argv)

@@ -329,12 +329,6 @@ async def process_csv() -> str:
     get_maude_tasks(natural4_file, maude_output_path)
   )
 
-  slow_tasks = stream.chain(maude_tasks, pandoc_tasks)
-  Process(
-    target = compose_left(run_tasks, asyncio.run),
-    args = (slow_tasks,)
-  ).start()
-
   # ---------------------------------------------
   # postprocessing: (re-)launch the vue web server
   # - call v8k up
@@ -344,24 +338,30 @@ async def process_csv() -> str:
   v8k_outfile: Path = uuid_ss_folder / 'v8k.out'
   v8k_outfile.unlink(missing_ok = True)
 
-  v8k.main(uuid, spreadsheet_id, sheet_id, uuid_ss_folder, v8k_outfile)
-  # with (
-  #   open(v8k_outfile) as outfile,
-  #   contextlib.redirect_stdout(outfile)
-  # ): v8k.main(uuid, spreadsheet_id, sheet_id, uuid_ss_folder)
+  v8k_up_result = v8k.main(
+    uuid, spreadsheet_id, sheet_id, uuid_ss_folder, v8k_outfile
+  )
+  v8k_out = v8k_up_result.get(
+    'v8k_out', None
+  ) 
+  v8k_post_process = v8k_up_result.get(
+    'v8k_post_process', lambda: None
+  )
+  v8k_tasks = asyncio.to_thread(v8k_post_process)
 
-    # subprocess.run(
-    #   # Joe: For some reason, passing these in as separate args results in the
-    #   # following error:
-    #   # usage: v8k [-h] [--workdir WORKDIR] {list,find,up,down,downdir} ...
-    #   # v8k: error: unrecognized arguments: temp/workdir/e62c137a-38f1-4acc-ad13-44c1005eb523/1leBCZhgDsn-Abg2H_OINGGv-8Gpf9mzuX1RR56v0Sss/1779650637/purs/LATEST.purs
-    #   [' '.join(v8kargs)], shell=True,
-    #   stdout=outfile # stderr=outfile
-    # )
+  slow_tasks = stream.chain(
+    maude_tasks,
+    v8k_tasks,
+    pandoc_tasks
+  )
+  Process(
+    target = compose_left(run_tasks, asyncio.run),
+    args = (slow_tasks,)
+  ).start()
 
   print('hello.py main: v8k up returned', file=sys.stderr)
-  with open(uuid_ss_folder / 'v8k.out', 'r') as read_file:
-    v8k_out: str = read_file.readline()
+  # with open(uuid_ss_folder / 'v8k.out', 'r') as read_file:
+  #   v8k_out: str = read_file.readline()
   print(f'v8k.out: {v8k_out}', file=sys.stderr)
 
   print(
