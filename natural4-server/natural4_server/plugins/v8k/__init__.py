@@ -357,7 +357,7 @@ def main(
       f'--workdir={v8k_workdir}',
       f'--startport={v8k_startport}'
     )
-    + pyrse.sq(v8k_slots_arg) if v8k_slots_arg else pyrse.sq()
+    + (pyrse.sq(v8k_slots_arg) if v8k_slots_arg else pyrse.sq())
     + pyrse.psequence(v8k_args)
   ) # type: ignore
 
