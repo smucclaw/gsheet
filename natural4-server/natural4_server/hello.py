@@ -329,7 +329,7 @@ async def process_csv() -> str:
         v8k_post_process, asyncio.to_thread, aiostream.stream.just
       )
     case _:
-      v8k_out = None
+      v8k_out = ''
       v8k_tasks = aiostream.stream.empty()
 
   slow_tasks = aiostream.stream.chain(
