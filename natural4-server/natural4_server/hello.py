@@ -17,7 +17,6 @@ from collections.abc import (
   Coroutine,
   Sequence
 )
-import contextlib
 import datetime
 import json
 from multiprocessing import Process
@@ -347,7 +346,11 @@ async def process_csv() -> str:
   v8k_post_process = v8k_up_result.get(
     'v8k_post_process', lambda: None
   )
-  v8k_tasks = asyncio.to_thread(v8k_post_process)
+  v8k_tasks = pipe(
+    v8k_post_process,
+    asyncio.to_thread,
+    stream.just
+  )
 
   slow_tasks = stream.chain(
     maude_tasks,
