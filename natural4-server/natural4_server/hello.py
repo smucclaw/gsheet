@@ -314,9 +314,6 @@ async def process_csv() -> str:
   # ---------------------------------------------
   print('Running v8k', file=sys.stderr)
 
-  v8k_outfile: Path = uuid_ss_folder / 'v8k.out'
-  v8k_outfile.unlink(missing_ok = True)
-
   v8k_up_result = v8k.main(
     'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
   )
