@@ -321,17 +321,16 @@ async def process_csv() -> str:
   v8k_up_result = v8k.main(
     uuid, spreadsheet_id, sheet_id, uuid_ss_folder
   )
+
   match v8k_up_result:
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
-      'vue_purs_post_process': vue_purs_post_process
+      'vue_purs_post_process': vue_purs_tasks
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'.strip()
       response = response.set('v8k_url', v8k_url)
-      vue_purs_tasks = pipe(
-        vue_purs_post_process, asyncio.to_thread, aiostream.stream.just
-      )
+      vue_purs_tasks = vue_purs_tasks
     case _:
       v8k_url = None
       response = response.set('v8k_url', None)
@@ -342,10 +341,7 @@ async def process_csv() -> str:
     print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
   # print(f'v8k.out: {v8k_url}', file=sys.stderr)
 
-  print(
-    f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',
-    file=sys.stderr
-  )
+  print(f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',file=sys.stderr)
 
   # if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
   #   v8k_url: str = v8k_out.strip()

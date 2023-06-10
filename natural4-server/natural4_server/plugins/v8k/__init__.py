@@ -258,7 +258,10 @@ def do_up(
       # v8k_out = f":{server_config['port']}{server_config['base_url']}",
       port = server_config['port'],
       base_url = server_config['base_url'],
-      vue_purs_post_process = vue_purs_post_process
+      vue_purs_post_process = pipe(
+        # vue_purs_post_process |> liftM |> pure
+        vue_purs_post_process, asyncio.to_thread, aiostream.stream.just
+      )
     )
     # sys.exit(0)
 
