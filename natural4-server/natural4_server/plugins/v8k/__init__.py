@@ -238,7 +238,7 @@ def do_up(
         Path(server_config['dir']) / 'src' / 'RuleLib' / 'PDPADBNO.purs'
       )
 
-      with open(join(server_config['dir'], "v8k.json"), "w") as write_file:
+      with open(Path(server_config['dir']) / "v8k.json", "w") as write_file:
         json.dump(server_config, write_file)
 
       os.environ["BASE_URL"] = server_config['base_url']
