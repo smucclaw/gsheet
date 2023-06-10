@@ -249,7 +249,7 @@ def do_up(
 
       async with (
         asyncio.TaskGroup() as taskgroup,
-        aiofiles.open(server_config_dir / 'v8k.json', 'w+') as write_file
+        aiofiles.open(server_config_dir / 'v8k.json', 'w') as write_file
       ):
         taskgroup.create_task(rsync_coro)
         taskgroup.create_task(cp_coro)
