@@ -103,15 +103,21 @@ def read_all(workdir: str | os.PathLike):
   )
   return descriptor_map
 
-def print_server_info(portnum: int) -> Sequence[Any]:
-  completed = subprocess.run([f"ps wwaux | grep port={portnum} | grep -v grep | grep -v startport="], shell=True,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  mymatches = re.findall(r'^\S+\s+(\d+).*port=(\d+)', completed.stdout.decode('utf-8'), re.MULTILINE)
+async def print_server_info(portnum: int) -> Sequence[Any]:
+  completed = await asyncio.subprocess.create_subprocess_exec(
+    f"ps wwaux | grep port={portnum} | grep -v grep | grep -v startport=",
+    # shell=True,
+    stdout = asyncio.subprocess.PIPE,
+    stderr = asyncio.subprocess.PIPE
+  )
+  stdout, stderr = await completed.communicate()
+  stdout = stdout.decode()
+  mymatches = re.findall(r'^\S+\s+(\d+).*port=(\d+)', stdout, re.MULTILINE)
   if mymatches:
-      for mymatch in mymatches:
-          print(f"\tpid {mymatch[0]} is listening on port {mymatch[1]}", file=sys.stderr)
+    for mymatch in mymatches:
+      print(f"\tpid {mymatch[0]} is listening on port {mymatch[1]}", file=sys.stderr)
   else:
-      print(f"\tport {portnum} is no longer listened, as far as we can detect", file=sys.stderr)
+    print(f"\tport {portnum} is no longer listened, as far as we can detect", file=sys.stderr)
   return mymatches
 
 @curry
@@ -163,17 +169,20 @@ async def vue_purs_post_process(
       )
 
       print(rsync_command, file=sys.stderr)
-      await asyncio.subprocess.create_subprocess_exec(*rsync_command)
-
-      await aioshutil.copy(
-        args.filename,
-        server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
-      )
+      rsync_coro = await asyncio.subprocess.create_subprocess_exec(*rsync_command)
+      await rsync_coro.wait()
 
       async with (
         aiofiles.open(server_config_dir / 'v8k.json', 'w') as v8k_json_file,
         asyncio.TaskGroup() as taskgroup
       ):
+        taskgroup.create_task(
+          aioshutil.copy(
+            args.filename,
+            server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
+          )
+        )
+
         pipe(
           server_config,
           dict,
@@ -182,14 +191,12 @@ async def vue_purs_post_process(
           taskgroup.create_task
         )
 
-        os.environ["BASE_URL"] = server_config_base_url
+      os.environ["BASE_URL"] = server_config_base_url
 
-        # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
-        runvue = taskgroup.create_task(
-          asyncio.subprocess.create_subprocess_exec(
-            *server_config_cli, cwd = server_config_dir
-          )
-        )
+      # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
+      runvue = await asyncio.subprocess.create_subprocess_exec(
+        *server_config_cli, cwd = server_config_dir
+      )
 
     case _: pass
 
@@ -229,7 +236,7 @@ async def do_up(
         case {'port': port, 'slot': slot, 'dir': dir, 'base_url': base_url}:
           any_existing = True
           print(f"** found allegedly existing server(s) on our uuid/ssid/sheetid: {slot}", file=sys.stderr)
-          mymatches = await asyncio.to_thread(print_server_info, port)
+          mymatches = await print_server_info(port)
           if mymatches:
             print(f"server seems to be still running for port {port}!", file=sys.stderr)
             need_to_relaunch = False
