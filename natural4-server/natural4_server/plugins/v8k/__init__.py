@@ -46,6 +46,7 @@ from pathlib import Path
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
+import aioshutil
 import aiostream
 
 from cytoolz.functoolz import *
@@ -71,8 +72,9 @@ except KeyError:
 
 v8k_startport: str = os.environ.get('v8k_startport', '')
 
-def getjson(pathin: str | os.PathLike):
+async def getjson(pathin: str | os.PathLike):
   pathin = Path(pathin)
+  data = None
   with open(pathin, 'r') as read_file:
     json_str = read_file.read().strip()
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
@@ -84,9 +86,19 @@ def getjson(pathin: str | os.PathLike):
 def read_all(workdir: str | os.PathLike) -> Mapping[str, Mapping[str, Any]]:
     workdir_path = Path(workdir)
 
-    vue_descriptors = [getjson(f) for f in workdir_path.glob('*/v8k.json')]
+    # [getjson(f) for f in workdir_path.glob('*/v8k.json')]
+    vue_descriptors = pipe(
+      workdir_path.glob('*/v8k.json'),
+      aiostream.stream.iterate,
+      aiostream.pipe.map(getjson, ordered = False)
+    )
 
-    descriptor_map = {descriptor['slot']: descriptor for descriptor in vue_descriptors}
+    # descriptor_map = {descriptor['slot']: descriptor for descriptor in vue_descriptors}
+    descriptor_map = aiostream.stream.reduce(
+      vue_descriptors,
+      lambda acc, descriptor: acc.set(descriptor['slot'], descriptor),
+      initializer = pyrs.m()
+    )
     return descriptor_map
 
 def print_server_info(portnum: int) -> Sequence[Any]:
@@ -182,30 +194,35 @@ async def do_up(
     print(f"** poolsize = {pool_size}", file=sys.stderr)
 
     # is there already a server running on the desired uuid-ssid-sheetid?
-    existing = [js for js in vuedict.values()
-                if js['ssid'] == args.ssid
-                and js['sheetid'] == args.sheetid
-                and js['uuid'] == args.uuid
-                ]
+    existing = {
+      js for js in vuedict.values()
+      if js['ssid'] == args.ssid
+      and js['sheetid'] == args.sheetid
+      and js['uuid'] == args.uuid
+    }
 
     need_to_relaunch = True
-    for e in existing:
-      print(f"** found allegedly existing server(s) on our uuid/ssid/sheetid: {e['slot']}", file=sys.stderr)
-      mymatches = print_server_info(e['port'])
-      if mymatches:
-        print(f"server seems to be still running for port {e['port']}!", file=sys.stderr)
-        need_to_relaunch = False
-        print("refreshing the purs file", file=sys.stderr)
-        # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
-        #  reread the file too soon, when the cp hasn't completed.
-        purs_file = Path(e['dir']) / "src" / "RuleLib" / "Interview.purs"
-        print(f"cp {args.filename} {purs_file}", file=sys.stderr)
-        shutil.copy(args.filename, purs_file)
-        (Path(e['dir']) / 'v8k.json').touch()
-        print(f":{e['port']}{e['base_url']}") # the port and base_url returned on STDOUT are read by the caller hello.py
-      else:
-        print("but the server isn't running any longer.", file=sys.stderr)
-        dead_slots.append(str(e['slot']))
+    async with asyncio.TaskGroup() as taskgroup:
+      for e in existing:
+        match e:
+          case {'port': port, 'slot': slot, 'dir': dir, 'base_url': base_url}:
+            print(f"** found allegedly existing server(s) on our uuid/ssid/sheetid: {slot}", file=sys.stderr)
+            mymatches = print_server_info(port)
+            if mymatches:
+              print(f"server seems to be still running for port {port}!", file=sys.stderr)
+              need_to_relaunch = False
+              print("refreshing the purs file", file=sys.stderr)
+              # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
+              #  reread the file too soon, when the cp hasn't completed.
+              purs_file = Path(dir) / "src" / "RuleLib" / "Interview.purs"
+              print(f"cp {args.filename} {purs_file}", file=sys.stderr)
+              taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
+              taskgroup.create_task(asyncio.to_thread(lambda: (Path(dir) / 'v8k.json').touch()))
+              print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
+            else:
+              print("but the server isn't running any longer.", file=sys.stderr)
+              dead_slots.append(f'{slot}')
+          case _: pass
 
     if not need_to_relaunch:
       return pyrs.m()
