@@ -76,9 +76,9 @@ v8k_startport: str = os.environ.get('v8k_startport', '')
 async def getjson(pathin: str | os.PathLike):
   pathin = Path(pathin)
   data = None
-  print(f'Reading json file: {pathin}', file=sys.stderr)
   async with aiofiles.open(pathin, 'r') as read_file:
     json_str = await read_file.read()
+    print(f'json_str: {json_str}', file=sys.stderr)
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
     data = json.loads(json_str.strip())
     data['jsonfile'] = pathin
