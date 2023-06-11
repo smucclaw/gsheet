@@ -80,7 +80,7 @@ async def get_pandoc_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
 ):
-  await markdown_coro.wait()
+  await (await markdown_coro).wait()
   for output in pandoc_outputs:
     yield pyrs.m(
       func = pandoc_md_to_output,
