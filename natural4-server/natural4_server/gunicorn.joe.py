@@ -18,4 +18,5 @@ keyfile    = "/etc/letsencrypt/live/cclaw.legalese.com/privkey.pem"
 
 preload = True
 accesslog = "access_log"
-workers  = 3
+worker_class = 'uvicorn.workers.UvicornWorker'
+workers  = 4

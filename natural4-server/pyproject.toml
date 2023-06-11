@@ -8,15 +8,14 @@ packages = [{include = "natural4_server"}]
 
 [tool.poetry.dependencies]
 python = "^3.11.0"
+aiofiles = "^23.1.0"
 aiostream = "^0.4.5"
 aioshutil = "^1.3"
 cytoolz = "^0.12.1"
 python-dotenv = "^1.0.0"
 quart = {extras = ["dotenv"], version = "^0.18.4"}
-hypercorn = "^0.14.3"
-# Flask = "^2.3.0"
-# gunicorn = "^20.1.0"
-# asgiref = "^3.7.2"
+gunicorn = "^20.1.0"
+uvicorn = "^0.22.0"
 pyrsistent = "^0.19.3"
 pyrsistent-extras = "^0.1.0"
 pyvis = {version = "^0.3.2", optional = true}

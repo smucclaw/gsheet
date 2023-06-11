@@ -19,7 +19,6 @@ from collections.abc import (
 )
 import datetime
 import json
-from multiprocessing import Process
 import os
 from pathlib import Path
 import subprocess
@@ -30,6 +29,7 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
+import aiofiles
 import aiostream
 
 import pyrsistent as pyrs
@@ -203,8 +203,8 @@ async def process_csv() -> str:
 
   target_folder.mkdir(parents=True, exist_ok=True)
 
-  with open(target_path, 'w') as fout:
-    fout.write(data['csvString'])
+  async with aiofiles.open(target_path, 'w') as fout:
+    await fout.write(data['csvString'])
 
   # Generate markdown files asynchronously in the background.
   uuiddir: Path = Path(uuid) / spreadsheet_id / sheet_id
@@ -266,10 +266,13 @@ async def process_csv() -> str:
   if len(nl4_err) < short_err_maxlen:
     print(nl4_err)
 
-  with open(target_folder / f'{time_now}.err', 'w') as fout:
-    fout.write(nl4_err)
-  with open(target_folder / f'{time_now}.out', 'w') as fout:
-    fout.write(nl4_out)
+  async with (
+    asyncio.TaskGroup() as taskgroup,
+    aiofiles.open(target_folder / f'{time_now}.err', 'w') as err_file,
+    aiofiles.open(target_folder / f'{time_now}.out', 'w') as out_file
+  ):
+    taskgroup.create_task(err_file.write(nl4_err))
+    taskgroup.create_task(out_file.write(nl4_out))
 
   response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
   response = response.set('nl4_stdout', nl4_out[:long_err_maxlen])
@@ -360,8 +363,10 @@ async def process_csv() -> str:
   # load in the aasvg index HTML to pass back to sidebar
   # ---------------------------------------------
 
-  with open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r') as read_file:
-    response = response.set('aasvg_index', read_file.read())
+  async with (
+    aiofiles.open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
+    as read_file
+  ): response = response.set('aasvg_index', await read_file.read())
 
   # ---------------------------------------------
   # construct other response elements and log run-timings.
@@ -400,7 +405,7 @@ async def process_csv() -> str:
   # Block and wait for the flowcharts to be generated before returning.
   await flowchart_coro
 
-  return json.dumps(pyrs.thaw(response))
+  return await asyncio.to_thread(pyrs.thaw, (response,))
 
   # ---------------------------------------------
   # return to sidebar caller

@@ -184,7 +184,7 @@ async def do_up(
 ) -> Mapping[str, str | Callable[[], None]]:
   vuedict = await read_all(workdir)
 
-  if not isfile(args.filename):
+  if not Path(args.filename).is_file():
     print(f"have you got the right filename? I can't see {args.filename} from here", file=sys.stderr)
 
   dead_slots = []
@@ -194,9 +194,9 @@ async def do_up(
   print(f"** poolsize = {pool_size}", file=sys.stderr)
 
   # is there already a server running on the desired uuid-ssid-sheetid?
-  existing = pipe(
-    vuedict.values(),
-    filter(
+  existing = (vuedict.values()
+    | aiostream.stream.iterate
+    | aiostream.pipe.filter(
       lambda js:
         js['ssid'] == args.ssid and
         js['sheetid'] == args.sheetid and
@@ -208,7 +208,7 @@ async def do_up(
   need_to_relaunch = True
 
   async with asyncio.TaskGroup() as taskgroup:
-    for e in existing:
+    async for e in existing:
       match e:
         case {'port': port, 'slot': slot, 'dir': dir, 'base_url': base_url}:
           any_existing = True
@@ -383,8 +383,8 @@ async def main(
 
   print(f'hello.py main: calling {" ".join(v8k_args)}', file=sys.stderr)
 
-  parser: argparse.ArgumentParser = setup_argparser()
-  args: argparse.Namespace = parser.parse_args(v8k_args)
+  parser: argparse.ArgumentParser = await asyncio.to_thread(setup_argparser)
+  args: argparse.Namespace = await asyncio.to_thread(parser.parse_args, v8k_args)
 
   if not hasattr(args, 'func'):
     print("v8k: list / find / up / down / downdir")
