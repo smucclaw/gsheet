@@ -91,9 +91,8 @@ async def get_maude_tasks(
         )
       )
       yield Task(
-        func = gen_state_space,
+        func = config_to_html_file,
         args = (
-          config_to_html_file,
           maude_main_mod, config, 'all *',
           Path(output_path) / 'LATEST_state_space.html'
         )
