@@ -128,7 +128,10 @@ async def get_workdir_file(
       f'get_workdir_file: returning {mimetype_str} {workdir_folder_filename}',
       file=sys.stderr
     )
-    response: Response = send_file(workdir_folder_filename, mimetype = mimetype)
+    response: Response = await send_file(
+      workdir_folder_filename,
+      mimetype = mimetype
+    )
 
   return response
 
@@ -150,7 +153,7 @@ async def show_aasvg_image(
 ) -> Response:
   print('show_aasvg_image: handling request for /aasvg/ url', file=sys.stderr)
 
-  return pipe(
+  return await pipe(
     temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image,
     do(lambda image_path:
         print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)),
