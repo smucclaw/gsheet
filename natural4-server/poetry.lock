@@ -953,7 +953,6 @@ hypercorn = ">=0.11.2"
 itsdangerous = "*"
 jinja2 = "*"
 markupsafe = "*"
-python-dotenv = {version = "*", optional = true, markers = "extra == \"dotenv\""}
 werkzeug = ">=2.2.0"
 
 [package.extras]
@@ -1335,11 +1334,11 @@ files = [
 h11 = ">=0.9.0,<1"
 
 [extras]
+docgen = ["pypandoc_binary"]
 flowchart = ["pygraphviz"]
 natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
-word-and-pdf = ["pypandoc_binary"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "4e6bf6cb6f7e290444ace849666f74a50b562eaa7391f03889c951aa0efd2428"
+content-hash = "22025859216798da7e1fc0512fe0a1c665bf3398bbbd15c35616d3828cd4e282"
