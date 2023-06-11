@@ -169,7 +169,7 @@ async def run_tasks(
         match task:
           case {'func': func, 'args': args}:
             print(f'Running task: {task}', file=sys.stderr)
-            taskgroup.create_task(asyncio.to_thread(func, args))
+            taskgroup.create_task(asyncio.to_thread(func, *args))
           case _: pass
 
   except TimeoutError as exc:
