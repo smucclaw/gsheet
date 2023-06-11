@@ -35,7 +35,7 @@ import pyrsistent.typing as pyrst
 # from flask import Flask, Response, request, send_file
 from quart import Quart, Response, request, send_file
 
-from natural4_server.task import Task, run_tasks
+from natural4_server.task import Task, add_tasks_to_background, run_tasks
 from plugins.docgen import get_pandoc_tasks
 from plugins.flowchart import get_flowchart_tasks
 from plugins.natural4_maude import get_maude_tasks
@@ -159,9 +159,7 @@ async def show_aasvg_image(
 # ################################################
 #                      main
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
-# ################################################
 # This is the function that does all the heavy lifting.
-
 @app.route('/post', methods=['GET', 'POST'])
 async def process_csv() -> str:
   start_time: datetime.datetime = datetime.datetime.now()
@@ -169,8 +167,6 @@ async def process_csv() -> str:
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
   data: pyrst.PMap[str, str] = pyrs.pmap(await request.form)
-
-  response: pyrst.PMap[str, str | None] = pyrs.m()
 
   uuid: str = data['uuid']
   spreadsheet_id: str = data['spreadsheetId']
@@ -242,7 +238,7 @@ async def process_csv() -> str:
 
   nl4_out, nl4_err = await nl4exe.communicate()
   nl4_out, nl4_err = nl4_out.decode(), nl4_err.decode()
-  # nl4exe.stdout.decode('utf-8'), nl4exe.stderr.decode('utf-8')
+  nl4_stdout, nl4_stderr = nl4_out[:long_err_maxlen], nl4_err[:long_err_maxlen]
 
   print(f'hello.py main: natural4-exe stdout length = {len(nl4_out)}', file=sys.stderr)
   print(f'hello.py main: natural4-exe stderr length = {len(nl4_err)}', file=sys.stderr)
@@ -252,16 +248,8 @@ async def process_csv() -> str:
   if len(nl4_err) < short_err_maxlen:
     print(nl4_err)
 
-  async with (
-    aiofiles.open(target_folder / f'{time_now}.err', 'w') as err_file,
-    aiofiles.open(target_folder / f'{time_now}.out', 'w') as out_file,
-    asyncio.TaskGroup() as taskgroup
-  ):
-    taskgroup.create_task(err_file.write(nl4_err))
-    taskgroup.create_task(out_file.write(nl4_out))
-
-  response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
-  response = response.set('nl4_stdout', nl4_out[:long_err_maxlen])
+  # response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
+  # response = response.set('nl4_stdout', nl4_out[:long_err_maxlen])
 
   # ---------------------------------------------
   # postprocessing: for petri nets: turn the DOT files into PNGs
@@ -301,17 +289,35 @@ async def process_csv() -> str:
     get_maude_tasks(natural4_file, maude_output_path)
   )
 
-  # ---------------------------------------------
-  # postprocessing: (re-)launch the vue web server
-  # - call v8k up
-  # ---------------------------------------------
   print('Running v8k', file=sys.stderr)
 
-  v8k_up_result = await v8k.main(
-    'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
-  )
+  # Concurrently peform the following:
+  # - Schedule the slow Maude and pandoc tasks.
+  # - Write natural4-exe's stdout to a file.
+  # - Write natural4-exe's stderr to a file.
+  # - Load the aasvg HTML which will later be sent back to the sidebar. 
+  # - Run v8k up.
+  async with (
+    aiofiles.open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
+    as aasvg_file,
+    aiofiles.open(target_folder / f'{time_now}.err', 'w') as err_file,
+    aiofiles.open(target_folder / f'{time_now}.out', 'w') as out_file,
+    asyncio.TaskGroup() as taskgroup
+  ):
+    taskgroup.create_task(add_tasks_to_background(maude_tasks))
+    taskgroup.create_task(add_tasks_to_background(pandoc_tasks))
+    taskgroup.create_task(err_file.write(nl4_err))
+    taskgroup.create_task(out_file.write(nl4_out))
 
-  match v8k_up_result:
+    aasvg_index_task = taskgroup.create_task(aasvg_file.read())
+
+    v8k_task = taskgroup.create_task(
+      v8k.main(
+        'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
+      )
+    )
+
+  match v8k_task.result():
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
@@ -325,7 +331,7 @@ async def process_csv() -> str:
       v8k_url = None
       vue_purs_tasks = aiostream.stream.empty()
 
-  response = response.set('v8k_url', v8k_url)
+  # response = response.set('v8k_url', v8k_url)
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   if v8k_url:
@@ -333,33 +339,13 @@ async def process_csv() -> str:
 
   print(f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',file=sys.stderr)
 
-  # Add all the slow tasks to Quart's event loop.
-  slow_tasks = aiostream.stream.chain(
-    maude_tasks,
-    vue_purs_tasks,
-    pandoc_tasks
-  )
-  async for slow_task in slow_tasks:
-    match slow_task:
-      case {'func': func, 'args': args}:
-        app.add_background_task(func, *args)
+  add_tasks_to_background(vue_purs_tasks)
 
   # app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
 
   # ---------------------------------------------
-  # load in the aasvg index HTML to pass back to sidebar
-  # ---------------------------------------------
-
-  async with (
-    aiofiles.open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
-    as read_file
-  ): response = response.set('aasvg_index', await read_file.read())
-
-  # ---------------------------------------------
   # construct other response elements and log run-timings.
   # ---------------------------------------------
-
-  response = response.set('timestamp', f'{timestamp}')
 
   end_time: datetime.datetime = datetime.datetime.now()
   elapsed_time: datetime.timedelta = end_time - start_time
@@ -369,30 +355,16 @@ async def process_csv() -> str:
     file=sys.stderr
   )
 
-  # print(
-  #   "hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
-  #   datetime.datetime.now() - start_time, ")",
-  #   file=sys.stderr
-  # )
-
-  # if this leads to trouble we may need to double-fork with grandparent-wait
-  # if childpid > 0:  # in the parent
-    # print("hello.py processCsv parent returning at", datetime.datetime.now(),
-    #                   "(total", datetime.datetime.now() - start_time, ")", file=sys.stderr)
-  # print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
-  #       datetime.datetime.now() - start_time, ")", file=sys.stderr)
-  # print(json.dumps(response), file=sys.stderr)
-
-  # else:  # in the child
-  # print('hello.py processCsv: fork(child): continuing to run', file=sys.stderr)
-
-  # print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
-  #       ")", file=sys.stderr)
-
-  # Block and wait for the flowcharts to be generated before returning.
+  # Wait for the flowcharts to be generated before returning to the sidebar.
   await flowchart_coro
 
-  return pyrs.thaw(response)
+  return {
+    'nl4_stdout': nl4_stdout,
+    'nl4_err': nl4_stderr,
+    'v8k_url': v8k_url,
+    'aasvg_index': aasvg_index_task.result(),
+    'timestamp': f'{timestamp}'
+  }
 
   # ---------------------------------------------
   # return to sidebar caller
