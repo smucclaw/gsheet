@@ -358,13 +358,14 @@ async def process_csv() -> str:
     vue_purs_tasks,
     pandoc_tasks
   )
-  async for slow_task in slow_tasks:
-    match slow_task:
-      case {'func': func, 'args': args}:
-        app.add_background_task(func, *args)
-      case _ : pass
+  # async for slow_task in slow_tasks:
+  #   match slow_task:
+  #     case {'func': func, 'args': args}:
+  #       app.add_background_task(func, *args)
+  #     case _ : pass
 
-  # app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
+  app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
+
   # Process(
   #   target = compose_left(run_tasks, asyncio.run),
   #   args = (slow_tasks,)
