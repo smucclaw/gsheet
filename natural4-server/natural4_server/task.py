@@ -43,4 +43,5 @@ async def add_tasks_to_background(
   async for task in tasks:
     match task:
       case {'func': func, 'args': args}:
+        print(f'Adding background task: {task}', file=sys.stderr)
         app.add_background_task(func, *args)
