@@ -83,23 +83,23 @@ async def getjson(pathin: str | os.PathLike):
     data['modtime'] = getmtime(pathin)
   return data
 
-def read_all(workdir: str | os.PathLike) -> Mapping[str, Mapping[str, Any]]:
-    workdir_path = Path(workdir)
+def read_all(workdir: str | os.PathLike):
+  workdir_path = Path(workdir)
 
-    # [getjson(f) for f in workdir_path.glob('*/v8k.json')]
-    vue_descriptors = pipe(
-      workdir_path.glob('*/v8k.json'),
-      aiostream.stream.iterate,
-      aiostream.pipe.map(getjson, ordered = False)
-    )
+  # [getjson(f) for f in workdir_path.glob('*/v8k.json')]
+  vue_descriptors = pipe(
+    workdir_path.glob('*/v8k.json'),
+    aiostream.stream.iterate,
+    aiostream.pipe.map(getjson, ordered = False)
+  )
 
-    # descriptor_map = {descriptor['slot']: descriptor for descriptor in vue_descriptors}
-    descriptor_map = aiostream.stream.reduce(
-      vue_descriptors,
-      lambda acc, descriptor: acc.set(descriptor['slot'], descriptor),
-      initializer = pyrs.m()
-    )
-    return descriptor_map
+  # descriptor_map = {descriptor['slot']: descriptor for descriptor in vue_descriptors}
+  descriptor_map = aiostream.stream.reduce(
+    vue_descriptors,
+    lambda acc, descriptor: acc.set(descriptor['slot'], descriptor),
+    initializer = pyrs.m()
+  )
+  return descriptor_map
 
 def print_server_info(portnum: int) -> Sequence[Any]:
     completed = subprocess.run([f"ps wwaux | grep port={portnum} | grep -v grep | grep -v startport="], shell=True,
@@ -182,96 +182,96 @@ async def do_up(
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> Mapping[str, str | Callable[[], None]]:
-    vuedict = read_all(workdir)
+  vuedict = await read_all(workdir)
 
-    if not isfile(args.filename):
-      print(f"have you got the right filename? I can't see {args.filename} from here", file=sys.stderr)
+  if not isfile(args.filename):
+    print(f"have you got the right filename? I can't see {args.filename} from here", file=sys.stderr)
 
-    dead_slots = []
-    start_port = args.startport
-    pool_size = args.poolsize
-    print(f"** startport = {start_port}", file=sys.stderr)
-    print(f"** poolsize = {pool_size}", file=sys.stderr)
+  dead_slots = []
+  start_port = args.startport
+  pool_size = args.poolsize
+  print(f"** startport = {start_port}", file=sys.stderr)
+  print(f"** poolsize = {pool_size}", file=sys.stderr)
 
-    # is there already a server running on the desired uuid-ssid-sheetid?
-    existing = {
-      js for js in vuedict.values()
-      if js['ssid'] == args.ssid
-      and js['sheetid'] == args.sheetid
-      and js['uuid'] == args.uuid
-    }
+  # is there already a server running on the desired uuid-ssid-sheetid?
+  existing = {
+    js for js in vuedict.values()
+    if js['ssid'] == args.ssid
+    and js['sheetid'] == args.sheetid
+    and js['uuid'] == args.uuid
+  }
 
-    need_to_relaunch = True
-    async with asyncio.TaskGroup() as taskgroup:
-      for e in existing:
-        match e:
-          case {'port': port, 'slot': slot, 'dir': dir, 'base_url': base_url}:
-            print(f"** found allegedly existing server(s) on our uuid/ssid/sheetid: {slot}", file=sys.stderr)
-            mymatches = print_server_info(port)
-            if mymatches:
-              print(f"server seems to be still running for port {port}!", file=sys.stderr)
-              need_to_relaunch = False
-              print("refreshing the purs file", file=sys.stderr)
-              # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
-              #  reread the file too soon, when the cp hasn't completed.
-              purs_file = Path(dir) / "src" / "RuleLib" / "Interview.purs"
-              print(f"cp {args.filename} {purs_file}", file=sys.stderr)
-              taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
-              taskgroup.create_task(asyncio.to_thread(lambda: (Path(dir) / 'v8k.json').touch()))
-              print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
-            else:
-              print("but the server isn't running any longer.", file=sys.stderr)
-              dead_slots.append(f'{slot}')
-          case _: pass
+  need_to_relaunch = True
+  async with asyncio.TaskGroup() as taskgroup:
+    for e in existing:
+      match e:
+        case {'port': port, 'slot': slot, 'dir': dir, 'base_url': base_url}:
+          print(f"** found allegedly existing server(s) on our uuid/ssid/sheetid: {slot}", file=sys.stderr)
+          mymatches = print_server_info(port)
+          if mymatches:
+            print(f"server seems to be still running for port {port}!", file=sys.stderr)
+            need_to_relaunch = False
+            print("refreshing the purs file", file=sys.stderr)
+            # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
+            #  reread the file too soon, when the cp hasn't completed.
+            purs_file = Path(dir) / "src" / "RuleLib" / "Interview.purs"
+            print(f"cp {args.filename} {purs_file}", file=sys.stderr)
+            taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
+            taskgroup.create_task(asyncio.to_thread(lambda: (Path(dir) / 'v8k.json').touch()))
+            print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
+          else:
+            print("but the server isn't running any longer.", file=sys.stderr)
+            dead_slots.append(f'{slot}')
+        case _: pass
 
-    if not need_to_relaunch:
-      return pyrs.m()
+  if not need_to_relaunch:
+    return pyrs.m()
 
-    server_slots = {f"{n:02}" for n in range(0, pool_size)}
-    available_slots = server_slots - set(vuedict.keys()) | set(dead_slots)
+  server_slots = {f"{n:02}" for n in range(0, pool_size)}
+  available_slots = server_slots - set(vuedict.keys()) | set(dead_slots)
 
-    print(f"server_slots    = {server_slots}", file=sys.stderr)
-    print(f"vuedict.keys()  = {vuedict.keys()}", file=sys.stderr)
-    print(f"dead_slots      = {dead_slots}", file=sys.stderr)
-    print(f"available_slots = {available_slots}", file=sys.stderr)
+  print(f"server_slots    = {server_slots}", file=sys.stderr)
+  print(f"vuedict.keys()  = {vuedict.keys()}", file=sys.stderr)
+  print(f"dead_slots      = {dead_slots}", file=sys.stderr)
+  print(f"available_slots = {available_slots}", file=sys.stderr)
 
-    match (len(available_slots), len(existing), len(vuedict) >= pool_size):
-      case (0, _ , _) | (_, 0, True):
-        oldest = min(vuedict.values(), key=lambda js: js['modtime'])
-        print(f"oldest = {oldest}", file=sys.stderr)
-        print(f"** pool size reached, will replace oldest server {oldest['slot']}", file=sys.stderr)
-        take_down(vuedict, oldest['slot'])
-        available_slots = {oldest['slot']}
-      case _: pass
+  match (len(available_slots), len(existing), len(vuedict) >= pool_size):
+    case (0, _ , _) | (_, 0, True):
+      oldest = min(vuedict.values(), key=lambda js: js['modtime'])
+      print(f"oldest = {oldest}", file=sys.stderr)
+      print(f"** pool size reached, will replace oldest server {oldest['slot']}", file=sys.stderr)
+      take_down(vuedict, oldest['slot'])
+      available_slots = {oldest['slot']}
+    case _: pass
 
-    chosen_slot = next(iter(available_slots))
+  chosen_slot = next(iter(available_slots))
 
-    print(f"available_slots = {available_slots}", file=sys.stderr)
-    print(f"chosen_slot     = {chosen_slot}", file=sys.stderr)
+  print(f"available_slots = {available_slots}", file=sys.stderr)
+  print(f"chosen_slot     = {chosen_slot}", file=sys.stderr)
 
-    portnum = int(start_port) + int(chosen_slot)
-    print(f"** chose {chosen_slot} out of available slots {available_slots}, port={portnum}", file=sys.stderr)
+  portnum = int(start_port) + int(chosen_slot)
+  print(f"** chose {chosen_slot} out of available slots {available_slots}, port={portnum}", file=sys.stderr)
 
-    server_config = {
-      "ssid": args.ssid,
-      "sheetid": args.sheetid,
-      "uuid": args.uuid,
-      "port": portnum,
-      "slot": chosen_slot,
-      "dir": f'{Path(workdir) / f"vue-{chosen_slot}"}',
-      "base_url": f'{Path("/") / args.uuid / args.ssid / args.sheetid}',
-      "cli": ('npm', 'run', 'serve', '--', f'--port={portnum}')
-    }
+  server_config = {
+    "ssid": args.ssid,
+    "sheetid": args.sheetid,
+    "uuid": args.uuid,
+    "port": portnum,
+    "slot": chosen_slot,
+    "dir": f'{Path(workdir) / f"vue-{chosen_slot}"}',
+    "base_url": f'{Path("/") / args.uuid / args.ssid / args.sheetid}',
+    "cli": ('npm', 'run', 'serve', '--', f'--port={portnum}')
+  }
 
-    return pyrs.m(
-      port = server_config['port'],
-      base_url = server_config['base_url'],
-      vue_purs_tasks = pipe(
-        (args, workdir, server_config),
-        lambda x: vue_purs_post_process(*x),
-        aiostream.stream.just
-      )
+  return pyrs.m(
+    port = server_config['port'],
+    base_url = server_config['base_url'],
+    vue_purs_tasks = pipe(
+      (args, workdir, server_config),
+      lambda x: vue_purs_post_process(*x),
+      aiostream.stream.just
     )
+  )
 
 @curry
 async def take_down(vuedict, slot) -> None:
