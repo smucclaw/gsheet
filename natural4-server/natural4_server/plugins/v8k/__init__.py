@@ -165,17 +165,15 @@ async def vue_purs_post_process(
       print(rsync_command, file=sys.stderr)
       await asyncio.subprocess.create_subprocess_exec(*rsync_command)
 
+      await aioshutil.copy(
+        args.filename,
+        server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
+      )
+
       async with (
         aiofiles.open(server_config_dir / 'v8k.json', 'w') as v8k_json_file,
         asyncio.TaskGroup() as taskgroup
       ):
-        taskgroup.create_task(
-          aioshutil.copy(
-            args.filename,
-            server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
-          )
-        )
-
         pipe(
           server_config,
           dict,
@@ -184,12 +182,14 @@ async def vue_purs_post_process(
           taskgroup.create_task
         )
 
-      os.environ["BASE_URL"] = server_config_base_url
+        os.environ["BASE_URL"] = server_config_base_url
 
-      # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
-      runvue = await asyncio.subprocess.create_subprocess_exec(
-        *server_config_cli, cwd = server_config_dir
-      )
+        # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
+        runvue = taskgroup.create_task(
+          asyncio.subprocess.create_subprocess_exec(
+            *server_config_cli, cwd = server_config_dir
+          )
+        )
 
     case _: pass
 
