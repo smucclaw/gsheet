@@ -154,6 +154,8 @@ async def vue_purs_post_process(
       'base_url': server_config_base_url,
       'cli': server_config_cli
     }:
+      server_config_dir = Path(server_config_dir)
+
       rsync_command = pyrs.v(
         'rsync', '-a',
         f'{Path(workdir) / "vue-small"}/',
@@ -163,10 +165,8 @@ async def vue_purs_post_process(
       print(rsync_command, file=sys.stderr)
       await asyncio.subprocess.create_subprocess_exec(*rsync_command)
 
-      server_config_dir = Path(server_config_dir)
-
       async with (
-        aiofiles.open(Path(server_config_dir) / 'v8k.json', 'w+') as v8k_json_file,
+        aiofiles.open(server_config_dir / 'v8k.json', 'w') as v8k_json_file,
         asyncio.TaskGroup() as taskgroup
       ):
         taskgroup.create_task(
