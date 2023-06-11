@@ -6,6 +6,8 @@ from pathlib import Path
 from cytoolz.functoolz import *
 from cytoolz.curried import *
 
+import aiofiles
+
 import maude
 from natural4_server.task import Task
 
@@ -26,7 +28,7 @@ def gen_state_space(
 ) -> Awaitable[None]:
   '''
   Generate state space graph.
-  graph.expand() in FailFreeGraph may take forever because the state
+  Note that graph.expand() in FailFreeGraph may take forever because the state
   space may be infinite.
   '''
 
@@ -67,8 +69,8 @@ async def get_maude_tasks(
   output_path = Path(output_path)
   output_path.mkdir(parents=True, exist_ok=True)
   # natural4_file = maude_path / 'LATEST.natural4'
-  with open(natural4_file) as f:
-    natural4_rules: str = f.read()
+  async with aiofiles.open(natural4_file) as f:
+    natural4_rules: str = await f.read()
 
   # We don't proceed with post processing if the natural4 file is empty or
   # contains only whitespaces.
