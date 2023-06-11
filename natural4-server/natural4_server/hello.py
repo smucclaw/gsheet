@@ -10,7 +10,6 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-import codecs
 from collections.abc import (
   AsyncGenerator,
   Awaitable,
@@ -19,10 +18,8 @@ from collections.abc import (
   Sequence
 )
 import datetime
-import json
 import os
 from pathlib import Path
-import subprocess
 import sys
 import typing
 
@@ -358,7 +355,11 @@ async def process_csv() -> str:
     pandoc_tasks
   )
   async for slow_task in slow_tasks:
-    app.add_background_task(slow_task)
+    match slow_task:
+      case {'func': func, 'args': args}:
+        app.add_background_task(func, *args)
+      case _ : pass
+
   # app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
   # Process(
   #   target = compose_left(run_tasks, asyncio.run),

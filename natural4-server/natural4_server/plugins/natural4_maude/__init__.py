@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator, Awaitable
 import os
 
 from cytoolz.functoolz import curry
+import pyrsistent as pyrs
 
 try:
   from .analyse_state_space import get_maude_tasks
@@ -12,4 +13,8 @@ except ImportError:
     _natural4_file: str | os.PathLike,
     _output_path: str | os.PathLike
   ) -> AsyncGenerator[Awaitable[None], None]:
-    yield asyncio.to_thread(lambda: None)
+    # yield asyncio.to_thread(lambda: None)
+    yield pyrs.m(
+      func = lambda: None,
+      args = tuple()
+    )

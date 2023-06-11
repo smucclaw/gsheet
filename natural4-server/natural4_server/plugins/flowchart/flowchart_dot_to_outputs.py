@@ -120,6 +120,7 @@ async def get_flowchart_tasks(
   timestamp: str | os.PathLike
 ) -> AsyncGenerator[Awaitable[None], None]:
   for output in flowchart_outputs:
-    yield asyncio.to_thread(
-      flowchart_dot_to_output, uuid_ss_folder, timestamp, output
+    yield pyrs.m(
+      func = flowchart_dot_to_output,
+      args = (uuid_ss_folder, timestamp, output)
     )

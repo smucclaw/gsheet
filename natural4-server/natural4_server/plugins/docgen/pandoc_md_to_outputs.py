@@ -79,9 +79,10 @@ async def get_pandoc_tasks(
   markdown_coro: Awaitable[asyncio.subprocess.Process],
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
-) -> AsyncGenerator[Awaitable[None], None]:
+):
   await markdown_coro
   for output in pandoc_outputs:
-    yield asyncio.to_thread(
-      pandoc_md_to_output, uuid_ss_folder, timestamp, output
+    yield pyrs.m(
+      func = pandoc_md_to_output,
+      args = (uuid_ss_folder, timestamp, output)
     )

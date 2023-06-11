@@ -5,6 +5,7 @@ from pathlib import Path
 
 from cytoolz.functoolz import *
 from cytoolz.curried import *
+import pyrsistent as pyrs
 
 import maude
 
@@ -79,5 +80,5 @@ async def get_maude_tasks(
     )
     # Do we need to worry about this being None?
     if config:
-      yield find_race_cond(output_path, natural4_rules)
-      yield gen_state_space(output_path, config)
+      yield pyrs.m(func = find_race_cond, args = (output_path, natural4_rules))
+      yield pyrs.m(func = gen_state_space, args = (output_path, config))
