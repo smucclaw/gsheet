@@ -166,7 +166,7 @@ async def vue_purs_post_process(
       server_config_dir = Path(server_config_dir)
 
       async with (
-        aiofiles.open(Path(server_config_dir) / 'v8k.json', 'w') as v8k_json_file,
+        aiofiles.open(Path(server_config_dir) / 'v8k.json', 'w+') as v8k_json_file,
         asyncio.TaskGroup() as taskgroup
       ):
         taskgroup.create_task(
