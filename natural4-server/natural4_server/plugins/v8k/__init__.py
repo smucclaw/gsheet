@@ -160,7 +160,7 @@ async def vue_purs_post_process(
       )
 
       print(rsync_command, file=sys.stderr)
-      await asyncio.subprocess.run(rsync_command)
+      await asyncio.subprocess.create_subprocess_exec(*rsync_command)
 
       server_config_dir = Path(server_config_dir)
 
