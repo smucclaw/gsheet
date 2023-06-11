@@ -77,15 +77,12 @@ async def getjson(pathin: str | os.PathLike):
   pathin = Path(pathin)
   data = None
   async with aiofiles.open(pathin, 'r') as read_file:
-    try:
-      json_str = await read_file.read()
-      # raise Exception(f'json_str: {json_str}')
-      # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
-      data = json.loads(json_str.strip())
-      data['jsonfile'] = pathin
-      data['modtime'] = pathin.stat().st_mtime
-    except:
-      raise Exception(f'json_str: {json_str.strip()}')
+    json_str = await read_file.read()
+    # raise Exception(f'json_str: {json_str}')
+    # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
+    data = json.loads(json_str.strip())
+    data['jsonfile'] = pathin
+    data['modtime'] = pathin.stat().st_mtime
   return data
 
 def read_all(workdir: str | os.PathLike):
@@ -168,21 +165,32 @@ async def vue_purs_post_process(
 
       server_config_dir = Path(server_config_dir)
 
-      await aioshutil.copy(
-        args.filename,
-        server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
-      )
+      async with (
+        aiofiles.open(Path(server_config_dir) / 'v8k.json', 'w') as v8k_json_file,
+        asyncio.TaskGroup() as taskgroup
+      ):
+        taskgroup.create_task(
+          aioshutil.copy(
+            args.filename,
+            server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
+          )
+        )
 
-      async with aiofiles.open(Path(server_config_dir) / 'v8k.json', 'w') as write_file:
-        write_file.write(json.dumps(dict(server_config)))
+        pipe(
+          server_config,
+          dict,
+          json.dumps,
+          v8k_json_file.write,
+          taskgroup.create_task
+        )
 
       os.environ["BASE_URL"] = server_config_base_url
 
       # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
       runvue = await asyncio.subprocess.create_subprocess_exec(
-        *server_config_cli,
-        cwd = server_config_dir
+        *server_config_cli, cwd = server_config_dir
       )
+
     case _: pass
 
 @curry
