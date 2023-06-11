@@ -35,7 +35,8 @@ import aiostream
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
 
-from flask import Flask, Response, request, send_file
+# from flask import Flask, Response, request, send_file
+from quart import Quart, Response, request, send_file
 
 from plugins.docgen import get_pandoc_tasks
 from plugins.flowchart import get_flowchart_tasks
@@ -81,7 +82,7 @@ temp_dir: Path = basedir / "temp"
 static_dir: Path = basedir / "static"
 natural4_dir: Path = temp_dir / "workdir"
 
-app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+app = Quart(__name__, template_folder=template_dir, static_folder=static_dir)
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
