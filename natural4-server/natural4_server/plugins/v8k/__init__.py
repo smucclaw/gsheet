@@ -104,9 +104,8 @@ def read_all(workdir: str | os.PathLike):
   return descriptor_map
 
 async def print_server_info(portnum: int) -> Sequence[Any]:
-  completed = await asyncio.subprocess.create_subprocess_exec(
+  completed = await asyncio.subprocess.create_subprocess_shell(
     f"ps wwaux | grep port={portnum} | grep -v grep | grep -v startport=",
-    # shell=True,
     stdout = asyncio.subprocess.PIPE,
     stderr = asyncio.subprocess.PIPE
   )
