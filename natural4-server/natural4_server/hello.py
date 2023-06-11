@@ -286,9 +286,9 @@ async def process_csv() -> str:
   # postprocessing: for petri nets: turn the DOT files into PNGs
   # we run this asynchronously and block at the end before returning.
   # ---------------------------------------------
-  uuid_ss_folder: Path = temp_dir / "workdir" / uuid / spreadsheet_id / sheet_id
-  petri_folder: Path = uuid_ss_folder / "petri"
-  dot_path: Path = petri_folder / "LATEST.dot"
+  uuid_ss_folder: Path = temp_dir / 'workdir' / uuid / spreadsheet_id / sheet_id
+  petri_folder: Path = uuid_ss_folder / 'petri'
+  dot_path: Path = petri_folder / 'LATEST.dot'
   timestamp: Path = Path(dot_path.readlink().stem)
 
   flowchart_coro: Awaitable[None] = pipe(
@@ -306,7 +306,7 @@ async def process_csv() -> str:
   # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
   pandoc_tasks: AsyncGenerator[Awaitable[None], None] = (
-    get_pandoc_tasks(await markdown_coro, uuid_ss_folder, timestamp)
+    get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
   )
 
   # ---------------------------------------------
@@ -358,13 +358,13 @@ async def process_csv() -> str:
     vue_purs_tasks,
     pandoc_tasks
   )
-  # async for slow_task in slow_tasks:
-  #   match slow_task:
-  #     case {'func': func, 'args': args}:
-  #       app.add_background_task(func, *args)
-  #     case _ : pass
+  async for slow_task in slow_tasks:
+    match slow_task:
+      case {'func': func, 'args': args}:
+        app.add_background_task(func, *args)
+      case _ : pass
 
-  app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
+  # app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
 
   # Process(
   #   target = compose_left(run_tasks, asyncio.run),

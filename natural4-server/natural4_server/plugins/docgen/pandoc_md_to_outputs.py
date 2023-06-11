@@ -73,13 +73,15 @@ def pandoc_md_to_output(
         latest_file: Path = outputpath / f'LATEST.{file_extension}'
         latest_file.unlink(missing_ok = True)
         latest_file.symlink_to(timestamp_file)
+      case _ : pass
 
 @curry
 async def get_pandoc_tasks(
-  markdown_proc: asyncio.subprocess.Process,
+  markdown_coro: Awaitable[asyncio.subprocess.Process],
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
 ):
+  markdown_proc: asyncio.subprocess.Process = await markdown_coro
   await markdown_proc.wait()
   for output in pandoc_outputs:
     yield pyrs.m(
