@@ -78,7 +78,7 @@ async def getjson(pathin: str | os.PathLike):
   data = None
   async with aiofiles.open(pathin, 'r') as read_file:
     json_str = await read_file.read()
-    print(f'json_str: {json_str}', file=sys.stderr)
+    raise Exception(f'json_str: {json_str}', file=sys.stderr)
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
     data = json.loads(json_str.strip())
     data['jsonfile'] = pathin
