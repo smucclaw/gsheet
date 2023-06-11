@@ -347,10 +347,11 @@ async def process_csv() -> str:
     vue_purs_tasks,
     pandoc_tasks
   )
-  Process(
-    target = compose_left(run_tasks, asyncio.run),
-    args = (slow_tasks,)
-  ).start()
+  app.add_background_task(run_tasks(slow_tasks))
+  # Process(
+  #   target = compose_left(run_tasks, asyncio.run),
+  #   args = (slow_tasks,)
+  # ).start()
 
   # ---------------------------------------------
   # load in the aasvg index HTML to pass back to sidebar
