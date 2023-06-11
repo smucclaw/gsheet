@@ -184,7 +184,7 @@ async def process_csv() -> str:
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-  data: pyrst.PMap[str, str] = pyrs.pmap(request.form)
+  data: pyrst.PMap[str, str] = pyrs.pmap(await request.form)
 
   response: pyrst.PMap[str, str | None] = pyrs.m()
 
