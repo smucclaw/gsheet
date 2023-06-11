@@ -77,12 +77,15 @@ async def getjson(pathin: str | os.PathLike):
   pathin = Path(pathin)
   data = None
   async with aiofiles.open(pathin, 'r') as read_file:
-    json_str = await read_file.read()
-    raise Exception(f'json_str: {json_str}')
-    # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
-    data = json.loads(json_str.strip())
-    data['jsonfile'] = pathin
-    data['modtime'] = pathin.stat().st_mtime
+    try:
+      json_str = await read_file.read()
+      # raise Exception(f'json_str: {json_str}')
+      # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
+      data = json.loads(json_str.strip())
+      data['jsonfile'] = pathin
+      data['modtime'] = pathin.stat().st_mtime
+    except:
+      raise Exception(f'json_str: {json_str.strip()}')
   return data
 
 def read_all(workdir: str | os.PathLike):
