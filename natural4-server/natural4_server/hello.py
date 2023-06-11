@@ -314,7 +314,7 @@ async def process_csv() -> str:
   # ---------------------------------------------
   print('Running v8k', file=sys.stderr)
 
-  v8k_up_result = v8k.main(
+  v8k_up_result = await v8k.main(
     'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
   )
 

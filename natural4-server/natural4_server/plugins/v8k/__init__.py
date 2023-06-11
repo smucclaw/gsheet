@@ -101,7 +101,7 @@ def print_server_info(portnum: int) -> Sequence[Any]:
     return mymatches
 
 @curry
-def do_list(
+async def do_list(
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> None:
@@ -111,7 +111,7 @@ def do_list(
     print_server_info(descriptor['port'])
 
 @curry
-def do_find(
+async def do_find(
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> None:
@@ -129,7 +129,7 @@ def do_find(
         print(f":{js['port']}/{js['base_url']}") # match the STDOUT convention in do_up
 
 @curry
-def vue_purs_post_process(
+async def vue_purs_post_process(
   args: argparse.Namespace,
   workdir: str | os.PathLike,
   server_config: Mapping[str, str | Sequence[str]]
@@ -166,7 +166,7 @@ def vue_purs_post_process(
     case _: pass
 
 @curry
-def do_up(
+async def do_up(
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> Mapping[str, str | Callable[[], None]]:
@@ -223,7 +223,7 @@ def do_up(
         oldest = min(vuedict.values(), key=lambda js: js['modtime'])
         print(f"oldest = {oldest}", file=sys.stderr)
         print(f"** pool size reached, will replace oldest server {oldest['slot']}", file=sys.stderr)
-        asyncio.run(take_down(vuedict, oldest['slot']))
+        take_down(vuedict, oldest['slot'])
         available_slots = {oldest['slot']}
       case _: pass
 
@@ -250,8 +250,8 @@ def do_up(
       port = server_config['port'],
       base_url = server_config['base_url'],
       vue_purs_tasks = pipe(
-        (vue_purs_post_process, args, workdir, server_config),
-        lambda x: asyncio.to_thread(*x),
+        (args, workdir, server_config),
+        lambda x: vue_purs_post_process(*x),
         aiostream.stream.just
       )
     )
@@ -271,7 +271,7 @@ async def take_down(vuedict, slot) -> None:
     print(f"unable to find pid running vue server on port {portnum}", file=sys.stderr)
 
 @curry
-def do_down(
+async def do_down(
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> None:
@@ -289,7 +289,7 @@ def do_down(
     take_down(vuedict, s)
 
 @curry
-def do_downdir(
+async def do_downdir(
   args: argparse.Namespace,
   workdir: str | os.PathLike
 ) -> None:
@@ -340,7 +340,7 @@ def setup_argparser() -> argparse.ArgumentParser:
   return argparser
 
 @curry
-def main(
+async def main(
   command: str,
   uuid: str,
   spreadsheet_id: str,
@@ -376,7 +376,7 @@ def main(
       print("v8k: you need to export V8K_WORKDIR=\"/home/something/multivue\"", file=sys.stderr)
       return
       # sys.exit(1)
-    return args.func(args, workdir)
+    return await args.func(args, workdir)
 
 # if __name__ == '__main__':
 #   main(sys.argv)
