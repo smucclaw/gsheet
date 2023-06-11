@@ -12,7 +12,7 @@ except ImportError:
   async def get_maude_tasks(
     _natural4_file: str | os.PathLike,
     _output_path: str | os.PathLike
-  ) -> AsyncGenerator[Awaitable[None], None]:
+  ):
     # yield asyncio.to_thread(lambda: None)
     yield pyrs.m(
       func = lambda: None,

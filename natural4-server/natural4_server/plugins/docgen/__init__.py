@@ -13,7 +13,7 @@ except ImportError:
     markdown_coro: Awaitable[asyncio.subprocess.Process],
     uuid_ss_folder: str | os.PathLike,
     timestamp: str | os.PathLike
-  ) -> AsyncGenerator[Awaitable[None], None]:
+  ):
     yield pyrs.m(
       func = lambda: None,
       args = tuple()

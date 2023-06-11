@@ -12,7 +12,7 @@ except ImportError:
   async def get_flowchart_tasks(
     _uuid_ss_folder : str | os.PathLike,
     _timestamp : str | os.PathLike
-  ) -> AsyncGenerator[Awaitable[None], None]:
+  ):
     # yield asyncio.to_thread(lambda: None)
     yield pyrs.m(
       func = lambda: None,

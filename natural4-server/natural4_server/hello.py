@@ -166,8 +166,12 @@ async def run_tasks(
   try:
     async with (asyncio.timeout(20), asyncio.TaskGroup() as taskgroup):
       async for task in tasks:
-        print(f'Running task: {task}', file=sys.stderr)
-        taskgroup.create_task(task)
+        match task:
+          case {'func': func, 'args': args}:
+            print(f'Running task: {task}', file=sys.stderr)
+            taskgroup.create_task(asyncio.to_thread(func, args))
+          case _: pass
+
   except TimeoutError as exc:
     print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
 

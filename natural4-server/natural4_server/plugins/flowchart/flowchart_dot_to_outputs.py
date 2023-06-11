@@ -118,7 +118,7 @@ def flowchart_dot_to_output(
 async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike
-) -> AsyncGenerator[Awaitable[None], None]:
+):
   for output in flowchart_outputs:
     yield pyrs.m(
       func = flowchart_dot_to_output,
