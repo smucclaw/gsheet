@@ -175,8 +175,8 @@ async def vue_purs_post_process(
       os.environ["BASE_URL"] = server_config_base_url
 
       # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
-      runvue = await asyncio.subprocess.run(
-        server_config_cli,
+      runvue = await asyncio.subprocess.create_subprocess_exec(
+        *server_config_cli,
         cwd = server_config_dir
       )
     case _: pass
