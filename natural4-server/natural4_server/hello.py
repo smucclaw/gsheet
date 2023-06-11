@@ -153,12 +153,10 @@ async def show_aasvg_image(
 ) -> Response:
   print('show_aasvg_image: handling request for /aasvg/ url', file=sys.stderr)
 
-  return await pipe(
-    temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image,
-    do(lambda image_path:
-        print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)),
-    send_file
-  )
+  image_path = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image
+  print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
+
+  return await send_file(image_path)
 
 async def run_tasks(
   tasks: AsyncGenerator[Coroutine, None]
@@ -246,9 +244,11 @@ async def process_csv() -> str:
   print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
 
-  nl4exe: subprocess.CompletedProcess[bytes] = subprocess.run(
-    create_files,
-    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+  nl4exe: subprocess.CompletedProcess[bytes] = (
+    await asyncio.subprocess.create_subprocess_exec(
+      *create_files,
+      stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
   )
 
   print(
