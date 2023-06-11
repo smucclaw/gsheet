@@ -46,6 +46,7 @@ from pathlib import Path
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
+import aiofiles
 import aioshutil
 import aiostream
 
@@ -75,12 +76,12 @@ v8k_startport: str = os.environ.get('v8k_startport', '')
 async def getjson(pathin: str | os.PathLike):
   pathin = Path(pathin)
   data = None
-  with open(pathin, 'r') as read_file:
+  with aiofiles.open(pathin, 'r') as read_file:
     json_str = read_file.read().strip()
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
     data = json.loads(json_str)
     data['jsonfile'] = pathin
-    data['modtime'] = getmtime(pathin)
+    data['modtime'] = pathin.stat().st_mtime
   return data
 
 def read_all(workdir: str | os.PathLike):
@@ -159,22 +160,25 @@ async def vue_purs_post_process(
       )
 
       print(rsync_command, file=sys.stderr)
-      subprocess.run(rsync_command)
+      await asyncio.subprocess.run(rsync_command)
 
       server_config_dir = Path(server_config_dir)
 
-      shutil.copy(
+      await aioshutil.copy(
         args.filename,
         server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
       )
 
-      with open(Path(server_config_dir) / 'v8k.json', 'w') as write_file:
-        json.dump(dict(server_config), write_file)
+      async with aiofiles.open(Path(server_config_dir) / 'v8k.json', 'w') as write_file:
+        write_file.write(json.dumps(dict(server_config)))
 
       os.environ["BASE_URL"] = server_config_base_url
 
       # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
-      runvue = subprocess.run(server_config_cli, cwd = server_config_dir)
+      runvue = await asyncio.subprocess.run(
+        server_config_cli,
+        cwd = server_config_dir
+      )
     case _: pass
 
 @curry

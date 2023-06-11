@@ -235,7 +235,7 @@ async def process_csv() -> str:
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files: Sequence[str] = pyrs.v(
+  create_files: Sequence[str] = (
     natural4_exe,
     '--tomd', '--toasp', '--toepilog',
     f'--workdir={natural4_dir}',
