@@ -194,18 +194,24 @@ async def do_up(
   print(f"** poolsize = {pool_size}", file=sys.stderr)
 
   # is there already a server running on the desired uuid-ssid-sheetid?
-  existing = tuple(
-    js for js in vuedict.values()
-    if js['ssid'] == args.ssid
-    and js['sheetid'] == args.sheetid
-    and js['uuid'] == args.uuid
+  existing = pipe(
+    vuedict.values(),
+    filter(
+      lambda js:
+        js['ssid'] == args.ssid and
+        js['sheetid'] == args.sheetid and
+        js['uuid'] == args.uuid
+    )
   )
 
+  any_existing = False
   need_to_relaunch = True
+
   async with asyncio.TaskGroup() as taskgroup:
     for e in existing:
       match e:
         case {'port': port, 'slot': slot, 'dir': dir, 'base_url': base_url}:
+          any_existing = True
           print(f"** found allegedly existing server(s) on our uuid/ssid/sheetid: {slot}", file=sys.stderr)
           mymatches = print_server_info(port)
           if mymatches:
@@ -235,8 +241,8 @@ async def do_up(
   print(f"dead_slots      = {dead_slots}", file=sys.stderr)
   print(f"available_slots = {available_slots}", file=sys.stderr)
 
-  match (len(available_slots), len(existing), len(vuedict) >= pool_size):
-    case (0, _ , _) | (_, 0, True):
+  match (len(available_slots), any_existing, len(vuedict) >= pool_size):
+    case (0, _ , _) | (_, False, True):
       oldest = min(vuedict.values(), key=lambda js: js['modtime'])
       print(f"oldest = {oldest}", file=sys.stderr)
       print(f"** pool size reached, will replace oldest server {oldest['slot']}", file=sys.stderr)
