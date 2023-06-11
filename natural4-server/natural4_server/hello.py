@@ -306,7 +306,7 @@ async def process_csv() -> str:
   # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
   pandoc_tasks: AsyncGenerator[Awaitable[None], None] = (
-    get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
+    get_pandoc_tasks(await markdown_coro, uuid_ss_folder, timestamp)
   )
 
   # ---------------------------------------------

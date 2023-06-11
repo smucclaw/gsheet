@@ -76,11 +76,11 @@ def pandoc_md_to_output(
 
 @curry
 async def get_pandoc_tasks(
-  markdown_coro: Awaitable[asyncio.subprocess.Process],
+  markdown_proc: asyncio.subprocess.Process,
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
 ):
-  await (await markdown_coro).wait()
+  await markdown_proc.wait()
   for output in pandoc_outputs:
     yield pyrs.m(
       func = pandoc_md_to_output,
