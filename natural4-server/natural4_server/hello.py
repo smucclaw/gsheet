@@ -357,7 +357,8 @@ async def process_csv() -> str:
     vue_purs_tasks,
     pandoc_tasks
   )
-  app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
+  # app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
+  app.add_background_task(run_tasks, slow_tasks)
   # Process(
   #   target = compose_left(run_tasks, asyncio.run),
   #   args = (slow_tasks,)
