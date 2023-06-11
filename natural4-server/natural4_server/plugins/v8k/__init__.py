@@ -123,10 +123,47 @@ def do_find(
                 and js['uuid'] == args.uuid
                 }
     for (s, js) in existing.items():
-        print(f"* found allocated server on our uuid/ssid/sheetid: {js['slot']}", file=sys.stderr)
-        mymatches = print_server_info(js['port'])
-        if mymatches:
-          print(f":{js['port']}/{js['base_url']}") # match the STDOUT convention in do_up
+      print(f"* found allocated server on our uuid/ssid/sheetid: {js['slot']}", file=sys.stderr)
+      mymatches = print_server_info(js['port'])
+      if mymatches:
+        print(f":{js['port']}/{js['base_url']}") # match the STDOUT convention in do_up
+
+@curry
+def vue_purs_post_process(
+  args: argparse.Namespace,
+  workdir: str | os.PathLike,
+  server_config: Mapping[str, str | Sequence[str]]
+) -> None:
+  match server_config:
+    case {
+      'dir': server_config_dir,
+      'base_url': server_config_base_url,
+      'cli': server_config_cli
+    }:
+      rsync_command = pyrs.v(
+        'rsync', '-a',
+        f'{Path(workdir) / "vue-small"}/',
+        f'{server_config_dir}/'
+      )
+
+      print(rsync_command, file=sys.stderr)
+      subprocess.run(rsync_command)
+
+      server_config_dir = Path(server_config_dir)
+
+      shutil.copy(
+        args.filename,
+        server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
+      )
+
+      with open(Path(server_config_dir) / 'v8k.json', 'w') as write_file:
+        json.dump(dict(server_config), write_file)
+
+      os.environ["BASE_URL"] = server_config_base_url
+
+      # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
+      runvue = subprocess.run(server_config_cli, cwd = server_config_dir)
+    case _: pass
 
 @curry
 def do_up(
@@ -163,9 +200,7 @@ def do_up(
         #  reread the file too soon, when the cp hasn't completed.
         purs_file = Path(e['dir']) / "src" / "RuleLib" / "Interview.purs"
         print(f"cp {args.filename} {purs_file}", file=sys.stderr)
-        # subprocess.run(["cp", args.filename, purs_file])
         shutil.copy(args.filename, purs_file)
-        # subprocess.run(["touch", join(e['dir'], "v8k.json")])
         (Path(e['dir']) / 'v8k.json').touch()
         print(f":{e['port']}{e['base_url']}") # the port and base_url returned on STDOUT are read by the caller hello.py
       else:
@@ -200,68 +235,26 @@ def do_up(
     portnum = int(start_port) + int(chosen_slot)
     print(f"** chose {chosen_slot} out of available slots {available_slots}, port={portnum}", file=sys.stderr)
 
-    server_config_dir = Path(workdir) / f"vue-{chosen_slot}"
-    server_config_cli = ['npm', 'run', 'serve', '--', f'--port={portnum}']
-
     server_config = {
       "ssid": args.ssid,
       "sheetid": args.sheetid,
       "uuid": args.uuid,
       "port": portnum,
       "slot": chosen_slot,
-      "dir": f'{server_config_dir}',
+      "dir": f'{Path(workdir) / f"vue-{chosen_slot}"}',
       "base_url": f'{Path("/") / args.uuid / args.ssid / args.sheetid}',
-      # "cli": ['npm', 'run', 'serve', '--', f'--port={portnum}']
-      "cli": f'{" ".join(server_config_cli)}'
+      "cli": ('npm', 'run', 'serve', '--', f'--port={portnum}')
     }
-
-    # child_pid = os.fork()
-    # # if this leads to trouble we may need to double-fork with grandparent-wait
-    # if child_pid > 0:  # in the parent
-    #   print(f"v8k: fork(parent): returning port {portnum}", file=sys.stderr)
-    #   with open(v8k_outfile, 'a+') as outfile:
-    #     print(f":{server_config['port']}{server_config['base_url']}", file=outfile) # the port and base_url returned on STDOUT are read by the caller hello.py
-    #   return
-    # else:  # in the child
-    #  print("v8k: fork(child): continuing to run", file=sys.stderr)
-
-    def vue_purs_post_process():
-      # rsync_command = f"rsync -a {workdir}/vue-small/ {server_config['dir']}/"
-      # subprocess.run([rsync_command], shell=True)
-      rsync_command = pyrs.v(
-        'rsync', '-a',
-        f'{Path(workdir) / "vue-small"}/',
-        f'{server_config_dir}/'
-      )
-
-      print(rsync_command, file=sys.stderr)
-      subprocess.run(rsync_command)
-
-      # subprocess.run(["cp", args.filename, join(server_config['dir'], "src", "RuleLib", "PDPADBNO.purs")])
-      shutil.copy(
-        args.filename,
-        server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
-      )
-
-      with open(Path(server_config['dir']) / "v8k.json", "w") as write_file:
-        json.dump(server_config, write_file)
-
-      os.environ["BASE_URL"] = server_config['base_url']
-
-      # os.chdir(server_config['dir'])
-      # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
-      runvue = subprocess.run(server_config_cli, cwd = server_config_dir)
-
-    print("v8k: fork(child): exiting", file=sys.stderr)
 
     return pyrs.m(
       port = server_config['port'],
       base_url = server_config['base_url'],
       vue_purs_tasks = pipe(
-        vue_purs_post_process, asyncio.to_thread, aiostream.stream.just
+        (vue_purs_post_process, args, workdir, server_config),
+        lambda x: asyncio.to_thread(*x),
+        aiostream.stream.just
       )
     )
-    # sys.exit(0)
 
 @curry
 async def take_down(vuedict, slot) -> None:

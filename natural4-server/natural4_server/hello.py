@@ -324,15 +324,15 @@ async def process_csv() -> str:
       'base_url': v8k_base_url,
       'vue_purs_tasks': vue_purs_tasks
     }:
-      v8k_url = f':{v8k_port}{v8k_base_url}'.strip()
-      response = response.set('v8k_url', v8k_url)
+      v8k_url = f':{v8k_port}{v8k_base_url}'
       vue_purs_tasks = vue_purs_tasks
     # Fall-through case in case v8k up didn't return a result or returned an
     # empty result.
     case _:
       v8k_url = None
-      response = response.set('v8k_url', None)
       vue_purs_tasks = aiostream.stream.empty()
+
+  response = response.set('v8k_url', v8k_url)
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   if v8k_url:
