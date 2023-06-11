@@ -52,7 +52,7 @@ try:
       dot_file,
       AGraph,
       do(lambda graph:
-          graph._draw(
+          graph.draw(
             output_file,
             format = Path(output_file).suffix[1:],
             prog = 'dot',
