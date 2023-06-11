@@ -10,6 +10,7 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
+import codecs
 from collections.abc import (
   AsyncGenerator,
   Awaitable,
@@ -244,10 +245,11 @@ async def process_csv() -> str:
   print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
 
-  nl4exe: subprocess.CompletedProcess[bytes] = (
+  nl4exe = (
     await asyncio.subprocess.create_subprocess_exec(
       *create_files,
-      stdout=subprocess.PIPE, stderr=subprocess.PIPE
+      stdout = asyncio.subprocess.PIPE,
+      stderr = asyncio.subprocess.PIPE
     )
   )
 
@@ -256,7 +258,9 @@ async def process_csv() -> str:
     file=sys.stderr
   )
 
-  nl4_out, nl4_err = nl4exe.stdout.decode('utf-8'), nl4exe.stderr.decode('utf-8')
+  nl4_out, nl4_err = await nl4exe.communicate()
+  nl4_out, nl4_err = nl4_out.decode(), nl4_err.decode()
+  # nl4exe.stdout.decode('utf-8'), nl4exe.stderr.decode('utf-8')
 
   print(f'hello.py main: natural4-exe stdout length = {len(nl4_out)}', file=sys.stderr)
   print(f'hello.py main: natural4-exe stderr length = {len(nl4_err)}', file=sys.stderr)
