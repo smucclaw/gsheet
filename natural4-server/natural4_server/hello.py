@@ -271,9 +271,9 @@ async def process_csv() -> str:
     print(nl4_err)
 
   async with (
-    asyncio.TaskGroup() as taskgroup,
     aiofiles.open(target_folder / f'{time_now}.err', 'w') as err_file,
-    aiofiles.open(target_folder / f'{time_now}.out', 'w') as out_file
+    aiofiles.open(target_folder / f'{time_now}.out', 'w') as out_file,
+    asyncio.TaskGroup() as taskgroup
   ):
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
