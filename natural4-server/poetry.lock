@@ -1341,4 +1341,4 @@ natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "22025859216798da7e1fc0512fe0a1c665bf3398bbbd15c35616d3828cd4e282"
+content-hash = "1949bbdfd43e898945a32af9131b18e8468af6611a2273e3aa32496b3a557f57"
