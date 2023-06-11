@@ -194,12 +194,12 @@ async def do_up(
   print(f"** poolsize = {pool_size}", file=sys.stderr)
 
   # is there already a server running on the desired uuid-ssid-sheetid?
-  existing = {
+  existing = tuple(
     js for js in vuedict.values()
     if js['ssid'] == args.ssid
     and js['sheetid'] == args.sheetid
     and js['uuid'] == args.uuid
-  }
+  )
 
   need_to_relaunch = True
   async with asyncio.TaskGroup() as taskgroup:
