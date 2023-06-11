@@ -339,8 +339,6 @@ async def process_csv() -> str:
 
   print(f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',file=sys.stderr)
 
-  add_tasks_to_background(vue_purs_tasks)
-
   # app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
 
   # ---------------------------------------------
@@ -355,8 +353,12 @@ async def process_csv() -> str:
     file=sys.stderr
   )
 
-  # Wait for the flowcharts to be generated before returning to the sidebar.
-  await flowchart_coro
+  # Concurrently:
+  # - wait for the flowcharts to be generated before returning to the sidebar.
+  # - add the vue purs postprocessing stuff as a background task.
+  async with asyncio.TaskGroup() as taskgroup:
+    taskgroup.create_task(flowchart_coro)
+    taskgroup.create_task(add_tasks_to_background(vue_purs_tasks, app))
 
   return {
     'nl4_stdout': nl4_stdout,
