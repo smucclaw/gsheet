@@ -14,7 +14,6 @@ from collections.abc import (
   AsyncGenerator,
   Awaitable,
   Collection,
-  Coroutine,
   Sequence
 )
 import datetime
@@ -36,6 +35,7 @@ import pyrsistent.typing as pyrst
 # from flask import Flask, Response, request, send_file
 from quart import Quart, Response, request, send_file
 
+from natural4_server.task import Task, run_tasks
 from plugins.docgen import get_pandoc_tasks
 from plugins.flowchart import get_flowchart_tasks
 from plugins.natural4_maude import get_maude_tasks
@@ -156,25 +156,6 @@ async def show_aasvg_image(
 
   return await send_file(image_path)
 
-async def run_tasks(
-  tasks: AsyncGenerator[Coroutine, None]
-) -> None:
-  '''
-  Runs tasks asynchronously in the background.
-  '''
-
-  try:
-    async with (asyncio.timeout(20), asyncio.TaskGroup() as taskgroup):
-      async for task in tasks:
-        match task:
-          case {'func': func, 'args': args}:
-            print(f'Running task: {task}', file=sys.stderr)
-            taskgroup.create_task(asyncio.to_thread(func, *args))
-          case _: pass
-
-  except TimeoutError as exc:
-    print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
-
 # ################################################
 #                      main
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
@@ -209,7 +190,7 @@ async def process_csv() -> str:
   # Generate markdown files asynchronously in the background.
   uuiddir: Path = Path(uuid) / spreadsheet_id / sheet_id
 
-  markdown_cmd: Sequence[str] = pyrs.v(
+  markdown_cmd: Sequence[str] = (
     natural4_exe,
     '--only', 'tomd', f'--workdir={natural4_dir}',
     f'--uuiddir={uuiddir}',
@@ -298,14 +279,14 @@ async def process_csv() -> str:
   )
 
   # Slow tasks below.
-  # Thes are forked into a separate process, in which they are run
-  # asynchronously via the run_tasks coroutine.
+  # These are run in the background using app.add_background_task, which
+  # adds them to Quart's event loop.
 
   # ---------------------------------------------
   # postprocessing:
   # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
-  pandoc_tasks: AsyncGenerator[Awaitable[None], None] = (
+  pandoc_tasks: AsyncGenerator[Task, None] = (
     get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
   )
 
@@ -316,7 +297,7 @@ async def process_csv() -> str:
   maude_output_path: Path = uuid_ss_folder / 'maude'
   natural4_file: Path = maude_output_path / 'LATEST.natural4'
 
-  maude_tasks: AsyncGenerator[Awaitable[None], None] = (
+  maude_tasks: AsyncGenerator[Task, None] = (
     get_maude_tasks(natural4_file, maude_output_path)
   )
 
@@ -352,7 +333,7 @@ async def process_csv() -> str:
 
   print(f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',file=sys.stderr)
 
-  # Create a new process which runs all the slow tasks asynchronously.
+  # Add all the slow tasks to Quart's event loop.
   slow_tasks = aiostream.stream.chain(
     maude_tasks,
     vue_purs_tasks,
@@ -362,14 +343,8 @@ async def process_csv() -> str:
     match slow_task:
       case {'func': func, 'args': args}:
         app.add_background_task(func, *args)
-      case _ : pass
 
   # app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
-
-  # Process(
-  #   target = compose_left(run_tasks, asyncio.run),
-  #   args = (slow_tasks,)
-  # ).start()
 
   # ---------------------------------------------
   # load in the aasvg index HTML to pass back to sidebar
@@ -417,7 +392,7 @@ async def process_csv() -> str:
   # Block and wait for the flowcharts to be generated before returning.
   await flowchart_coro
 
-  return await asyncio.to_thread(pyrs.thaw, (response,))
+  return pyrs.thaw(response)
 
   # ---------------------------------------------
   # return to sidebar caller

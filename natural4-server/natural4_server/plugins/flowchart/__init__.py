@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator, Awaitable
 import os
 
 from cytoolz.functoolz import curry
-import pyrsistent as pyrs
+from natural4_server.task import Task, no_op_task
 
 try:
   from .flowchart_dot_to_outputs import get_flowchart_tasks
@@ -12,9 +12,5 @@ except ImportError:
   async def get_flowchart_tasks(
     _uuid_ss_folder : str | os.PathLike,
     _timestamp : str | os.PathLike
-  ):
-    # yield asyncio.to_thread(lambda: None)
-    yield pyrs.m(
-      func = lambda: None,
-      args = tuple()
-    )
+  ) -> AsyncGenerator[Task, None]:
+    yield no_op_task

@@ -34,14 +34,12 @@
 #     Delete an existing vue server by slot number.
 
 import asyncio
-import shutil
 import sys
 import os
 import re
 from os.path import isfile, getmtime
 import argparse
 import json
-import subprocess
 from pathlib import Path
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
@@ -56,6 +54,8 @@ from cytoolz.curried import *
 
 import pyrsistent as pyrs
 import pyrsistent_extras as pyrse
+
+from natural4_server.task import Task
 
 try:
   v8k_workdir: Path = Path(os.environ['V8K_WORKDIR'])
@@ -127,7 +127,7 @@ async def do_list(
   descriptors = read_all(workdir)
   for descriptor in sorted(descriptors.values(), key=lambda js: int(js['slot'])):
     print(f"* {descriptor['dir']}", file=sys.stderr)
-    print_server_info(descriptor['port'])
+    await print_server_info(descriptor['port'])
 
 @curry
 async def do_find(
@@ -161,7 +161,7 @@ async def vue_purs_post_process(
     }:
       server_config_dir = Path(server_config_dir)
 
-      rsync_command = pyrs.v(
+      rsync_command = (
         'rsync', '-a',
         f'{Path(workdir) / "vue-small"}/',
         f'{server_config_dir}/'
@@ -268,7 +268,7 @@ async def do_up(
       oldest = min(vuedict.values(), key=lambda js: js['modtime'])
       print(f"oldest = {oldest}", file=sys.stderr)
       print(f"** pool size reached, will replace oldest server {oldest['slot']}", file=sys.stderr)
-      take_down(vuedict, oldest['slot'])
+      await take_down(vuedict, oldest['slot'])
       available_slots = {oldest['slot']}
     case _: pass
 
@@ -330,8 +330,8 @@ async def do_down(
 
   for (s, js) in existing.items():
     print(f"* found allocated server(s) on our uuid/ssid/sheetid: {js['slot']}", file=sys.stderr)
-    print_server_info(js['port'])
-    take_down(vuedict, s)
+    await print_server_info(js['port'])
+    await take_down(vuedict, s)
 
 @curry
 async def do_downdir(
@@ -341,7 +341,7 @@ async def do_downdir(
   vuedict = read_all(workdir)
   match vuedict:
     case {args.slotname: _}:
-      take_down(vuedict, args.slotname)
+      await take_down(vuedict, args.slotname)
     case _:
       print("slot does not exist! If the directory does exist you may need to rm -rf it by hand.", file=sys.stderr)
 

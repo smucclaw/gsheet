@@ -12,6 +12,8 @@ import pyrsistent as pyrs
 
 import pypandoc
 
+from natural4_server.task import Task
+
 class PandocOutput(pyrs.PRecord):
   file_extension = pyrs.field(mandatory = True, type = str)
   extra_args = pyrs.pvector_field(
@@ -80,11 +82,11 @@ async def get_pandoc_tasks(
   markdown_coro: Awaitable[asyncio.subprocess.Process],
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
-):
+) -> AsyncGenerator[Task, None]:
   markdown_proc: asyncio.subprocess.Process = await markdown_coro
   await markdown_proc.wait()
   for output in pandoc_outputs:
-    yield pyrs.m(
+    yield Task(
       func = pandoc_md_to_output,
       args = (uuid_ss_folder, timestamp, output)
     )

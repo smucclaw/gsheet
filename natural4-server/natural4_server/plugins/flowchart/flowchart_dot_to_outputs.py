@@ -12,6 +12,8 @@ from cytoolz.curried import *
 import pyrsistent as pyrs
 import pyrsistent_extras as pyrse
 
+from natural4_server.task import Task
+
 class FlowchartOutput(pyrs.PRecord):
   # petrifile{suffix}.{file_extension}
   suffix = pyrs.field(type = str, initial = '')
@@ -118,9 +120,9 @@ def flowchart_dot_to_output(
 async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike
-):
+) -> AsyncGenerator[Task, None]:
   for output in flowchart_outputs:
-    yield pyrs.m(
+    yield Task(
       func = flowchart_dot_to_output,
       args = (uuid_ss_folder, timestamp, output)
     )

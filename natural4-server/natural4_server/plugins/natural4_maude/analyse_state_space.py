@@ -5,9 +5,9 @@ from pathlib import Path
 
 from cytoolz.functoolz import *
 from cytoolz.curried import *
-import pyrsistent as pyrs
 
 import maude
+from natural4_server.task import Task
 
 from .visualise import (
   init_maude_n_load_main_file,
@@ -56,7 +56,7 @@ def find_race_cond(
 async def get_maude_tasks(
   natural4_file: str | os.PathLike,
   output_path: str | os.PathLike
-):
+) -> AsyncGenerator[Task, None]:
   '''
   Post process textual natural4 files by using Maude to generate a state space
   and find a race condition trace.
@@ -80,5 +80,5 @@ async def get_maude_tasks(
     )
     # Do we need to worry about this being None?
     if config:
-      yield pyrs.m(func = find_race_cond, args = (output_path, natural4_rules))
-      yield pyrs.m(func = gen_state_space, args = (output_path, config))
+      yield Task(func = find_race_cond, args = (output_path, natural4_rules))
+      yield Task(func = gen_state_space, args = (output_path, config))
