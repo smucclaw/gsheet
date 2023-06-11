@@ -238,12 +238,12 @@ async def process_csv() -> str:
 
   nl4_out, nl4_err = await nl4exe.communicate()
   nl4_out, nl4_err = nl4_out.decode(), nl4_err.decode()
-  nl4_stdout, nl4_stderr = nl4_out[:long_err_maxlen], nl4_err[:long_err_maxlen]
 
   print(f'hello.py main: natural4-exe stdout length = {len(nl4_out)}', file=sys.stderr)
   print(f'hello.py main: natural4-exe stderr length = {len(nl4_err)}', file=sys.stderr)
 
   short_err_maxlen, long_err_maxlen = 2_000, 20_000
+  nl4_stdout, nl4_stderr = nl4_out[:long_err_maxlen], nl4_err[:long_err_maxlen]
 
   if len(nl4_err) < short_err_maxlen:
     print(nl4_err)
