@@ -79,10 +79,11 @@ def pandoc_md_to_output(
 
 @curry
 async def get_pandoc_tasks(
-  markdown_proc: asyncio.subprocess.Process,
+  markdown_coro: Awaitable[asyncio.subprocess.Process],
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
 ) -> AsyncGenerator[Task, None]:
+  markdown_proc: asyncio.subprocess.Process = await markdown_coro
   await markdown_proc.wait()
 
   print(f'Markdown output done.', file=sys.stderr)

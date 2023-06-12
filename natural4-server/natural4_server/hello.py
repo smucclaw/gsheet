@@ -203,8 +203,8 @@ async def process_csv(request: Request) -> HTTPResponse:
 
   # Coroutine which is awaited before pandoc is called to generate documents
   # (ie word and pdf) from the markdown file.
-  markdown_proc: asyncio.subprocess.Process = (
-    await asyncio.subprocess.create_subprocess_exec(
+  markdown_coro: asyncio.subprocess.Process = (
+    asyncio.subprocess.create_subprocess_exec(
       *markdown_cmd,
       stdout = asyncio.subprocess.PIPE,
       stderr = asyncio.subprocess.PIPE
@@ -280,7 +280,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
   pandoc_tasks: AsyncGenerator[Task, None] = (
-    get_pandoc_tasks(markdown_proc, uuid_ss_folder, timestamp)
+    get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
   )
 
   # ---------------------------------------------
