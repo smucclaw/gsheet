@@ -284,7 +284,8 @@ async def process_csv(request: Request) -> HTTPResponse:
   )
 
   async for task in pandoc_tasks:
-    app.add_task(task_to_coro(task))
+    print(f'Adding task: {task}')
+    app.add_task(asyncio.to_thread(task['func'], *task['args']))
 
   # ---------------------------------------------
   # postprocessing:
