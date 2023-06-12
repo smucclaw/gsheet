@@ -103,7 +103,7 @@ smod MAIN is
   op getAllActions_ : Set{Rule}-> Set{ActionEvent}.
   op getClass : Object -> Cid .
   op getRulesWithNames__ : Set{Rule}Set{Qid}-> Set{Rule}.
-  op getStartRule_ : Set{Rule}-> Rule .
+  op getStartRule_ : Set{Rule}-> Set{Rule}.
   op initAux__ : Set{Rule}Configuration -> Configuration .
   op init_ : Set{Rule}-> Configuration .
   op initialConfig : -> Configuration .
@@ -486,11 +486,12 @@ smod MAIN is
   eq initialConfig
     = init rules .
   eq rules
-    = RULE 'START WITHIN 1 DAY PARTY 'party0 SHANT DO 'action0 LEST 'rule2
-    HENCE('rule1 AND 'rule3), RULE 'rule0 PARTY 'party0 SHANT WITHIN 1 DAY
-    'action0, RULE 'rule1 PARTY 'party1 MUST DO 'action1 WITHIN 2 DAY HENCE
-    'rule0, RULE 'rule2 WITHIN 2 DAY PARTY 'party2 MUST 'action2 LEST 'rule0,
-    RULE 'rule3 PARTY 'party3 MUST WITHIN 4 DAY DO 'action3 .
+    = START qid("Contract Commencement"), qid("Repayment")MEANS(qid(
+    "Main - Repay in two halves")AND qid("Side - Keep taxes paid")), qid(
+    "second half")MEANS(qid("Main - Repay second half")AND qid(
+    "Side - Keep taxes paid 2")), RULE qid("Side - Keep taxes paid")PARTY qid(
+    "Borrower")MUST qid("pay taxes and avoid general default")LEST qid(
+    "Payment default") .
   eq $card((empty).Set{ActionEvent},C:Nat)
     = C:Nat .
   eq $card((empty).Set{Qid},C:Nat)
@@ -958,6 +959,8 @@ smod MAIN is
     = getAllActions rules:Set{Rule} [owise] .
   eq getRulesWithNames rules:Set{Rule}(ruleName:Qid, ruleNames:Set{Qid})
     = getRulesWithNames rules:Set{Rule}ruleNames:Set{Qid} [owise] .
+  eq getStartRule rules:Set{Rule}
+    = (empty).Set{Rule} [owise] .
   eq initAux(rule:Rule, rules:Set{Rule})config:Configuration
     = initAux rules:Set{Rule}config:Configuration [owise] .
   eq isTimerZero deadline:Deadline
