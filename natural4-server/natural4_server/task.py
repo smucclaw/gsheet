@@ -15,7 +15,7 @@ no_op_task = Task(func = lambda: None)
 
 async def run_tasks(
   tasks: AsyncGenerator[Task, None],
-  timeout = 20
+  timeout = 10
 ) -> None:
   '''
   Runs tasks asynchronously in the background.

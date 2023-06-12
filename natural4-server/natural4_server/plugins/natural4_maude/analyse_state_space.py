@@ -7,9 +7,10 @@ from cytoolz.functoolz import *
 from cytoolz.curried import *
 
 import aiofile
+import aiostream
 
 import maude
-from natural4_server.task import Task
+from natural4_server.task import Task, run_tasks
 
 from .visualise import (
   init_maude_n_load_main_file,
@@ -32,11 +33,15 @@ def gen_state_space(
   space may be infinite.
   '''
 
-  asyncio.run(
-    asyncio.to_thread(
-      config_to_html_file,
-      maude_main_mod, config, 'all *',
-      Path(output_path) / 'LATEST_state_space.html'
+  return asyncio.run(
+    run_tasks(
+      aiostream.stream.just(
+        asyncio.to_thread(
+          config_to_html_file,
+          maude_main_mod, config, 'all *',
+          Path(output_path) / 'LATEST_state_space.html'
+        )
+      )
     )
   )
 
@@ -49,12 +54,16 @@ def find_race_cond(
   Find a trace with race conditions and generate a graph.
   '''
 
-  asyncio.run(
-    asyncio.to_thread(
-      natural4_rules_to_race_cond_htmls,
-      maude_main_mod,
-      Path(output_path) / 'LATEST_race_cond.html',
-      natural4_rules
+  return asyncio.run(
+    run_tasks(
+      aiostream.stream.just(
+        asyncio.to_thread(
+          config_to_html_file,
+          maude_main_mod,
+          Path(output_path) / 'LATEST_state_space.html',
+          natural4_rules
+        )
+      )
     )
   )
 
