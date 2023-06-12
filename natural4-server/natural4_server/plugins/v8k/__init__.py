@@ -247,11 +247,11 @@ async def do_up(
             print(f"cp {args.filename} {purs_file}", file=sys.stderr)
             taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
             taskgroup.create_task(asyncio.to_thread(lambda: (Path(dir) / 'v8k.json').touch()))
-            print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
+            # print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
             result = pyrs.m(
               port = port,
               base_url = base_url,
-              vue_purs_task = no_op_task
+              vue_purs_task = None
             )
           else:
             print("but the server isn't running any longer.", file=sys.stderr)

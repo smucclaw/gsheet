@@ -314,7 +314,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     asyncio.TaskGroup() as taskgroup
   ):
     taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
-    # taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
+    taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
 
@@ -334,8 +334,8 @@ async def process_csv(request: Request) -> HTTPResponse:
       'vue_purs_task': vue_purs_task
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
-      # app.add_task(func(*args))
-      add_tasks_to_background(app, [vue_purs_task])
+      if vue_purs_task:
+        add_tasks_to_background(app, [vue_purs_task])
     case _:
       v8k_url = None
 
