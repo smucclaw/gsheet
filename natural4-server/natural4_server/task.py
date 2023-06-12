@@ -12,52 +12,45 @@ import pyrsistent as pyrs
 class Task(pyrs.PRecord):
   func = pyrs.field(type = Callable, mandatory = True)
   args = pyrs.field(type = Sequence, initial = tuple()) 
+  name = pyrs.field(initial = None)
   delay = pyrs.field(initial = None)
 
 no_op_task = Task(func = lambda: None)
 
+@curry
+def _ensure_async(func, args):
+  if asyncio.iscoroutinefunction(func):
+    return func(*args)
+  else:
+    return asyncio.to_thread(func, *args)
+
+async def task_to_coro(task: Task):
+  match task:
+    case {'func': func, 'args': args, 'delay': delay}:
+      try:
+        async with asyncio.timeout(delay):
+          await _ensure_async(func, args)
+      except TimeoutError:
+        print(f'Timeout in task: {task}', file=sys.stderr)
+
 async def run_tasks(
-  tasks: AsyncGenerator[Task, None] | Generator[Task],
-  delay = 10
+  tasks: AsyncGenerator[Task, None] | Generator[Task]
 ) -> None:
   '''
   Runs tasks asynchronously in the background.
   '''
 
-  try:
-    async with (
-      asyncio.timeout(delay),
-      asyncio.TaskGroup() as taskgroup
-    ):
-      async for task in aiostream.stream.iterate(tasks):
-        match task:
-          case {'func': func, 'args': args}:
-            print(f'Running task: {task}', file=sys.stderr)
-            if asyncio.iscoroutinefunction(func):
-              task = func(*args)
-            else:
-              task = asyncio.to_thread(func, *args)
-            taskgroup.create_task(task)
-
-  except TimeoutError as exc:
-    print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
+  async with asyncio.TaskGroup() as taskgroup:
+    async for task in aiostream.stream.iterate(tasks):
+      print(f'Running task: {task}', file=sys.stderr)
+      taskgroup.create_task(task_to_coro(task))
 
 @curry
 async def add_tasks_to_background(
-  tasks: AsyncGenerator[Task, None],
   app: Sanic,
+  tasks: AsyncGenerator[Task, None],
 ) -> None:
   async for task in tasks:
-    match task:
-      case {'func': func, 'args': args, 'delay': delay}:
-        print(f'Adding background task: {task}', file=sys.stderr)
-
-        async def task():
-          async with asyncio.timeout(delay):
-            if asyncio.iscoroutinefunction(func):
-              await func(*args)
-            else:
-              await asyncio.to_thread(func, *args)
-
-        app.add_task(task())
-          # app.add_background_task(func, *args)
+    print(f'Adding background task: {task}', file=sys.stderr)
+    app.add_task(task_to_coro(task), name = task['name'])
+    # app.add_background_task(func, *args)

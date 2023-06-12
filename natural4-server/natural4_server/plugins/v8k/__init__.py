@@ -294,11 +294,10 @@ async def do_up(
   return pyrs.m(
     port = server_config['port'],
     base_url = server_config['base_url'],
-    vue_purs_tasks = pipe(
-      (args, workdir, server_config),
-      lambda x: vue_purs_post_process(*x),
-      aiostream.stream.just
-    )
+    vue_purs_task = Task(
+      func = vue_purs_post_process,
+      args = (workdir, workdir, server_config)
+    ) 
   )
 
 @curry

@@ -27,7 +27,6 @@ from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import aiofile
-import aiostream
 
 from sanic import HTTPResponse, Request, Sanic, file, json
 
@@ -274,7 +273,7 @@ async def process_csv(request: Request) -> HTTPResponse:
 
   # Slow tasks below.
   # These are run in the background using app.add_background_task, which
-  # adds them to Quart's event loop.
+  # adds them to Sanic's event loop.
 
   # ---------------------------------------------
   # postprocessing:
@@ -310,32 +309,32 @@ async def process_csv(request: Request) -> HTTPResponse:
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    taskgroup.create_task(add_tasks_to_background(maude_tasks, app))
-    taskgroup.create_task(add_tasks_to_background(pandoc_tasks, app))
+    taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
+    taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
 
     aasvg_index_task = taskgroup.create_task(aasvg_file.read())
 
-    v8k_task = taskgroup.create_task(
+    v8k_up_task = taskgroup.create_task(
       v8k.main(
         'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
       )
     )
 
-  match v8k_task.result():
+  match v8k_up_task.result():
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
-      'vue_purs_tasks': vue_purs_tasks
+      'vue_purs_task': vue_purs_task
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
-      vue_purs_tasks = vue_purs_tasks
+      vue_purs_tasks = (vue_purs_task,)
     # Fall-through case in case v8k up didn't return a result or returned an
     # empty result.
     case _:
       v8k_url = None
-      vue_purs_tasks = aiostream.stream.empty()
+      vue_purs_tasks = ()
 
   # response = response.set('v8k_url', v8k_url)
 
@@ -364,7 +363,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   # - add the vue purs postprocessing stuff as a background task.
   async with asyncio.TaskGroup() as taskgroup:
     taskgroup.create_task(flowchart_coro)
-    taskgroup.create_task(add_tasks_to_background(vue_purs_tasks, app))
+    taskgroup.create_task(add_tasks_to_background(app, vue_purs_tasks))
 
   return json({
     'nl4_stdout': nl4_stdout,
