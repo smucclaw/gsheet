@@ -47,10 +47,12 @@ async def add_tasks_to_background(
       case {'func': func, 'args': args}:
         print(f'Adding background task: {task}', file=sys.stderr)
         if inspect.iscoroutinefunction(func):
-          task = func(*args)
+          async def task():
+            await func(*args)
         else:
-          task = asyncio.to_thread(func, *args)
+          async def task():
+            await asyncio.to_thread(func, *args)
 
-        app.run_after_response(task)
+        app.run_after_response(task())
 
         # app.add_background_task(func, *args)
