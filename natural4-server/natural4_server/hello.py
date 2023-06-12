@@ -152,7 +152,7 @@ async def get_workdir_file(
         file=sys.stderr
       )
 
-      response: HTTPResponse = file(
+      response: HTTPResponse = await file(
         workdir_folder_filename,
         mime_type = mimetype
       )
@@ -187,7 +187,7 @@ async def show_aasvg_image(
   print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
 
   # return await send_file(image_path)
-  return file(image_path)
+  return await file(image_path)
 
 # ################################################
 #                      main
