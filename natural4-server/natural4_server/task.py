@@ -36,7 +36,7 @@ async def task_to_coro(task: Task):
         else:
           @timeout(delay)
           async def _func():
-            asyncio.to_thread(func, *args)
+            await asyncio.to_thread(func, *args)
 
           await _func()
       except TimeoutError:
