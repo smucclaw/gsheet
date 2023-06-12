@@ -173,9 +173,9 @@ async def process_csv() -> Response:
 
   data = await request.form
 
-  uuid: str = data['uuid'][0]
-  spreadsheet_id: str = data['spreadsheetId'][0]
-  sheet_id: str = data['sheetId'][0]
+  uuid: str = data['uuid']
+  spreadsheet_id: str = data['spreadsheetId']
+  sheet_id: str = data['sheetId']
   target_folder: Path = Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
   print(target_folder)
   time_now: str = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
@@ -186,7 +186,7 @@ async def process_csv() -> Response:
   target_folder.mkdir(parents=True, exist_ok=True)
 
   async with aiofile.async_open(target_path, 'w') as fout:
-    await fout.write(data['csvString'][0])
+    await fout.write(data['csvString'])
 
   # Generate markdown files asynchronously in the background.
   uuiddir: Path = Path(uuid) / spreadsheet_id / sheet_id
