@@ -282,6 +282,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   pandoc_tasks: AsyncGenerator[Task, None] = (
     get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
   )
+  await add_tasks_to_background(app, pandoc_tasks)
 
   # ---------------------------------------------
   # postprocessing:
@@ -309,8 +310,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
-    taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
+    # taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
+    # taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
 
@@ -331,6 +332,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
       app.add_task(func(*args))
+    case _:
+      v8k_url = None
 
   # response = response.set('v8k_url', v8k_url)
 
