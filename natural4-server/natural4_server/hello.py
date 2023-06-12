@@ -87,7 +87,7 @@ app = Quart(
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
 
-@app.route('/workdir/<uuid:str>/<ssid:str>/<sid:str>/<channel:str>/<filename:str>')
+@app.route('/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>')
 async def get_workdir_file(
   uuid: str,
   ssid: str,
