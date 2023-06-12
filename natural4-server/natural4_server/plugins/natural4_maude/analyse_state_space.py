@@ -22,7 +22,7 @@ maude_main_file: Path = Path('plugins') / 'natural4_maude' / 'main.maude'
 maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 @curry
-def gen_state_space(
+async def gen_state_space(
   output_path: str | os.PathLike,
   config: maude.Term
 ):
@@ -32,14 +32,14 @@ def gen_state_space(
   space may be infinite.
   '''
 
-  return asyncio.to_thread(
+  await asyncio.to_thread(
     config_to_html_file,
     maude_main_mod, config, 'all *',
     Path(output_path) / 'LATEST_state_space.html'
   )
 
 @curry
-def find_race_cond(
+async def find_race_cond(
   output_path: str | os.PathLike,
   natural4_rules: str
 ):
@@ -47,7 +47,7 @@ def find_race_cond(
   Find a trace with race conditions and generate a graph.
   '''
 
-  return asyncio.to_thread(
+  await asyncio.to_thread(
     natural4_rules_to_race_cond_htmls,
     maude_main_mod,
     Path(output_path) / 'LATEST_race_cond.html',
