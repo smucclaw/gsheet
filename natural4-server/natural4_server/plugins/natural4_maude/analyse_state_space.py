@@ -35,21 +35,23 @@ def gen_state_space_and_find_race_cond(
   '''
 
   return asyncio.run(
-    run_tasks(
-      aiostream.stream.iterate([
-        asyncio.to_thread(
-          natural4_rules_to_race_cond_htmls,
+    run_tasks([
+      Task(
+        func = natural4_rules_to_race_cond_htmls,
+        args = (
           maude_main_mod,
           Path(output_path) / 'LATEST_race_cond.html',
           natural4_rules
-        ),
-        asyncio.to_thread(
-          config_to_html_file,
+        )
+      ),
+      Task(
+        func = config_to_html_file,
+        args = (
           maude_main_mod, config, 'all *',
           Path(output_path) / 'LATEST_state_space.html'
         )
-      ])
-    )
+      )
+    ])
   )
 
 @curry

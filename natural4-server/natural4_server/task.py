@@ -1,8 +1,10 @@
 import asyncio
-from collections.abc import AsyncGenerator, Callable, Sequence
+from collections.abc import AsyncGenerator, Callable, Generator, Sequence
 import sys
 
 from sanic import Sanic
+
+import aiostream
 
 from cytoolz.functoolz import curry
 import pyrsistent as pyrs
@@ -14,7 +16,7 @@ class Task(pyrs.PRecord):
 no_op_task = Task(func = lambda: None)
 
 async def run_tasks(
-  tasks: AsyncGenerator[Task, None],
+  tasks: AsyncGenerator[Task, None] | Generator[Task],
   timeout = 10
 ) -> None:
   '''
@@ -26,7 +28,7 @@ async def run_tasks(
       asyncio.timeout(timeout),
       asyncio.TaskGroup() as taskgroup
     ):
-      async for task in tasks:
+      async for task in aiostream.stream.iterate(tasks):
         match task:
           case {'func': func, 'args': args}:
             print(f'Running task: {task}', file=sys.stderr)
