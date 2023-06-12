@@ -358,6 +358,7 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
     iterate(one_step_transition),
     filter(
       lambda state :
+        # Bound the generated state space by 200 states.
         len(state['seen_ids']) <= 200 and state['is_fixed_point']
     ),
     first,

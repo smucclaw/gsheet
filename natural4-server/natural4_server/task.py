@@ -28,11 +28,14 @@ async def task_to_coro(task: Task):
   match task:
     case {'func': func, 'args': args, 'delay': delay}:
       try:
-        async with asyncio.timeout(delay):
+        async with (
+          asyncio.timeout(delay),
+          asyncio.TaskGroup() as taskgroup
+        ):
           if asyncio.iscoroutinefunction(func):
-            await func(*args)
+            taskgroup.create_task(func(*args))
           else:
-            await asyncio.to_thread(func, *args)
+            taskgroup.create_task(asyncio.to_thread(func, *args))
       except TimeoutError:
         print(f'Timeout in task: {task}', file=sys.stderr)
 
