@@ -133,7 +133,7 @@ async def get_workdir_file(
 
       response: HTTPResponse = await file(
         workdir_folder_filename,
-        mimetype = mimetype
+        mime_type = mimetype
       )
 
   return response
