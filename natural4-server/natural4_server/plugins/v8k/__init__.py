@@ -261,7 +261,7 @@ async def do_up(
     return pyrs.m()
 
   server_slots = {f"{n:02}" for n in range(0, pool_size)}
-  available_slots = server_slots - set(vuedict.keys()) | set(dead_slots)
+  available_slots = list(set(server_slots) - set(vuedict.keys()) | set(dead_slots))
 
   print(f"server_slots    = {server_slots}", file=sys.stderr)
   print(f"vuedict.keys()  = {vuedict.keys()}", file=sys.stderr)
