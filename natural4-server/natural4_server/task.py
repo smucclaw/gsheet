@@ -16,7 +16,8 @@ class Task(pyrs.PRecord):
 
 no_op_task = Task(func = lambda: None)
 
-def _ensure_async(func, args = tuple()):
+@curry
+def _run_as_async(func, args):
   if asyncio.iscoroutinefunction(func):
     return func(*args)
   else:
@@ -25,7 +26,7 @@ def _ensure_async(func, args = tuple()):
 def task_to_coro(task: Task):
   match task:
     case {'func': func, 'args': args}:
-      return  _ensure_async(func, args)
+      return  _run_as_async(func, args)
 
 async def run_tasks(
   tasks: AsyncGenerator[Task, None] | Generator[Task]
