@@ -50,10 +50,8 @@ def gen_state_space_and_find_race_cond(
           Path(output_path) / 'LATEST_race_cond.html',
           natural4_rules
         ),
-        timeout = 5
-      )
-
-    ])
+      ),
+    ], timeout = 5)
     #     asyncio.to_thread(
     #       config_to_html_file,
     #       maude_main_mod, config, 'all *',
