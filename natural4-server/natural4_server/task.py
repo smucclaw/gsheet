@@ -12,7 +12,7 @@ import pyrsistent as pyrs
 class Task(pyrs.PRecord):
   func = pyrs.field(type = Callable, mandatory = True)
   args = pyrs.field(type = Sequence, initial = tuple()) 
-  delay = pyrs.field(type = int | None, initial = None)
+  delay = pyrs.field(initial = None)
 
 no_op_task = Task(func = lambda: None)
 
