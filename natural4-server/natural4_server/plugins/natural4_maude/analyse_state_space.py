@@ -39,11 +39,11 @@ def gen_state_space_and_find_race_cond(
     Path(output_path) / 'LATEST_state_space.html'
   )
 
-  natural4_rules_to_race_cond_htmls(
-    maude_main_mod,
-    Path(output_path) / 'LATEST_race_cond.html',
-    natural4_rules
-  )
+  # natural4_rules_to_race_cond_htmls(
+  #   maude_main_mod,
+  #   Path(output_path) / 'LATEST_race_cond.html',
+  #   natural4_rules
+  # )
 
 @curry
 async def get_maude_tasks(
