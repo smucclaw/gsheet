@@ -309,8 +309,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
-    taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
+    # taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
+    # taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
 
