@@ -295,7 +295,7 @@ async def do_up(
     port = server_config['port'],
     base_url = server_config['base_url'],
     vue_purs_task = Task(
-      func = vue_purs_post_process,
+      func = compose_left(vue_purs_post_process, asyncio.run),
       args = (args, workdir, server_config)
     ) 
   )
