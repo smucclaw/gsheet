@@ -171,7 +171,7 @@ async def vue_purs_post_process(
       await rsync_coro.wait()
 
       async with (
-        aiofiles.open(server_config_dir / 'v8k.json', 'w') as v8k_json_file,
+        aiofiles.open(server_config_dir / 'v8k.json', 'wb') as v8k_json_file,
         asyncio.TaskGroup() as taskgroup
       ):
         taskgroup.create_task(
