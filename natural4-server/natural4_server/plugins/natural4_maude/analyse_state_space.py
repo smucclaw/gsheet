@@ -34,8 +34,8 @@ def gen_state_space_and_find_race_cond(
   does not terminate if the state space is infinite.
   '''
 
-  # return asyncio.run(
-  return run_tasks([
+  return asyncio.run(
+    run_tasks([
       Task(
         func = config_to_html_file,
         args = (
@@ -59,7 +59,7 @@ def gen_state_space_and_find_race_cond(
     #     )
     #   )
     # )
-  # )
+  )
 
 # @curry
 # def find_race_cond(
