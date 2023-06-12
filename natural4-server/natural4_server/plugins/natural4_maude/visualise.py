@@ -356,7 +356,10 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
     # Compute the transitive closure of the transition relation, stopping once
     # we reach the fixed point (if it exists < omega).
     iterate(one_step_transition),
-    filter(lambda state : state['seen_ids'] <= 200 and state['is_fixed_point']),
+    filter(
+      lambda state :
+        len(state['seen_ids']) <= 200 and state['is_fixed_point']
+    ),
     first,
     get('edge_pairs')
   )
