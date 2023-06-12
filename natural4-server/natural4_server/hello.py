@@ -22,6 +22,7 @@ from multiprocessing import Process
 from pathlib import Path
 import sys
 import typing
+import aiostream
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -311,8 +312,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    taskgroup.create_task(add_background_tasks(app, maude_tasks))
-    taskgroup.create_task(add_background_tasks(app, pandoc_tasks))
+    # taskgroup.create_task(add_background_tasks(app, maude_tasks))
+    # taskgroup.create_task(add_background_tasks(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
 
@@ -330,13 +331,13 @@ async def process_csv(request: Request) -> HTTPResponse:
       'vue_purs_task': vue_purs_task
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
-      # if vue_purs_task:
-      #   await add_background_tasks(app, [vue_purs_task])
       match vue_purs_task:
         case {'func': func, 'args': args}:
           Process(
-            target = compose_left(func, asyncio.run),
-            args = args
+            target = compose_left(run_tasks, asyncio.run),
+            args = aiostream.stream.chain(
+              maude_tasks, pandoc_tasks, vue_purs_task
+            )
           ).start()
         case _: pass
 
