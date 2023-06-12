@@ -83,21 +83,21 @@ async def get_maude_tasks(
     # Do we need to worry about this being None?
     if config:
       yield Task(
-        func = gen_state_space,
-        args = (output_path, config)
-        # func = natural4_rules_to_race_cond_htmls,
-        # args = (
-        #   maude_main_mod,
-        #   Path(output_path) / 'LATEST_race_cond.html',
-        #   natural4_rules
-        # )
+        # func = gen_state_space,
+        # args = (output_path, config)
+        func = natural4_rules_to_race_cond_htmls,
+        args = (
+          maude_main_mod,
+          Path(output_path) / 'LATEST_race_cond.html',
+          natural4_rules
+        )
       )
       yield Task(
-        func = find_race_cond,
-        args = (output_path, natural4_rules)
-        # func = config_to_html_file,
-        # args = (
-        #   maude_main_mod, config, 'all *',
-        #   Path(output_path) / 'LATEST_state_space.html'
-        # )
+        # func = find_race_cond,
+        # args = (output_path, natural4_rules)
+        func = config_to_html_file,
+        args = (
+          maude_main_mod, config, 'all *',
+          Path(output_path) / 'LATEST_state_space.html'
+        )
       )
