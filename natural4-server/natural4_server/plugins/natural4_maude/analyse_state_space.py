@@ -23,7 +23,7 @@ maude_main_file: Path = Path('plugins') / 'natural4_maude' / 'main.maude'
 maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 @curry
-async def gen_state_space_and_find_race_cond(
+def gen_state_space_and_find_race_cond(
   output_path: str | os.PathLike,
   config: maude.Term,
   natural4_rules: str
@@ -35,7 +35,7 @@ async def gen_state_space_and_find_race_cond(
   '''
 
   # return asyncio.run(
-  await run_tasks([
+  return run_tasks([
       Task(
         func = config_to_html_file,
         args = (
