@@ -75,7 +75,8 @@ async def get_maude_tasks(
     if config:
       yield Task(
         func = gen_state_space_and_find_race_cond,
-        args = (output_path, config, natural4_rules)
+        args = (output_path, config, natural4_rules),
+        delay = 10
         # func = natural4_rules_to_race_cond_htmls,
         # args = (
         #   maude_main_mod,

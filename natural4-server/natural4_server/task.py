@@ -12,6 +12,7 @@ import pyrsistent as pyrs
 class Task(pyrs.PRecord):
   func = pyrs.field(type = Callable, mandatory = True)
   args = pyrs.field(type = Sequence, initial = tuple()) 
+  delay = pyrs.field(type = int | None, initial = None)
 
 no_op_task = Task(func = lambda: None)
 
@@ -48,11 +49,15 @@ async def add_tasks_to_background(
 ) -> None:
   async for task in tasks:
     match task:
-      case {'func': func, 'args': args}:
+      case {'func': func, 'args': args, 'delay': delay}:
         print(f'Adding background task: {task}', file=sys.stderr)
-        if asyncio.iscoroutinefunction(func):
-          task = func(*args)
-        else:
-          task = asyncio.to_thread(func, *args)
-        app.add_task(task)
+
+        async def task():
+          async with asyncio.timeout(delay):
+            if asyncio.iscoroutinefunction(func):
+              await func(*args)
+            else:
+              await asyncio.to_thread(func, *args)
+
+        app.add_task(task())
           # app.add_background_task(func, *args)
