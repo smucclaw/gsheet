@@ -112,7 +112,7 @@ async def get_maude_tasks(
     # Do we need to worry about this being None?
     if config:
       yield Task(
-        func = gen_state_space_and_find_race_cond(),
+        func = gen_state_space_and_find_race_cond,
         args = (output_path, config, natural4_rules)
         # func = natural4_rules_to_race_cond_htmls,
         # args = (
