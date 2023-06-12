@@ -199,11 +199,6 @@ async def vue_purs_post_process(
 
     case _: pass
 
-class V8kUpResult(pyrs.PRecord):
-  port = pyrs.field(type = int, mandatory = True)
-  base_url = pyrs.field(type = str, mandatory = True)
-  vue_purs_task = pyrs.field(type = Task, mandatory = True)
-
 @curry
 async def do_up(
   args: argparse.Namespace,
@@ -298,7 +293,7 @@ async def do_up(
 
   print(f'v8k up returning', file=sys.stderr)
 
-  return V8kUpResult(
+  return pyrs.m(
     port = server_config['port'],
     base_url = server_config['base_url'],
     vue_purs_task = Task(
