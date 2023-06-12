@@ -1,13 +1,12 @@
 import asyncio
 from collections.abc import AsyncGenerator, Callable, Sequence
-import inspect
+# import inspect
 import sys
 
 from cytoolz.functoolz import curry
 import pyrsistent as pyrs
 
-# from quart import Quart
-from sanic import Sanic
+from quart import Quart
 
 class Task(pyrs.PRecord):
   func = pyrs.field(type = Callable, mandatory = True)
@@ -40,7 +39,7 @@ async def run_tasks(
 @curry
 async def add_tasks_to_background(
   tasks: AsyncGenerator[Task, None],
-  app: Sanic
+  app: Quart
 ) -> None:
   async for task in tasks:
     match task:
