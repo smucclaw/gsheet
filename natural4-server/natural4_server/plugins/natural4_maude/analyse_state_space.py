@@ -60,7 +60,7 @@ def find_race_cond(
         asyncio.to_thread(
           natural4_rules_to_race_cond_htmls,
           maude_main_mod,
-          Path(output_path) / 'LATEST_state_space.html',
+          Path(output_path) / 'LATEST_race_cond.html',
           natural4_rules
         )
       )
