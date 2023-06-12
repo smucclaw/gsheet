@@ -44,15 +44,17 @@ async def run_tasks(
 @curry
 async def add_tasks_to_background(
   tasks: AsyncGenerator[Task, None],
-  app: Sanic
+  app: Sanic,
+  delay = 10
 ) -> None:
-  async for task in tasks:
-    match task:
-      case {'func': func, 'args': args}:
-        print(f'Adding background task: {task}', file=sys.stderr)
-        if asyncio.iscoroutinefunction(func):
-          task = func(*args)
-        else:
-          task = asyncio.to_thread(func, *args)
-        app.add_task(task)
-        # app.add_background_task(func, *args)
+  async with asyncio.timeout(delay):
+    async for task in tasks:
+      match task:
+        case {'func': func, 'args': args}:
+          print(f'Adding background task: {task}', file=sys.stderr)
+          if asyncio.iscoroutinefunction(func):
+            task = func(*args)
+          else:
+            task = asyncio.to_thread(func, *args)
+          app.add_task(task)
+          # app.add_background_task(func, *args)

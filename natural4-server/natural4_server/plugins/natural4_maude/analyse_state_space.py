@@ -34,54 +34,16 @@ def gen_state_space_and_find_race_cond(
   does not terminate if the state space is infinite.
   '''
 
-  return asyncio.run(
-    run_tasks([
-      Task(
-        func = config_to_html_file,
-        args = (
-          maude_main_mod, config, 'all *',
-          Path(output_path) / 'LATEST_state_space.html'
-        )
-      ),
-      Task(
-        func = natural4_rules_to_race_cond_htmls,
-        args = (
-          maude_main_mod,
-          Path(output_path) / 'LATEST_race_cond.html',
-          natural4_rules
-        ),
-      ),
-    ], delay = 5)
-    #     asyncio.to_thread(
-    #       config_to_html_file,
-    #       maude_main_mod, config, 'all *',
-    #       Path(output_path) / 'LATEST_state_space.html'
-    #     )
-    #   )
-    # )
+  config_to_html_file(
+    maude_main_mod, config, 'all *',
+    Path(output_path) / 'LATEST_state_space.html'
   )
 
-# @curry
-# def find_race_cond(
-#   output_path: str | os.PathLike,
-#   natural4_rules: str
-# ):
-#   '''
-#   Find a trace with race conditions and generate a graph.
-#   '''
-
-#   return asyncio.run(
-#     run_tasks(
-#       aiostream.stream.just(
-#         asyncio.to_thread(
-#           natural4_rules_to_race_cond_htmls,
-#           maude_main_mod,
-#           Path(output_path) / 'LATEST_race_cond.html',
-#           natural4_rules
-#         )
-#       )
-#     )
-#   )
+  natural4_rules_to_race_cond_htmls(
+    maude_main_mod,
+    Path(output_path) / 'LATEST_race_cond.html',
+    natural4_rules
+  )
 
 @curry
 async def get_maude_tasks(
