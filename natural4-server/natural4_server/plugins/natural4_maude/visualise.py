@@ -356,6 +356,7 @@ def rewrite_graph_to_edge_pairs(rewrite_graph):
     # Compute the transitive closure of the transition relation, stopping once
     # we reach the fixed point (if it exists < omega).
     iterate(one_step_transition),
+    take(1000),
     filter(lambda state : state['is_fixed_point']),
     first,
     get('edge_pairs')
@@ -653,7 +654,8 @@ def natural4_rules_to_race_cond_graphs(main_mod, natural4_rules, max_traces = 1)
     natural4_rules,
     apply_fn(main_mod, 'init'),
     lambda config: config.search(
-      maude.NORMAL_FORM, target_config, strategy = race_cond_strat
+      maude.NORMAL_FORM, target_config, strategy = race_cond_strat,
+      depth = 50
     ),
     take(max_traces),
     # https://fadoss.github.io/maude-bindings/#maude.StrategySequenceSearch.pathTo
