@@ -334,21 +334,17 @@ async def process_csv(request: Request) -> HTTPResponse:
       'vue_purs_task': vue_purs_task
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
-      if vue_purs_task:
-        await add_background_tasks(app, [vue_purs_task])
-      # match vue_purs_task:
-      #   case {'func': func, 'args': args}:
-      #     # app.add_task(func(*args))
-      #   case _: pass
-
-  # response = response.set('v8k_url', v8k_url)
+      # if vue_purs_task:
+      #   await add_background_tasks(app, [vue_purs_task])
+      match vue_purs_task:
+        case {'func': func, 'args': args}:
+          app.add_task(func(*args))
+        case _: pass
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
 
   print(f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',file=sys.stderr)
-
-  # app.add_background_task(compose_left(run_tasks, asyncio.run), slow_tasks)
 
   # ---------------------------------------------
   # construct other response elements and log run-timings.
