@@ -7,7 +7,7 @@ from cytoolz.functoolz import curry
 import pyrsistent as pyrs
 
 # from quart import Quart
-import muffin
+from sanic import Sanic
 
 class Task(pyrs.PRecord):
   func = pyrs.field(type = Callable, mandatory = True)
@@ -40,7 +40,7 @@ async def run_tasks(
 @curry
 async def add_tasks_to_background(
   tasks: AsyncGenerator[Task, None],
-  app: muffin.Application
+  app: Sanic
 ) -> None:
   async for task in tasks:
     match task:
@@ -51,7 +51,8 @@ async def add_tasks_to_background(
         else:
           task = asyncio.to_thread(func, *args)
 
-        asyncio.get_event_loop().create_task(task)
+        # asyncio.get_event_loop().create_task(task)
+        app.add_task(task)
         # app.run_after_response(task)
 
         # app.add_background_task(func, *args)
