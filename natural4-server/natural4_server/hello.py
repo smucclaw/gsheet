@@ -283,7 +283,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
   )
 
-  for task in pandoc_tasks:
+  async for task in pandoc_tasks:
     app.add_task(task_to_coro(task))
 
   # ---------------------------------------------
