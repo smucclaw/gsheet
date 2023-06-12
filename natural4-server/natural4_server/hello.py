@@ -335,7 +335,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
       if vue_purs_task:
-        add_tasks_to_background(app, [vue_purs_task])
+        await add_tasks_to_background(app, [vue_purs_task])
     case _:
       v8k_url = None
 
