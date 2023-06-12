@@ -22,7 +22,7 @@ maude_main_file: Path = Path('plugins') / 'natural4_maude' / 'main.maude'
 maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 @curry
-def gen_state_space(
+async def gen_state_space(
   output_path: str | os.PathLike,
   config: maude.Term
 ) -> Awaitable[None]:
@@ -39,7 +39,7 @@ def gen_state_space(
   )
 
 @curry
-def find_race_cond(
+async def find_race_cond(
   output_path: str | os.PathLike,
   natural4_rules: str
 ) -> Awaitable[None]:
