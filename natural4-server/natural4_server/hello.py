@@ -122,7 +122,7 @@ async def get_workdir_file(
   
   response = HTTPResponse(
     body = 'No such file',
-    status_code = 204,
+    status = 204,
     content_type = str
     )
 
