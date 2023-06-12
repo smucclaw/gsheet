@@ -1,5 +1,4 @@
-import asyncio
-from collections.abc import AsyncGenerator, Awaitable
+from collections.abc import AsyncGenerator
 import os
 from pathlib import Path
 
@@ -7,7 +6,6 @@ from cytoolz.functoolz import *
 from cytoolz.curried import *
 
 import aiofile
-import aiostream
 
 import maude
 from natural4_server.task import Task, run_tasks
@@ -75,8 +73,7 @@ async def get_maude_tasks(
     if config:
       yield Task(
         func = gen_state_space_and_find_race_cond,
-        args = (output_path, config, natural4_rules),
-        delay = 10
+        args = (output_path, config, natural4_rules)
       )
       # yield Task(
       #   func = find_race_cond,
