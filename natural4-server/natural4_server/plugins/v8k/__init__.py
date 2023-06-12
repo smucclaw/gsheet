@@ -54,7 +54,7 @@ from cytoolz.curried import *
 import pyrsistent as pyrs
 import pyrsistent_extras as pyrse
 
-from natural4_server.task import Task
+from natural4_server.task import Task, no_op_task
 
 try:
   v8k_workdir: Path = Path(os.environ['V8K_WORKDIR'])
@@ -228,6 +228,7 @@ async def do_up(
 
   any_existing = False
   need_to_relaunch = True
+  result = None
 
   async with asyncio.TaskGroup() as taskgroup:
     async for e in existing:
@@ -246,14 +247,19 @@ async def do_up(
             print(f"cp {args.filename} {purs_file}", file=sys.stderr)
             taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
             taskgroup.create_task(asyncio.to_thread(lambda: (Path(dir) / 'v8k.json').touch()))
-            print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
+            # print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
+            result = pyrs.m(
+              port = port,
+              base_url = base_url,
+              vue_purs_task = no_op_task
+            )
           else:
             print("but the server isn't running any longer.", file=sys.stderr)
             dead_slots.append(f'{slot}')
         case _: pass
 
   if not need_to_relaunch:
-    return pyrs.m()
+    return result
 
   server_slots = {f"{n:02}" for n in range(0, pool_size)}
   available_slots = server_slots - set(vuedict.keys()) | set(dead_slots)
