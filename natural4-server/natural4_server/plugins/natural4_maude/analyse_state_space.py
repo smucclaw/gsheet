@@ -58,7 +58,7 @@ def find_race_cond(
     run_tasks(
       aiostream.stream.just(
         asyncio.to_thread(
-          config_to_html_file,
+          natural4_rules_to_race_cond_htmls,
           maude_main_mod,
           Path(output_path) / 'LATEST_state_space.html',
           natural4_rules
