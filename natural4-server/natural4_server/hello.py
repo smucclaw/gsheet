@@ -97,7 +97,7 @@ app.static('/', static_dir)
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
 
-@app.route('/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>')
+@app.route('/workdir/<uuid:str>/<ssid:str>/<sid:str>/<channel:str>/<filename:str>')
 async def get_workdir_file(
   request: Request,
   uuid: str,
@@ -168,7 +168,7 @@ async def get_workdir_file(
 # There is a LATEST directory instead of a LATEST file
 # so the directory path is a little bit different.
 
-@app.route('/aasvg/<uuid>/<ssid>/<sid>/<image>')
+@app.route('/aasvg/<uuid:str>/<ssid:str>/<sid:str>/<image:str>')
 async def show_aasvg_image(
   request: Request,
   uuid: str,
