@@ -17,25 +17,19 @@ class Task(pyrs.PRecord):
 
 no_op_task = Task(func = lambda: None)
 
-# @curry
-# def _ensure_async(func, args):
-#   if asyncio.iscoroutinefunction(func):
-#     return func(*args)
-#   else:
-#     return asyncio.to_thread(func, *args)
+@curry
+def _ensure_async(func, args):
+  if asyncio.iscoroutinefunction(func):
+    return func(*args)
+  else:
+    return asyncio.to_thread(func, *args)
 
 async def task_to_coro(task: Task):
   match task:
     case {'func': func, 'args': args, 'delay': delay}:
       try:
-        async with (
-          asyncio.timeout(delay),
-          asyncio.TaskGroup() as taskgroup
-        ):
-          if asyncio.iscoroutinefunction(func):
-            taskgroup.create_task(func(*args))
-          else:
-            taskgroup.create_task(asyncio.to_thread(func, *args))
+        async with asyncio.timeout(delay):
+          await _ensure_async(func, args)
       except TimeoutError:
         print(f'Timeout in task: {task}', file=sys.stderr)
 
