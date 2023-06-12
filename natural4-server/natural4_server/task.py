@@ -51,7 +51,7 @@ async def add_tasks_to_background(
         else:
           task = asyncio.to_thread(func, *args)
 
-        # asyncio.get_event_loop().create_task(task)
-        app.run_after_response(task)
+        asyncio.get_event_loop().create_task(task)
+        # app.run_after_response(task)
 
         # app.add_background_task(func, *args)
