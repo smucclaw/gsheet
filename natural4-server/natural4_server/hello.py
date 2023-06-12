@@ -103,7 +103,7 @@ async def get_workdir_file(
   workdir_folder: Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
   workdir_folder_filename: Path = workdir_folder / filename
   
-  response = Response('No such file', status = 204)
+  response = Response(status = 204)
 
   exts: Collection[str] = {
     '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
