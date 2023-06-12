@@ -1127,17 +1127,6 @@ pure-eval = "*"
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
-name = "timeout-function-decorator"
-version = "2.0.0"
-description = "Timeout decorator for sync and async functions"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "timeout-function-decorator-2.0.0.tar.gz", hash = "sha256:9ad17a5a9a9edb5129ca8c6355eaaab3bd97c4ee703f8af106ca872e98334409"},
-    {file = "timeout_function_decorator-2.0.0-py3-none-any.whl", hash = "sha256:5d80b617f0b0f90d6eee6a64ceb5d98cf5c28f77f190b8f304670c0116fd9045"},
-]
-
-[[package]]
 name = "toolz"
 version = "0.12.0"
 description = "List processing tools and functional utilities"
@@ -1437,4 +1426,4 @@ natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "31be37dbba6139d196617884c17ac5b43e2fc7a65f4d899f6e7917b2ee838fa6"
+content-hash = "7581019855513bbf9a40efe2e79ff6ea90b6b30c7583c61d1c5e4a558f74cdae"
