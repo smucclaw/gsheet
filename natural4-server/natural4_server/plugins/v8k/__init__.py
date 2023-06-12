@@ -75,7 +75,7 @@ v8k_startport: str = os.environ.get('v8k_startport', '')
 async def getjson(pathin: str | os.PathLike):
   pathin = Path(pathin)
   data = None
-  async with aiofile.async_open(pathin, 'r') as read_file:
+  async with aiofile.async_open(pathin, 'rb') as read_file:
     json_str = await read_file.read()
     # raise Exception(f'json_str: {json_str}')
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
@@ -172,7 +172,7 @@ async def vue_purs_post_process(
 
       async with (
         aiofile.async_open(server_config_dir / 'v8k.json', 'wb')
-        as v8k_json_file,
+          as v8k_json_file,
         asyncio.TaskGroup() as taskgroup
       ):
         taskgroup.create_task(
@@ -198,6 +198,11 @@ async def vue_purs_post_process(
       )
 
     case _: pass
+
+class V8kUpResult(pyrs.PRecord):
+  port = pyrs.field(type = int, mandatory = True)
+  base_url = pyrs.field(type = str, mandatory = True)
+  vue_purs_task = pyrs.field(type = Task, mandatory = True)
 
 @curry
 async def do_up(
@@ -291,7 +296,7 @@ async def do_up(
     "cli": ('npm', 'run', 'serve', '--', f'--port={portnum}')
   }
 
-  return pyrs.m(
+  return V8kUpResult(
     port = server_config['port'],
     base_url = server_config['base_url'],
     vue_purs_task = Task(

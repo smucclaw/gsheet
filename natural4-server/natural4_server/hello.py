@@ -316,7 +316,7 @@ async def process_csv(request: Request) -> HTTPResponse:
 
     aasvg_index_task = taskgroup.create_task(aasvg_file.read())
 
-    v8k_up_task = taskgroup.create_task(
+    v8k_up_task: v8k.V8kUpResult = taskgroup.create_task(
       v8k.main(
         'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
       )
