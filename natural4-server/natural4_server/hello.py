@@ -29,10 +29,7 @@ from cytoolz.curried import *
 import aiofile
 import aiostream
 
-# from quart import Quart, Response, request, send_file
-# from muffin import Application, Response, ResponseJSON
-from sanic import Sanic, Request, HTTPResponse, json
-from sanic.response import file
+from quart import Quart, Response, Request, send_file
 
 from natural4_server.task import Task, add_tasks_to_background, run_tasks
 from plugins.docgen import get_pandoc_tasks
@@ -79,18 +76,11 @@ temp_dir: Path = basedir / "temp"
 static_dir: Path = basedir / "static"
 natural4_dir: Path = temp_dir / "workdir"
 
-app = Sanic(
-  __name__
-  # template_folder=template_dir,
-  # static_folder=static_dir
+app = Quart(
+  __name__,
+  template_folder=template_dir,
+  static_folder=static_dir
 )
-
-app.extend(config = {'templating_path_to_templates': template_dir})
-
-app.static('/', static_dir)
-
-# jinja2 = muffin_jinja2.Plugin()
-# jinja2.setup(app, template_folders = [template_dir])
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
@@ -99,19 +89,12 @@ app.static('/', static_dir)
 
 @app.route('/workdir/<uuid:str>/<ssid:str>/<sid:str>/<channel:str>/<filename:str>')
 async def get_workdir_file(
-  request: Request,
   uuid: str,
   ssid: str,
   sid: str,
   channel: str,
   filename: str
-) -> HTTPResponse:
-  # uuid = request.path_params['uuid']
-  # ssid = request.path_params['ssid']
-  # sid = request.path_params['sid']
-  # channel = request.path_params['channel']
-  # filename = request.path_params['filename']
-
+) -> Response:
   print(
     f'get_workdir_file: handling request for {uuid}/{ssid}/{sid}/{channel}/{filename}',
     file=sys.stderr
@@ -120,11 +103,7 @@ async def get_workdir_file(
   workdir_folder: Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
   workdir_folder_filename: Path = workdir_folder / filename
   
-  response = HTTPResponse(
-    body = 'No such file',
-    status = 204,
-    content_type = str
-    )
+  response = Response('No such file', status = 204)
 
   exts: Collection[str] = {
     '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
@@ -152,9 +131,9 @@ async def get_workdir_file(
         file=sys.stderr
       )
 
-      response: HTTPResponse = await file(
+      response: Response = await send_file(
         workdir_folder_filename,
-        mime_type = mimetype
+        mimetype = mimetype
       )
 
   return response
@@ -168,26 +147,19 @@ async def get_workdir_file(
 # There is a LATEST directory instead of a LATEST file
 # so the directory path is a little bit different.
 
-@app.route('/aasvg/<uuid:str>/<ssid:str>/<sid:str>/<image:str>')
+@app.route('/aasvg/<uuid>/<ssid>/<sid>/<image>')
 async def show_aasvg_image(
-  request: Request,
   uuid: str,
   ssid: str,
   sid: str,
   image: str
-) -> HTTPResponse:
-  # uuid = request.path_params['uuid']
-  # ssid = request.path_params['ssid']
-  # sid = request.path_params['sid']
-  # image = request.path_params['image']
-
+) -> Response:
   print('show_aasvg_image: handling request for /aasvg/ url', file=sys.stderr)
 
   image_path = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image
   print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
 
-  # return await send_file(image_path)
-  return await file(image_path)
+  return await send_file(image_path)
 
 # ################################################
 #                      main
@@ -196,12 +168,12 @@ async def show_aasvg_image(
 @app.route('/post', methods=['GET', 'POST'])
 async def process_csv(
   request: Request
-) -> HTTPResponse:
+) -> Response:
   start_time: datetime.datetime = datetime.datetime.now()
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-  data = request.form
+  data = await request.form
 
   uuid: str = data['uuid'][0]
   spreadsheet_id: str = data['spreadsheetId'][0]
@@ -395,13 +367,14 @@ async def process_csv(
     taskgroup.create_task(flowchart_coro)
     taskgroup.create_task(add_tasks_to_background(vue_purs_tasks, app))
 
-  return json({
+
+  return {
     'nl4_stdout': nl4_stdout,
     'nl4_err': nl4_stderr,
     'v8k_url': v8k_url,
     'aasvg_index': aasvg_index_task.result(),
     'timestamp': f'{timestamp}'
-  })
+  }
 
   # ---------------------------------------------
   # return to sidebar caller
