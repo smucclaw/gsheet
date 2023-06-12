@@ -29,7 +29,7 @@ from cytoolz.curried import *
 import aiofile
 import aiostream
 
-from quart import Quart, Response, Request, send_file
+from quart import Quart, Response, request, send_file
 
 from natural4_server.task import Task, add_tasks_to_background, run_tasks
 from plugins.docgen import get_pandoc_tasks
@@ -166,9 +166,7 @@ async def show_aasvg_image(
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
 # This is the function that does all the heavy lifting.
 @app.route('/post', methods=['GET', 'POST'])
-async def process_csv(
-  request: Request
-) -> Response:
+async def process_csv() -> Response:
   start_time: datetime.datetime = datetime.datetime.now()
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
