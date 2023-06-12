@@ -48,9 +48,9 @@ async def run_tasks(
 @curry
 async def add_tasks_to_background(
   app: Sanic,
-  tasks: AsyncGenerator[Task, None],
+  tasks: AsyncGenerator[Task, None] | Generator[Task]
 ) -> None:
-  async for task in tasks:
+  async for task in aiostream.stream.iterate(tasks):
     print(f'Adding background task: {task}', file=sys.stderr)
     app.add_task(task_to_coro(task), name = task['name'])
     # app.add_background_task(func, *args)
