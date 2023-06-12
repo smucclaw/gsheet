@@ -322,19 +322,15 @@ async def process_csv(request: Request) -> HTTPResponse:
       )
     )
 
+  # Add the vue purs task to the background once v8k up returns.
   match v8k_up_task.result():
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
-      'vue_purs_task': vue_purs_task
+      'vue_purs_task': {'func': func, 'args': args}
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
-      vue_purs_tasks = (vue_purs_task,)
-    # Fall-through case in case v8k up didn't return a result or returned an
-    # empty result.
-    case _:
-      v8k_url = None
-      vue_purs_tasks = ()
+      app.add_task(func(*args))
 
   # response = response.set('v8k_url', v8k_url)
 
@@ -358,12 +354,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     file=sys.stderr
   )
 
-  # Concurrently:
-  # - wait for the flowcharts to be generated before returning to the sidebar.
-  # - add the vue purs postprocessing stuff as a background task.
-  async with asyncio.TaskGroup() as taskgroup:
-    taskgroup.create_task(flowchart_coro)
-    taskgroup.create_task(add_tasks_to_background(app, vue_purs_tasks))
+  # Wait for the flowcharts to be generated before returning to the sidebar.
+  await flowchart_coro
 
   return json({
     'nl4_stdout': nl4_stdout,

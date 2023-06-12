@@ -216,9 +216,9 @@ async def do_up(
   print(f"** poolsize = {pool_size}", file=sys.stderr)
 
   # is there already a server running on the desired uuid-ssid-sheetid?
-  existing = (
-    aiostream.stream.iterate(vuedict.values())
-    | aiostream.pipe.filter(
+  existing = pipe(
+    vuedict.values(),
+    filter(
       lambda js:
         js['ssid'] == args.ssid and
         js['sheetid'] == args.sheetid and
@@ -231,7 +231,7 @@ async def do_up(
   result = None
 
   async with asyncio.TaskGroup() as taskgroup:
-    async for e in existing:
+    for e in existing:
       match e:
         case {'port': port, 'slot': slot, 'dir': dir, 'base_url': base_url}:
           any_existing = True
@@ -247,7 +247,7 @@ async def do_up(
             print(f"cp {args.filename} {purs_file}", file=sys.stderr)
             taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
             taskgroup.create_task(asyncio.to_thread(lambda: (Path(dir) / 'v8k.json').touch()))
-            # print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
+            print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
             result = pyrs.m(
               port = port,
               base_url = base_url,
@@ -303,7 +303,7 @@ async def do_up(
     port = server_config['port'],
     base_url = server_config['base_url'],
     vue_purs_task = Task(
-      func = compose_left(vue_purs_post_process, asyncio.run),
+      func = vue_purs_post_process,
       args = (args, workdir, server_config)
     ) 
   )
