@@ -23,7 +23,7 @@ maude_main_file: Path = Path('plugins') / 'natural4_maude' / 'main.maude'
 maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 @curry
-def gen_state_space_and_find_race_cond(
+async def gen_state_space_and_find_race_cond(
   output_path: str | os.PathLike,
   config: maude.Term,
   natural4_rules: str
@@ -34,8 +34,8 @@ def gen_state_space_and_find_race_cond(
   does not terminate if the state space is infinite.
   '''
 
-  return asyncio.run(
-    run_tasks([
+  # return asyncio.run(
+  await run_tasks([
       Task(
         func = config_to_html_file,
         args = (
@@ -51,7 +51,7 @@ def gen_state_space_and_find_race_cond(
           natural4_rules
         ),
       ),
-    ], timeout = 5)
+    ], delay = 5)
     #     asyncio.to_thread(
     #       config_to_html_file,
     #       maude_main_mod, config, 'all *',
@@ -59,7 +59,7 @@ def gen_state_space_and_find_race_cond(
     #     )
     #   )
     # )
-  )
+  # )
 
 # @curry
 # def find_race_cond(

@@ -17,7 +17,7 @@ no_op_task = Task(func = lambda: None)
 
 async def run_tasks(
   tasks: AsyncGenerator[Task, None] | Generator[Task],
-  timeout = 10
+  delay = 10
 ) -> None:
   '''
   Runs tasks asynchronously in the background.
@@ -25,14 +25,18 @@ async def run_tasks(
 
   try:
     async with (
-      asyncio.timeout(timeout),
+      asyncio.timeout(delay),
       asyncio.TaskGroup() as taskgroup
     ):
       async for task in aiostream.stream.iterate(tasks):
         match task:
           case {'func': func, 'args': args}:
             print(f'Running task: {task}', file=sys.stderr)
-            taskgroup.create_task(asyncio.to_thread(func, *args))
+            if asyncio.iscoroutinefunction(func):
+              task = func(*args)
+            else:
+              task = asyncio.to_thread(func, *args)
+            taskgroup.create_task(task)
 
   except TimeoutError as exc:
     print(f'Timeout while generating outputs: {exc}', file=sys.stderr)
