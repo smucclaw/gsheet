@@ -296,6 +296,8 @@ async def do_up(
     "cli": ('npm', 'run', 'serve', '--', f'--port={portnum}')
   }
 
+  print(f'v8k up returning', file=sys.stderr)
+
   return V8kUpResult(
     port = server_config['port'],
     base_url = server_config['base_url'],
