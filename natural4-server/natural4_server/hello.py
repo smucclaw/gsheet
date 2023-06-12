@@ -335,9 +335,11 @@ async def process_csv(request: Request) -> HTTPResponse:
         case {'func': func, 'args': args}:
           Process(
             target = compose_left(run_tasks, asyncio.run),
-            args = aiostream.stream.chain(
-              maude_tasks, pandoc_tasks, aiostream.stream.just(vue_purs_task)
-            )
+            args = [
+              aiostream.stream.chain(
+                maude_tasks, pandoc_tasks, aiostream.stream.just(vue_purs_task)
+              )
+            ]
           ).start()
         case _: pass
 
