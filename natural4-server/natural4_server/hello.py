@@ -26,11 +26,8 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
-import aiofiles
+import aiofile
 import aiostream
-
-import pyrsistent as pyrs
-import pyrsistent.typing as pyrst
 
 # from quart import Quart, Response, request, send_file
 # from muffin import Application, Response, ResponseJSON
@@ -209,7 +206,7 @@ async def process_csv(
 
   target_folder.mkdir(parents=True, exist_ok=True)
 
-  async with aiofiles.open(target_path, 'w') as fout:
+  async with aiofile.async_open(target_path, 'w') as fout:
     await fout.write(data['csvString'])
 
   # Generate markdown files asynchronously in the background.
@@ -327,10 +324,10 @@ async def process_csv(
   # - Load the aasvg HTML which will later be sent back to the sidebar. 
   # - Run v8k up.
   async with (
-    aiofiles.open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
+    aiofile.async_open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
     as aasvg_file,
-    aiofiles.open(target_folder / f'{time_now}.err', 'w') as err_file,
-    aiofiles.open(target_folder / f'{time_now}.out', 'w') as out_file,
+    aiofile.async_open(target_folder / f'{time_now}.err', 'w') as err_file,
+    aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
     taskgroup.create_task(add_tasks_to_background(maude_tasks, app))
