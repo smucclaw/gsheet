@@ -316,14 +316,12 @@ async def process_csv(request: Request) -> HTTPResponse:
 
     aasvg_index_task = taskgroup.create_task(aasvg_file.read())
 
-    v8k_up_task = taskgroup.create_task(
-      v8k.main(
-        'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
-      )
-    )
+  v8k_up_task = await v8k.main(
+    'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
+  )
 
   # Add the vue purs task to the background once v8k up returns.
-  match v8k_up_task.result():
+  match v8k_up_task:
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
