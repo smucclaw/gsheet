@@ -18,6 +18,7 @@ from collections.abc import (
 )
 import datetime
 import os
+from multiprocessing import Process
 from pathlib import Path
 import sys
 import typing
@@ -338,7 +339,10 @@ async def process_csv(request: Request) -> HTTPResponse:
       #   await add_background_tasks(app, [vue_purs_task])
       match vue_purs_task:
         case {'func': func, 'args': args}:
-          app.add_task(func(*args))
+          Process(
+            target = compose_left(func, asyncio.run),
+            args = args
+          ).start()
         case _: pass
 
   print('hello.py main: v8k up returned', file=sys.stderr)
