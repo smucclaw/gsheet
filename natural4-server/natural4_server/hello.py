@@ -29,7 +29,7 @@ from cytoolz.curried import *
 import aiofile
 import aiostream
 
-from quart import Quart, Response, request, send_file
+from sanic import HTTPResponse, Request, Sanic, file, json
 
 from natural4_server.task import Task, add_tasks_to_background, run_tasks
 from plugins.docgen import get_pandoc_tasks
@@ -76,11 +76,10 @@ temp_dir: Path = basedir / "temp"
 static_dir: Path = basedir / "static"
 natural4_dir: Path = temp_dir / "workdir"
 
-app = Quart(
-  __name__,
-  template_folder=template_dir,
-  static_folder=static_dir
-)
+app = Sanic(__name__)
+
+app.extend(config = {'templating_path_to_templates': template_dir})
+app.static('/', static_dir)
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
@@ -89,12 +88,13 @@ app = Quart(
 
 @app.route('/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>')
 async def get_workdir_file(
+  request: Request,
   uuid: str,
   ssid: str,
   sid: str,
   channel: str,
   filename: str
-) -> Response:
+) -> HTTPResponse:
   print(
     f'get_workdir_file: handling request for {uuid}/{ssid}/{sid}/{channel}/{filename}',
     file=sys.stderr
@@ -103,7 +103,7 @@ async def get_workdir_file(
   workdir_folder: Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
   workdir_folder_filename: Path = workdir_folder / filename
   
-  response = Response(status = 204)
+  response = HTTPResponse(status = 204)
 
   exts: Collection[str] = {
     '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
@@ -131,7 +131,7 @@ async def get_workdir_file(
         file=sys.stderr
       )
 
-      response: Response = await send_file(
+      response: HTTPResponse = await file(
         workdir_folder_filename,
         mimetype = mimetype
       )
@@ -149,24 +149,25 @@ async def get_workdir_file(
 
 @app.route('/aasvg/<uuid>/<ssid>/<sid>/<image>')
 async def show_aasvg_image(
+  request: Request,
   uuid: str,
   ssid: str,
   sid: str,
   image: str
-) -> Response:
+) -> HTTPResponse:
   print('show_aasvg_image: handling request for /aasvg/ url', file=sys.stderr)
 
   image_path = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image
   print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
 
-  return await send_file(image_path)
+  return await file(image_path)
 
 # ################################################
 #                      main
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
 # This is the function that does all the heavy lifting.
 @app.route('/post', methods=['GET', 'POST'])
-async def process_csv() -> Response:
+async def process_csv(request: Request) -> HTTPResponse:
   start_time: datetime.datetime = datetime.datetime.now()
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
@@ -365,14 +366,13 @@ async def process_csv() -> Response:
     taskgroup.create_task(flowchart_coro)
     taskgroup.create_task(add_tasks_to_background(vue_purs_tasks, app))
 
-
-  return {
+  return json({
     'nl4_stdout': nl4_stdout,
     'nl4_err': nl4_stderr,
     'v8k_url': v8k_url,
     'aasvg_index': aasvg_index_task.result(),
     'timestamp': f'{timestamp}'
-  }
+  })
 
   # ---------------------------------------------
   # return to sidebar caller
