@@ -4,6 +4,8 @@ import sys
 
 from sanic import Sanic
 
+from timeout_function_decorator import timeout
+
 import aiostream
 
 from cytoolz.functoolz import curry
@@ -32,7 +34,10 @@ async def task_to_coro(task: Task):
           if asyncio.iscoroutinefunction(func):
             await func(*args)
           else:
-            await asyncio.to_thread(func, *args)
+            @timeout(delay)
+            def _func():
+              func(*args)
+            await asyncio.to_thread(_func)
       except TimeoutError:
         print(f'Timeout in task: {task}', file=sys.stderr)
 
