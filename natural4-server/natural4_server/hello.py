@@ -30,7 +30,7 @@ import aiofile
 
 from sanic import HTTPResponse, Request, Sanic, file, json
 
-from natural4_server.task import Task, add_tasks_to_background, run_tasks
+from natural4_server.task import Task, add_tasks_to_background, run_tasks, task_to_coro
 from plugins.docgen import get_pandoc_tasks
 from plugins.flowchart import get_flowchart_tasks
 from plugins.natural4_maude import get_maude_tasks
@@ -282,7 +282,9 @@ async def process_csv(request: Request) -> HTTPResponse:
   pandoc_tasks: AsyncGenerator[Task, None] = (
     get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
   )
-  await add_tasks_to_background(app, pandoc_tasks)
+
+  for task in pandoc_tasks:
+    app.add_task(task_to_coro(task))
 
   # ---------------------------------------------
   # postprocessing:
