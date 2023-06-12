@@ -261,7 +261,7 @@ async def do_up(
     return pyrs.m()
 
   server_slots = {f"{n:02}" for n in range(0, pool_size)}
-  available_slots = list(set(server_slots) - set(vuedict.keys()) | set(dead_slots))
+  available_slots = server_slots - set(vuedict.keys()) | set(dead_slots)
 
   print(f"server_slots    = {server_slots}", file=sys.stderr)
   print(f"vuedict.keys()  = {vuedict.keys()}", file=sys.stderr)
@@ -311,7 +311,7 @@ async def take_down(vuedict, slot) -> None:
   if not portnum:
     print("unable to resolve portnum for slot " + slot + "; exiting", file=sys.stderr)
     # sys.exit(2)
-  mymatches = print_server_info(portnum)
+  mymatches = await print_server_info(portnum)
   if mymatches:
     async for mymatch in aiostream.stream.just(mymatches):
       print("killing pid " + mymatch[0] + " running vue server on port " + mymatch[1], file=sys.stderr)
