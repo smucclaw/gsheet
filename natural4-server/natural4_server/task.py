@@ -13,25 +13,19 @@ class Task(pyrs.PRecord):
   func = pyrs.field(type = Callable, mandatory = True)
   args = pyrs.field(type = Sequence, initial = tuple()) 
   name = pyrs.field(initial = None)
-  delay = pyrs.field(type = int, initial = 10)
 
 no_op_task = Task(func = lambda: None)
 
-@curry
-def _ensure_async(func, args):
+def _ensure_async(func, args = tuple()):
   if asyncio.iscoroutinefunction(func):
     return func(*args)
   else:
     return asyncio.to_thread(func, *args)
 
-async def task_to_coro(task: Task):
+def task_to_coro(task: Task):
   match task:
-    case {'func': func, 'args': args, 'delay': delay}:
-      try:
-        async with asyncio.timeout(delay):
-          await _ensure_async(func, args)
-      except TimeoutError:
-        print(f'Timeout in task: {task}', file=sys.stderr)
+    case {'func': func, 'args': args}:
+      return  _ensure_async(func, args)
 
 async def run_tasks(
   tasks: AsyncGenerator[Task, None] | Generator[Task]
@@ -46,7 +40,7 @@ async def run_tasks(
       taskgroup.create_task(task_to_coro(task))
 
 @curry
-async def add_tasks_to_background(
+async def add_background_tasks(
   app: Sanic,
   tasks: AsyncGenerator[Task, None] | Generator[Task]
 ) -> None:

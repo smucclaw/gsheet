@@ -30,7 +30,7 @@ import aiofile
 
 from sanic import HTTPResponse, Request, Sanic, file, json
 
-from natural4_server.task import Task, add_tasks_to_background, run_tasks, task_to_coro
+from natural4_server.task import Task, add_background_tasks, run_tasks
 from plugins.docgen import get_pandoc_tasks
 from plugins.flowchart import get_flowchart_tasks
 from plugins.natural4_maude import get_maude_tasks
@@ -313,8 +313,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
-    taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
+    taskgroup.create_task(add_background_tasks(app, maude_tasks))
+    taskgroup.create_task(add_background_tasks(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
 
@@ -331,19 +331,20 @@ async def process_csv(request: Request) -> HTTPResponse:
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
-      'vue_purs_task': {'func': func, 'args': args} as vue_purs_task
+      'vue_purs_task': vue_purs_task
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
-      # app.add_task(func(*args))
-      await add_tasks_to_background(app, [vue_purs_task])
-    case _:
-      v8k_url = None
+      if vue_purs_task:
+        await add_background_tasks(app, [vue_purs_task])
+      # match vue_purs_task:
+      #   case {'func': func, 'args': args}:
+      #     # app.add_task(func(*args))
+      #   case _: pass
 
   # response = response.set('v8k_url', v8k_url)
 
   print('hello.py main: v8k up returned', file=sys.stderr)
-  if v8k_url:
-    print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
+  print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
 
   print(f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',file=sys.stderr)
 
