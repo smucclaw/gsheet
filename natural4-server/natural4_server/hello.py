@@ -32,7 +32,7 @@ import aiofile
 
 from sanic import HTTPResponse, Request, Sanic, file, json
 
-from natural4_server.task import Task, add_background_tasks, run_tasks
+from natural4_server.task import Task, run_tasks
 from plugins.docgen import get_pandoc_tasks
 from plugins.flowchart import get_flowchart_tasks
 from plugins.natural4_maude import get_maude_tasks
@@ -296,14 +296,9 @@ async def process_csv(request: Request) -> HTTPResponse:
     get_maude_tasks(natural4_file, maude_output_path)
   )
 
-  # async for task in maude_tasks:
-  #   print(f'Adding task: {task}')
-  #   app.add_task(asyncio.to_thread(task['func'], *task['args']))
-
   print('Running v8k', file=sys.stderr)
 
   # Concurrently peform the following:
-  # - Schedule the slow Maude and pandoc tasks.
   # - Write natural4-exe's stdout to a file.
   # - Write natural4-exe's stderr to a file.
   # - Run v8k up.
@@ -312,8 +307,6 @@ async def process_csv(request: Request) -> HTTPResponse:
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    # taskgroup.create_task(add_background_tasks(app, maude_tasks))
-    # taskgroup.create_task(add_background_tasks(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
 
@@ -324,6 +317,12 @@ async def process_csv(request: Request) -> HTTPResponse:
     )
 
   # Add the vue purs task to the background once v8k up returns.
+  # Once v8k up returns with the vue purs post processing task, we create a
+  # new process and get it to run, concurrently the:
+  # - Maude tasks
+  # - Pandoc tasks
+  # - vue purs task
+  slow_tasks = aiostream.stream.chain(maude_tasks, pandoc_tasks)
   match v8k_up_task.result():
     case {
       'port': v8k_port,
@@ -337,17 +336,16 @@ async def process_csv(request: Request) -> HTTPResponse:
             func = compose_left(func, asyncio.run),
             args = args
           )
-          Process(
-            target = compose_left(run_tasks, asyncio.run),
-            args = [
-              aiostream.stream.chain(
-                maude_tasks,
-                pandoc_tasks,
-                aiostream.stream.just(vue_purs_task)
-              )
-            ]
-          ).start()
+          slow_tasks = aiostream.stream.chain(
+            slow_tasks, aiostream.stream.just(vue_purs_task)
+          )
+
         case _: pass
+
+  Process(
+    target = compose_left(run_tasks, asyncio.run),
+    args = (slow_tasks,)
+  ).start()
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
