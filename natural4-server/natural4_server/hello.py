@@ -309,19 +309,21 @@ async def process_csv(request: Request) -> HTTPResponse:
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    # taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
-    # taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
+    taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
+    taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
 
     aasvg_index_task = taskgroup.create_task(aasvg_file.read())
 
-  v8k_up_task = await v8k.main(
-    'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
-  )
+    v8k_up_task = taskgroup.create_task(
+      v8k.main(
+        'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
+      )
+    )
 
   # Add the vue purs task to the background once v8k up returns.
-  match v8k_up_task:
+  match v8k_up_task.result():
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
