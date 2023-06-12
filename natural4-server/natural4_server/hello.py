@@ -283,10 +283,6 @@ async def process_csv(request: Request) -> HTTPResponse:
     get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
   )
 
-  async for task in pandoc_tasks:
-    print(f'Adding task: {task}')
-    app.add_task(asyncio.to_thread(task['func'], *task['args']))
-
   # ---------------------------------------------
   # postprocessing:
   # Use Maude to generate the state space and find race conditions
@@ -297,6 +293,10 @@ async def process_csv(request: Request) -> HTTPResponse:
   maude_tasks: AsyncGenerator[Task, None] = (
     get_maude_tasks(natural4_file, maude_output_path)
   )
+
+  async for task in maude_tasks:
+    print(f'Adding task: {task}')
+    app.add_task(asyncio.to_thread(task['func'], *task['args']))
 
   print('Running v8k', file=sys.stderr)
 
