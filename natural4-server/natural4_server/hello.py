@@ -333,11 +333,17 @@ async def process_csv(request: Request) -> HTTPResponse:
       v8k_url = f':{v8k_port}{v8k_base_url}'
       match vue_purs_task:
         case {'func': func, 'args': args}:
+          vue_purs_task = Task(
+            func = compose_left(func, asyncio.run),
+            args = args
+          )
           Process(
             target = compose_left(run_tasks, asyncio.run),
             args = [
               aiostream.stream.chain(
-                maude_tasks, pandoc_tasks, aiostream.stream.just(vue_purs_task)
+                maude_tasks,
+                pandoc_tasks,
+                aiostream.stream.just(vue_purs_task)
               )
             ]
           ).start()
