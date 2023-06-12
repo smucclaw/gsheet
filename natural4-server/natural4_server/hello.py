@@ -32,8 +32,10 @@ import aiostream
 import pyrsistent as pyrs
 import pyrsistent.typing as pyrst
 
-# from flask import Flask, Response, request, send_file
-from quart import Quart, Response, request, send_file
+# from quart import Quart, Response, request, send_file
+# from muffin import Application, Response, ResponseJSON
+import muffin
+import muffin_jinja2
 
 from natural4_server.task import Task, add_tasks_to_background, run_tasks
 from plugins.docgen import get_pandoc_tasks
@@ -80,21 +82,36 @@ temp_dir: Path = basedir / "temp"
 static_dir: Path = basedir / "static"
 natural4_dir: Path = temp_dir / "workdir"
 
-app = Quart(__name__, template_folder=template_dir, static_folder=static_dir)
+app = muffin.Application(
+  __name__,
+  STATIC_FOLDERS = [static_dir]
+  # template_folder=template_dir,
+  # static_folder=static_dir
+)
+
+jinja2 = muffin_jinja2.Plugin()
+jinja2.setup(app, template_folders = [template_dir])
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
 
-@app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
+@app.route('/workdir/{uuid:Path}/{ssid:Path}/{sid:Path}/{channel:Path}/{filename:Path}')
 async def get_workdir_file(
-  uuid: str | os.PathLike,
-  ssid: str | os.PathLike,
-  sid: str | os.PathLike,
-  channel: str | os.PathLike,
-  filename: str | os.PathLike
-) -> Response:
+  request: muffin.Request
+  # uuid: str | os.PathLike,
+  # ssid: str | os.PathLike,
+  # sid: str | os.PathLike,
+  # channel: str | os.PathLike,
+  # filename: str | os.PathLike
+) -> muffin.Response:
+  uuid = request.path_params['uuid']
+  ssid = request.path_params['ssid']
+  sid = request.path_params['sid']
+  channel = request.path_params['channel']
+  filename = request.path_params['filename']
+
   print(
     f'get_workdir_file: handling request for {uuid}/{ssid}/{sid}/{channel}/{filename}',
     file=sys.stderr
@@ -103,7 +120,7 @@ async def get_workdir_file(
   workdir_folder: Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
   workdir_folder_filename: Path = workdir_folder / filename
   
-  response = Response(status = 204)
+  response = muffin.Response(status_code = 204)
 
   exts: Collection[str] = pyrs.s(
     '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
@@ -121,20 +138,18 @@ async def get_workdir_file(
         file=sys.stderr
       )
     case _:
-      if Path(filename).suffix in exts:
-        mimetype, mimetype_str = ('text/plain',) * 2
-      else:
-        mimetype, mimetype_str = None, ''
+      # if Path(filename).suffix in exts:
+      #   mimetype, mimetype_str = ('text/plain',) * 2
+      # else:
+      #   mimetype, mimetype_str = None, ''
 
       print(
-        f'get_workdir_file: returning {mimetype_str} {workdir_folder_filename}',
+        f'get_workdir_file: returning {workdir_folder_filename}',
         file=sys.stderr
       )
 
-      response: Response = await send_file(
-        workdir_folder_filename,
-        mimetype = mimetype
-      )
+      response: muffin.Response = muffin.ResponseFile(workdir_folder_filename)
+        # mimetype = mimetype
 
   return response
 
@@ -147,31 +162,40 @@ async def get_workdir_file(
 # There is a LATEST directory instead of a LATEST file
 # so the directory path is a little bit different.
 
-@app.route('/aasvg/<uuid>/<ssid>/<sid>/<image>')
+@app.route('/aasvg/{uuid:Path}/{ssid:Path}/{sid:Path}/{image:Path}')
 async def show_aasvg_image(
-  uuid: str | os.PathLike,
-  ssid: str | os.PathLike,
-  sid: str | os.PathLike,
-  image: str | os.PathLike
-) -> Response:
+  request: muffin.Request
+  # uuid: str | os.PathLike,
+  # ssid: str | os.PathLike,
+  # sid: str | os.PathLike,
+  # image: str | os.PathLike
+) -> muffin.Response:
+  uuid = request.path_params['uuid']
+  ssid = request.path_params['ssid']
+  sid = request.path_params['sid']
+  image = request.path_params['image']
+
   print('show_aasvg_image: handling request for /aasvg/ url', file=sys.stderr)
 
   image_path = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image
   print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
 
-  return await send_file(image_path)
+  # return await send_file(image_path)
+  return muffin.ResponseFile(image_path)
 
 # ################################################
 #                      main
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
 # This is the function that does all the heavy lifting.
 @app.route('/post', methods=['GET', 'POST'])
-async def process_csv() -> str:
+async def process_csv(
+  request: muffin.Request
+) -> str:
   start_time: datetime.datetime = datetime.datetime.now()
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-  data: pyrst.PMap[str, str] = pyrs.pmap(await request.form)
+  data = await request.form()
 
   uuid: str = data['uuid']
   spreadsheet_id: str = data['spreadsheetId']
@@ -365,13 +389,13 @@ async def process_csv() -> str:
     taskgroup.create_task(flowchart_coro)
     taskgroup.create_task(add_tasks_to_background(vue_purs_tasks, app))
 
-  return {
+  return muffin.ResponseJSON({
     'nl4_stdout': nl4_stdout,
     'nl4_err': nl4_stderr,
     'v8k_url': v8k_url,
     'aasvg_index': aasvg_index_task.result(),
     'timestamp': f'{timestamp}'
-  }
+  })
 
   # ---------------------------------------------
   # return to sidebar caller

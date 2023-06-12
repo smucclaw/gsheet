@@ -37,9 +37,8 @@ import asyncio
 import sys
 import os
 import re
-from os.path import isfile, getmtime
 import argparse
-import ujson
+import orjson
 from pathlib import Path
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
@@ -80,7 +79,7 @@ async def getjson(pathin: str | os.PathLike):
     json_str = await read_file.read()
     # raise Exception(f'json_str: {json_str}')
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
-    data = ujson.loads(json_str.strip())
+    data = orjson.loads(json_str.strip())
     data['jsonfile'] = pathin
     data['modtime'] = pathin.stat().st_mtime
   return data
@@ -185,7 +184,7 @@ async def vue_purs_post_process(
         pipe(
           server_config,
           dict,
-          ujson.dumps,
+          orjson.dumps,
           v8k_json_file.write,
           taskgroup.create_task
         )

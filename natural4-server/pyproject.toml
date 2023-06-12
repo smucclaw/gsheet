@@ -8,15 +8,17 @@ packages = [{include = "natural4_server"}]
 
 [tool.poetry.dependencies]
 python = "^3.11.0"
-ujson = "^5.8.0"
+orjson = "^3.9.1"
 aiofiles = "^23.1.0"
 aioshutil = "^1.3"
 aiostream = "^0.4.5"
 cytoolz = "^0.12.1"
 # quart = {extras = ["dotenv"], version = "^0.18.4"}
 quart = "^0.18.4"
-gunicorn = "^20.1.0"
-uvicorn = {extras = ["standard"], version = "^0.22.0"}
+muffin = {extras = ["standard"], version = "^0.98.6"}
+muffin-jinja2 = "^1.7.1"
+# gunicorn = "^20.1.0"
+# uvicorn = {extras = ["standard"], version = "^0.22.0"}
 pyrsistent = "^0.19.3"
 pyrsistent-extras = "^0.1.0"
 pyvis = {version = "^0.3.2", optional = true}
