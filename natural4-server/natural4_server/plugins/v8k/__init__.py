@@ -296,7 +296,7 @@ async def do_up(
     base_url = server_config['base_url'],
     vue_purs_task = Task(
       func = vue_purs_post_process,
-      args = (workdir, workdir, server_config)
+      args = (args, workdir, server_config)
     ) 
   )
 
