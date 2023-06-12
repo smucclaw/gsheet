@@ -294,9 +294,9 @@ async def process_csv(request: Request) -> HTTPResponse:
     get_maude_tasks(natural4_file, maude_output_path)
   )
 
-  async for task in maude_tasks:
-    print(f'Adding task: {task}')
-    app.add_task(asyncio.to_thread(task['func'], *task['args']))
+  # async for task in maude_tasks:
+  #   print(f'Adding task: {task}')
+  #   app.add_task(asyncio.to_thread(task['func'], *task['args']))
 
   print('Running v8k', file=sys.stderr)
 
@@ -313,7 +313,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    # taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
+    taskgroup.create_task(add_tasks_to_background(app, maude_tasks))
     # taskgroup.create_task(add_tasks_to_background(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
@@ -331,10 +331,11 @@ async def process_csv(request: Request) -> HTTPResponse:
     case {
       'port': v8k_port,
       'base_url': v8k_base_url,
-      'vue_purs_task': {'func': func, 'args': args}
+      'vue_purs_task': vue_purs_task
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
-      app.add_task(func(*args))
+      # app.add_task(func(*args))
+      add_tasks_to_background(app, [vue_purs_task])
     case _:
       v8k_url = None
 
