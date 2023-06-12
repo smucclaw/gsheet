@@ -305,11 +305,8 @@ async def process_csv(request: Request) -> HTTPResponse:
   # - Schedule the slow Maude and pandoc tasks.
   # - Write natural4-exe's stdout to a file.
   # - Write natural4-exe's stderr to a file.
-  # - Load the aasvg HTML which will later be sent back to the sidebar. 
   # - Run v8k up.
   async with (
-    aiofile.async_open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
-    as aasvg_file,
     aiofile.async_open(target_folder / f'{time_now}.err', 'w') as err_file,
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     asyncio.TaskGroup() as taskgroup
@@ -318,8 +315,6 @@ async def process_csv(request: Request) -> HTTPResponse:
     taskgroup.create_task(add_background_tasks(app, pandoc_tasks))
     taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
-
-    aasvg_index_task = taskgroup.create_task(aasvg_file.read())
 
     v8k_up_task = taskgroup.create_task(
       v8k.main(
@@ -362,8 +357,16 @@ async def process_csv(request: Request) -> HTTPResponse:
     file=sys.stderr
   )
 
-  # Wait for the flowcharts to be generated before returning to the sidebar.
-  await flowchart_coro
+  # Concurrently:
+  # - Wait for the flowcharts to be generated before returning to the sidebar.
+  # - Read in the aasvg html file to return to the sidebar.
+  async with (
+    aiofile.async_open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
+    as aasvg_file,
+    asyncio.TaskGroup() as taskgroup
+  ):
+    taskgroup.create_task(flowchart_coro)
+    aasvg_index_task = taskgroup.create_task(aasvg_file.read())
 
   return json({
     'nl4_stdout': nl4_stdout,
