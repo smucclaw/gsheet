@@ -97,7 +97,7 @@ jinja2.setup(app, template_folders = [template_dir])
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
 
-@app.route('/workdir/{uuid:Path}/{ssid:Path}/{sid:Path}/{channel:Path}/{filename:Path}')
+@app.route('/workdir/{uuid}/{ssid}/{sid}/{channel}/{filename}')
 async def get_workdir_file(
   request: muffin.Request
   # uuid: str | os.PathLike,
@@ -120,11 +120,11 @@ async def get_workdir_file(
   workdir_folder: Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
   workdir_folder_filename: Path = workdir_folder / filename
   
-  response = muffin.Response(status_code = 204)
+  response = muffin.Response('No such file', status_code = 204)
 
-  exts: Collection[str] = pyrs.s(
-    '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
-  )
+  # exts: Collection[str] = pyrs.s(
+  #   '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
+  # )
   
   match (workdir_folder.exists(), workdir_folder_filename.is_file()):
     case (False, _):
@@ -162,7 +162,7 @@ async def get_workdir_file(
 # There is a LATEST directory instead of a LATEST file
 # so the directory path is a little bit different.
 
-@app.route('/aasvg/{uuid:Path}/{ssid:Path}/{sid:Path}/{image:Path}')
+@app.route('/aasvg/{uuid}/{ssid}/{sid}/{image}')
 async def show_aasvg_image(
   request: muffin.Request
   # uuid: str | os.PathLike,
