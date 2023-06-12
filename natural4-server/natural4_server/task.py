@@ -13,7 +13,7 @@ class Task(pyrs.PRecord):
   func = pyrs.field(type = Callable, mandatory = True)
   args = pyrs.field(type = Sequence, initial = tuple()) 
   name = pyrs.field(initial = None)
-  delay = pyrs.field(initial = None)
+  delay = pyrs.field(type = int, initial = 10)
 
 no_op_task = Task(func = lambda: None)
 
@@ -56,4 +56,3 @@ async def add_tasks_to_background(
   async for task in aiostream.stream.iterate(tasks):
     print(f'Adding background task: {task}', file=sys.stderr)
     app.add_task(task_to_coro(task), name = task['name'])
-    # app.add_background_task(func, *args)
