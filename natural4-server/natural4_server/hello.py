@@ -34,7 +34,9 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
-from natural4_server.task import Task, add_background_tasks, run_tasks
+import pyrsistent as pyrs
+
+from natural4_server.task import Task, run_tasks
 from natural4_server.plugins.docgen import get_pandoc_tasks
 from natural4_server.plugins.flowchart import get_flowchart_tasks
 from natural4_server.plugins.natural4_maude import get_maude_tasks
@@ -111,36 +113,31 @@ async def get_workdir_file(
   
   response = HTTPResponse(status = 204)
 
-  exts: Collection[str] = {
+  exts: Collection[str] = pyrs.s(
     '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
-  }
+  )
+
+  # Message to print to stderr for logging.
+  msg = ''
   
   match (workdir_folder.exists(), workdir_folder_filename.is_file()):
     case (False, _):
-      print(
-        f'get_workdir_file: unable to find workdir_folder {workdir_folder}',
-        file=sys.stderr
-      )
+      msg = f'get_workdir_file: unable to find workdir_folder {workdir_folder}'
     case (_, False):
-      print(
-        f'get_workdir_file: unable to find file {workdir_folder_filename}',
-        file=sys.stderr
-      )
+      msg = f'get_workdir_file: unable to find file {workdir_folder_filename}'
     case _:
       if Path(filename).suffix in exts:
-        mimetype, mimetype_str = ('text/plain',) * 2
+        mime_type, mime_type_str = ('text/plain',) * 2
       else:
-        mimetype, mimetype_str = None, ''
+        mime_type, mime_type_str = None, ''
 
-      print(
-        f'get_workdir_file: returning {mimetype_str} {workdir_folder_filename}',
-        file=sys.stderr
-      )
+      msg = f'get_workdir_file: returning {mime_type_str} {workdir_folder_filename}',
 
       response: HTTPResponse = await file(
-        workdir_folder_filename,
-        mime_type = mimetype
+        workdir_folder_filename, mime_type = mime_type
       )
+
+  print(msg, file=sys.stderr)
 
   return response
 
@@ -201,15 +198,15 @@ async def process_csv(request: Request) -> HTTPResponse:
   # Generate markdown files asynchronously in the background.
   uuiddir: Path = Path(uuid) / spreadsheet_id / sheet_id
 
-  markdown_cmd: Sequence[str] = (
-    natural4_exe,
-    '--only', 'tomd', f'--workdir={natural4_dir}',
-    f'--uuiddir={uuiddir}',
-    f'{target_path}'
-  )
+  # markdown_cmd: Sequence[str] = (
+  #   natural4_exe,
+  #   '--only', 'tomd', f'--workdir={natural4_dir}',
+  #   f'--uuiddir={uuiddir}',
+  #   f'{target_path}'
+  # )
 
-  print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
-  print(f'hello.py child: {markdown_cmd}', file=sys.stderr)
+  # print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
+  # print(f'hello.py child: {markdown_cmd}', file=sys.stderr)
 
   # Coroutine which is awaited before pandoc is called to generate documents
   # (ie word and pdf) from the markdown file.
@@ -260,8 +257,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   short_err_maxlen, long_err_maxlen = 2_000, 20_000
   nl4_stdout, nl4_stderr = nl4_out[:long_err_maxlen], nl4_err[:long_err_maxlen]
 
-  if len(nl4_err) < short_err_maxlen:
-    print(nl4_err)
+  if len(nl4_err) < short_err_maxlen: print(nl4_err)
 
   # response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
   # response = response.set('nl4_stdout', nl4_out[:long_err_maxlen])
@@ -318,7 +314,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     taskgroup.create_task(out_file.write(nl4_out))
     taskgroup.create_task(err_file.write(nl4_err))
 
-    v8k_up_task = taskgroup.create_task(
+    v8k_up_task: asyncio.Task[v8k.V8kUpResult | None] = taskgroup.create_task(
       v8k.main(
         'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
       )

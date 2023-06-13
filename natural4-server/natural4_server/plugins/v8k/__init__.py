@@ -196,6 +196,12 @@ async def vue_purs_post_process(
 
     case _: pass
 
+class V8kUpResult(pyrs.PRecord):
+  port = pyrs.field(type = int, mandatory = True)
+  base_url = pyrs.field(type = str, mandatory = True)
+  vue_purs_task = pyrs.field(initial = None, mandatory = True)
+
+
 async def do_up(
   args: argparse.Namespace,
   workdir: str | os.PathLike
@@ -224,7 +230,7 @@ async def do_up(
 
   any_existing = False
   need_to_relaunch = True
-  result = None
+  result = V8kUpResult(port = 0, base_url = '')
 
   async with asyncio.TaskGroup() as taskgroup:
     for e in existing:
@@ -244,18 +250,16 @@ async def do_up(
             taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
             taskgroup.create_task(asyncio.to_thread(lambda: (Path(dir) / 'v8k.json').touch()))
             # print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
-            result = pyrs.m(
+            result = V8kUpResult(
               port = port,
-              base_url = base_url,
-              vue_purs_task = None
+              base_url = base_url
             )
           else:
             print("but the server isn't running any longer.", file=sys.stderr)
             dead_slots.append(f'{slot}')
         case _: pass
 
-  if not need_to_relaunch:
-    return result
+  if not need_to_relaunch: return result
 
   server_slots = {f"{n:02}" for n in range(0, pool_size)}
   available_slots = server_slots - set(vuedict.keys()) | set(dead_slots)
@@ -295,7 +299,7 @@ async def do_up(
 
   print(f'v8k up returning', file=sys.stderr)
 
-  return pyrs.m(
+  return V8kUpResult(
     port = server_config['port'],
     base_url = server_config['base_url'],
     vue_purs_task = Task(
@@ -311,9 +315,12 @@ async def take_down(vuedict, slot) -> None:
     # sys.exit(2)
   mymatches = await print_server_info(portnum)
   if mymatches:
-    async for mymatch in aiostream.stream.just(mymatches):
-      print("killing pid " + mymatch[0] + " running vue server on port " + mymatch[1], file=sys.stderr)
-      asyncio.subprocess.create_subprocess_exec('kill', mymatch[0])
+    async with asyncio.TaskGroup() as taskgroup:
+      async for mymatch in aiostream.stream.just(mymatches):
+        print("killing pid " + mymatch[0] + " running vue server on port " + mymatch[1], file=sys.stderr)
+        taskgroup.create_task(
+          asyncio.subprocess.create_subprocess_exec('kill', mymatch[0])
+        )
   else:
     print(f"unable to find pid running vue server on port {portnum}", file=sys.stderr)
 
@@ -390,7 +397,7 @@ async def main(
   spreadsheet_id: str,
   sheet_id: str,
   uuid_ss_folder: str | os.PathLike,
-) -> Mapping[str, str | Callable[[], None]] | None:
+) -> V8kUpResult | None:
   v8k_args: Sequence[str] = pyrse.sq(
     f'--workdir={v8k_workdir}',
     command,
