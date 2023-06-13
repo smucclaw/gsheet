@@ -92,8 +92,6 @@ app.static('/', static_dir)
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
 
-aiomultiprocess.set_start_method('fork')
-
 @app.route('/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>')
 async def get_workdir_file(
   request: Request,
@@ -174,6 +172,9 @@ async def show_aasvg_image(
 #                      main
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
 # This is the function that does all the heavy lifting.
+
+aiomultiprocess.set_start_method('fork')
+
 @app.route('/post', methods=['GET', 'POST'])
 async def process_csv(request: Request) -> HTTPResponse:
   start_time: datetime.datetime = datetime.datetime.now()
@@ -310,12 +311,12 @@ async def process_csv(request: Request) -> HTTPResponse:
   # - Write natural4-exe's stderr to a file.
   # - Run v8k up.
   async with (
-    aiofile.async_open(target_folder / f'{time_now}.err', 'w') as err_file,
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
+    aiofile.async_open(target_folder / f'{time_now}.err', 'w') as err_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    taskgroup.create_task(err_file.write(nl4_err))
     taskgroup.create_task(out_file.write(nl4_out))
+    taskgroup.create_task(err_file.write(nl4_err))
 
     v8k_up_task = taskgroup.create_task(
       v8k.main(
@@ -323,12 +324,13 @@ async def process_csv(request: Request) -> HTTPResponse:
       )
     )
 
-  # Add the vue purs task to the background once v8k up returns.
   # Once v8k up returns with the vue purs post processing task, we create a
-  # new process and get it to run, concurrently the:
+  # new process and get it to run the slow tasks concurrently.
+  # These include:
   # - Maude tasks
   # - Pandoc tasks
   # - vue purs task
+  v8k_url = None
   slow_tasks = aiostream.stream.chain(maude_tasks, pandoc_tasks)
   match v8k_up_task.result():
     case {
@@ -337,34 +339,24 @@ async def process_csv(request: Request) -> HTTPResponse:
       'vue_purs_task': vue_purs_task
     }:
       v8k_url = f':{v8k_port}{v8k_base_url}'
-      match vue_purs_task:
-        case {'func': func, 'args': args}:
-          vue_purs_task = Task(
-            func = compose_left(func, asyncio.run),
-            args = args
-          )
-          slow_tasks = aiostream.stream.chain(
-            slow_tasks, aiostream.stream.just(vue_purs_task)
-          )
-
-        case _:
-          v8k_url = None
-
-  async def slow_tasks_coro():
-    slow_tasks_proc = aiomultiprocess.Process(
-      loop_initializer = uvloop.new_event_loop,
-      target = run_tasks,
-      args = (slow_tasks,)
-    )
-    slow_tasks_proc.start()
-    await slow_tasks_proc.join(timeout = 30)
-
-  app.add_task(slow_tasks_coro())
+      if vue_purs_task:
+        slow_tasks = aiostream.stream.chain(
+          aiostream.stream.just(vue_purs_task), slow_tasks
+        )
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
-
   print(f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',file=sys.stderr)
+
+  # Create a new process to run slow_tasks_coro, and add it to app as a
+  # background task, with a timeout of 30s.
+  slow_tasks_proc = aiomultiprocess.Process(
+    loop_initializer = uvloop.new_event_loop,
+    target = run_tasks,
+    args = (slow_tasks,)
+  )
+  slow_tasks_proc.start()
+  app.add_task(slow_tasks_proc.join(timeout = 30))
 
   # ---------------------------------------------
   # construct other response elements and log run-timings.
@@ -411,4 +403,4 @@ async def process_csv(request: Request) -> HTTPResponse:
 # For local development purposes this running it as a
 # multi-process server is fine, change if needed
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port=8080, debug=False, threaded=False, processes=6)
+  app.run(host='0.0.0.0', port=8080, debug=False)

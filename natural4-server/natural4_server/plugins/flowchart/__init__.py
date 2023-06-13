@@ -1,5 +1,4 @@
-import asyncio
-from collections.abc import AsyncGenerator, Awaitable
+from collections.abc import AsyncGenerator
 import os
 
 from cytoolz.functoolz import curry

@@ -118,7 +118,6 @@ async def print_server_info(portnum: int) -> Sequence[Any]:
     print(f"\tport {portnum} is no longer listened, as far as we can detect", file=sys.stderr)
   return mymatches
 
-@curry
 async def do_list(
   args: argparse.Namespace,
   workdir: str | os.PathLike
@@ -128,7 +127,6 @@ async def do_list(
     print(f"* {descriptor['dir']}", file=sys.stderr)
     await print_server_info(descriptor['port'])
 
-@curry
 async def do_find(
   args: argparse.Namespace,
   workdir: str | os.PathLike
@@ -146,7 +144,6 @@ async def do_find(
       if mymatches:
         print(f":{js['port']}/{js['base_url']}") # match the STDOUT convention in do_up
 
-@curry
 async def vue_purs_post_process(
   args: argparse.Namespace,
   workdir: str | os.PathLike,
@@ -199,7 +196,6 @@ async def vue_purs_post_process(
 
     case _: pass
 
-@curry
 async def do_up(
   args: argparse.Namespace,
   workdir: str | os.PathLike
@@ -308,7 +304,6 @@ async def do_up(
     ) 
   )
 
-@curry
 async def take_down(vuedict, slot) -> None:
   portnum = vuedict[slot]['port']
   if not portnum:
@@ -322,7 +317,6 @@ async def take_down(vuedict, slot) -> None:
   else:
     print(f"unable to find pid running vue server on port {portnum}", file=sys.stderr)
 
-@curry
 async def do_down(
   args: argparse.Namespace,
   workdir: str | os.PathLike
@@ -340,7 +334,6 @@ async def do_down(
     await print_server_info(js['port'])
     await take_down(vuedict, s)
 
-@curry
 async def do_downdir(
   args: argparse.Namespace,
   workdir: str | os.PathLike
@@ -391,7 +384,6 @@ def setup_argparser() -> argparse.ArgumentParser:
 
   return argparser
 
-@curry
 async def main(
   command: str,
   uuid: str,

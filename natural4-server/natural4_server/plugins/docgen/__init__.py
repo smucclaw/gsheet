@@ -3,7 +3,6 @@ from collections.abc import AsyncGenerator, Awaitable
 import os
 
 from cytoolz.functoolz import curry
-import pyrsistent as pyrs
 
 from natural4_server.task import Task, no_op_task
 
