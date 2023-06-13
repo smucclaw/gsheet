@@ -13,15 +13,13 @@ import asyncio
 from collections.abc import AsyncGenerator, Collection, Sequence
 import datetime
 import os
-from pathlib import Path
+import pathlib
 import sys
 import typing
 
 import anyio
-import aiomultiprocess
 import aiostream
 import orjson
-import uvloop
 
 from sanic import HTTPResponse, Request, Sanic, file, json
 
@@ -61,7 +59,7 @@ set_max_runtime(10000)
 
 ########################################################## end of setrlimit
 
-basedir = Path(os.environ.get("basedir", "."))
+basedir = anyio.Path(os.environ.get("basedir", "."))
 
 default_filenm_natL4exe_from_stack_install = "natural4-exe"
 natural4_exe: str = os.environ.get('natural4_exe', default_filenm_natL4exe_from_stack_install)
@@ -71,17 +69,17 @@ natural4_exe: str = os.environ.get('natural4_exe', default_filenm_natL4exe_from_
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
 
 # see gunicorn.conf.py for basedir, workdir, startport
-template_dir: Path = basedir / "template"
-temp_dir: Path = basedir / "temp"
-static_dir: Path = basedir / "static"
-natural4_dir: Path = temp_dir / "workdir"
+template_dir: anyio.Path = basedir / "template"
+temp_dir: anyio.Path = basedir / "temp"
+static_dir: anyio.Path = basedir / "static"
+natural4_dir: anyio.Path = temp_dir / "workdir"
 
 app = Sanic(
   __name__, dumps = orjson.dumps, loads = orjson.loads
 )
 
-app.extend(config = {'templating_path_to_templates': template_dir})
-app.static('/static', static_dir)
+app.extend(config = {'templating_path_to_templates': pathlib.Path(template_dir)})
+app.static('/static', pathlib.Path(static_dir))
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
@@ -102,8 +100,8 @@ async def get_workdir_file(
     file=sys.stderr
   )
 
-  workdir_folder: Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
-  workdir_folder_filename: Path = workdir_folder / filename
+  workdir_folder: anyio.Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
+  workdir_folder_filename: anyio.Path = workdir_folder / filename
   
   response = HTTPResponse(status = 204)
 
@@ -114,13 +112,13 @@ async def get_workdir_file(
   # Message to print to stderr for logging.
   msg = ''
   
-  match (workdir_folder.exists(), workdir_folder_filename.is_file()):
+  match (await workdir_folder.exists(), await workdir_folder_filename.is_file()):
     case (False, _):
       msg = f'get_workdir_file: unable to find workdir_folder {workdir_folder}'
     case (_, False):
       msg = f'get_workdir_file: unable to find file {workdir_folder_filename}'
     case _:
-      if Path(filename).suffix in exts:
+      if anyio.Path(filename).suffix in exts:
         mime_type, mime_type_str = ('text/plain',) * 2
       else:
         mime_type, mime_type_str = None, ''
@@ -128,7 +126,7 @@ async def get_workdir_file(
       msg = f'get_workdir_file: returning {mime_type_str} {workdir_folder_filename}',
 
       response: HTTPResponse = await file(
-        workdir_folder_filename, mime_type = mime_type
+        pathlib.Path(workdir_folder_filename), mime_type = mime_type
       )
 
   print(msg, file=sys.stderr)
@@ -157,14 +155,12 @@ async def show_aasvg_image(
   image_path = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image
   print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
 
-  return await file(image_path)
+  return await file(pathlib.Path(image_path))
 
 # ################################################
 #                      main
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
 # This is the function that does all the heavy lifting.
-
-aiomultiprocess.set_start_method('fork')
 
 @app.route('/post', methods=['GET', 'POST'])
 async def process_csv(request: Request) -> HTTPResponse:
@@ -177,20 +173,20 @@ async def process_csv(request: Request) -> HTTPResponse:
   uuid: str = data['uuid'][0]
   spreadsheet_id: str = data['spreadsheetId'][0]
   sheet_id: str = data['sheetId'][0]
-  target_folder: Path = Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
+  target_folder = anyio.Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
   print(target_folder)
   time_now: str = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
-  target_file = Path(f'{time_now}.csv')
+  target_file = anyio.Path(f'{time_now}.csv')
   # target_path is for CSV data
-  target_path: Path = target_folder / target_file
+  target_path: anyio.Path = target_folder / target_file
 
-  target_folder.mkdir(parents=True, exist_ok=True)
+  await target_folder.mkdir(parents=True, exist_ok=True)
 
   async with await anyio.open_file(target_path, 'w') as fout:
     await fout.write(data['csvString'][0])
 
   # Generate markdown files asynchronously in the background.
-  uuiddir: Path = Path(uuid) / spreadsheet_id / sheet_id
+  uuiddir: anyio.Path = anyio.Path(uuid) / spreadsheet_id / sheet_id
 
   # markdown_cmd: Sequence[str] = (
   #   natural4_exe,
@@ -222,7 +218,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     natural4_exe,
     '--toasp', '--toepilog',
     f'--workdir={natural4_dir}',
-    f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
+    f'--uuiddir={anyio.Path(uuid) / spreadsheet_id / sheet_id}',
     f'{target_path}'
   )
 
@@ -257,10 +253,10 @@ async def process_csv(request: Request) -> HTTPResponse:
   # postprocessing: for petri nets: turn the DOT files into PNGs
   # we run this asynchronously and block at the end before returning.
   # ---------------------------------------------
-  uuid_ss_folder: Path = temp_dir / 'workdir' / uuid / spreadsheet_id / sheet_id
-  petri_folder: Path = uuid_ss_folder / 'petri'
-  dot_path: Path = petri_folder / 'LATEST.dot'
-  timestamp: Path = Path(dot_path.readlink().stem)
+  uuid_ss_folder: anyio.Path = temp_dir / 'workdir' / uuid / spreadsheet_id / sheet_id
+  petri_folder: anyio.Path = uuid_ss_folder / 'petri'
+  dot_path: anyio.Path = petri_folder / 'LATEST.dot'
+  timestamp: anyio.Path = anyio.Path((await dot_path.readlink()).stem)
 
   flowchart_task: asyncio.Task[None] = pipe(
     get_flowchart_tasks(uuid_ss_folder, timestamp),
@@ -284,8 +280,8 @@ async def process_csv(request: Request) -> HTTPResponse:
   # postprocessing:
   # Use Maude to generate the state space and find race conditions
   # ---------------------------------------------
-  maude_output_path: Path = uuid_ss_folder / 'maude'
-  natural4_file: Path = maude_output_path / 'LATEST.natural4'
+  maude_output_path: anyio.Path = uuid_ss_folder / 'maude'
+  natural4_file: anyio.Path = maude_output_path / 'LATEST.natural4'
 
   maude_tasks: AsyncGenerator[Task, None] = (
     get_maude_tasks(natural4_file, maude_output_path)
@@ -335,15 +331,8 @@ async def process_csv(request: Request) -> HTTPResponse:
   print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
   print(f'to see v8k bring up vue using npm run serve, run\n  tail -f {(uuid_ss_folder / "v8k.out").resolve()}',file=sys.stderr)
 
-  # Create a new process to run slow_tasks_coro, and add it to app as a
-  # background task, with a timeout of 30s.
-  slow_tasks_proc = aiomultiprocess.Process(
-    loop_initializer = uvloop.new_event_loop,
-    target = run_tasks,
-    args = (slow_tasks,)
-  )
-  slow_tasks_proc.start()
-  app.add_task(slow_tasks_proc.join(timeout = 30))
+  # Schedule all the slow tasks to run in the background.
+  app.add_task(run_tasks(slow_tasks))
 
   # ---------------------------------------------
   # construct other response elements and log run-timings.

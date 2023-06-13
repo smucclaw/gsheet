@@ -1,6 +1,6 @@
 from collections.abc import AsyncGenerator, Collection, Sequence
 import os
-from pathlib import Path
+import pathlib
 import sys
 
 from cytoolz.functoolz import *
@@ -9,6 +9,8 @@ from cytoolz.curried import *
 
 import pyrsistent as pyrs
 import pyrsistent_extras as pyrse
+
+import anyio
 
 from natural4_server.task import Task
 
@@ -40,17 +42,20 @@ flowchart_outputs: Collection[FlowchartOutput] = pyrs.s(
 # try:
 from pygraphviz import AGraph
 
-@curry
 def _dot_file_to_output(
   dot_file: str | os.PathLike[str],
   output_file: str | os.PathLike[str],
   args: Sequence[str]
 ) -> None:
+  output_file = pathlib.Path(output_file) 
+  dot_file = pathlib.Path(dot_file)
+
   args = ' '.join(args)
   print(f'Graphviz args: {args}', file=sys.stderr)
+
   AGraph(dot_file).draw(
     output_file,
-    format = Path(output_file).suffix[1:],
+    format = f'{output_file.suffix[1:]}',
     prog = 'dot',
     args = args
   )
@@ -74,18 +79,17 @@ def _dot_file_to_output(
 #       stdout=subprocess.PIPE, stderr=subprocess.PIPE
 #     )
 
-@curry
-def flowchart_dot_to_output(
+async def flowchart_dot_to_output(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
   flowchart_output: FlowchartOutput
 ) -> None:
-  uuid_ss_folder_path = Path(uuid_ss_folder)
-  output_path: Path = uuid_ss_folder_path / 'petri'
-  output_path.mkdir(parents=True, exist_ok=True)
-  dot_file: Path = output_path / 'LATEST.dot'
+  uuid_ss_folder_path = anyio.Path(uuid_ss_folder)
+  output_path: anyio.Path = uuid_ss_folder_path / 'petri'
+  await output_path.mkdir(parents=True, exist_ok=True)
+  dot_file: anyio.Path = output_path / 'LATEST.dot'
 
-  if dot_file.exists():
+  if await dot_file.exists():
     match flowchart_output:
       case {'suffix': suffix, 'file_extension': file_extension, 'args': args}:
         timestamp_file: str = f'{timestamp}{suffix}.{file_extension}'
@@ -95,10 +99,10 @@ def flowchart_dot_to_output(
         print(f'Output file: {output_file}', file=sys.stderr)
         _dot_file_to_output(dot_file, output_file, args)
 
-        latest_file: Path = output_path / f'LATEST{suffix}.{file_extension}'
+        latest_file: anyio.Path = output_path / f'LATEST{suffix}.{file_extension}'
         try:
-          latest_file.unlink(missing_ok = True)
-          latest_file.symlink_to(timestamp_file)
+          await latest_file.unlink(missing_ok = True)
+          await latest_file.symlink_to(timestamp_file)
           # os.symlink(timestamp_file, latest_file)
         except Exception as exc:
           print(

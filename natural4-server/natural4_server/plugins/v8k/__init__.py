@@ -39,8 +39,8 @@ import os
 import re
 import argparse
 import orjson
-from pathlib import Path
-from collections.abc import Callable, Mapping, Sequence
+import pathlib
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 import anyio
@@ -57,13 +57,13 @@ import pyrsistent_extras as pyrse
 from natural4_server.task import Task, no_op_task
 
 try:
-  v8k_workdir: Path = Path(os.environ['V8K_WORKDIR'])
+  v8k_workdir: anyio.Path = anyio.Path(os.environ['V8K_WORKDIR'])
 except KeyError:
   print(
     'V8K_WORKDIR not set in os.environ -- check your gunicorn config!!',
     file=sys.stderr
   )
-  v8k_workdir: Path = Path()
+  v8k_workdir: anyio.Path = anyio.Path()
 
 try:
   v8k_slots_arg: str | None = f'--poolsize {os.environ["V8K_SLOTS"]}'
@@ -73,7 +73,7 @@ except KeyError:
 v8k_startport: str = os.environ.get('v8k_startport', '')
 
 async def getjson(pathin: str | os.PathLike) -> Mapping:
-  pathin = Path(pathin)
+  pathin = anyio.Path(pathin)
   data = None
   async with await anyio.open_file(pathin, 'rb') as read_file:
     json_str = (await read_file.read()).strip()
@@ -81,11 +81,11 @@ async def getjson(pathin: str | os.PathLike) -> Mapping:
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
     data = orjson.loads(json_str)
     data['jsonfile'] = pathin
-    data['modtime'] = pathin.stat().st_mtime
+    data['modtime'] = (await pathin.stat()).st_mtime
   return pyrs.pmap(data)
 
 def read_all(workdir: str | os.PathLike) -> Mapping:
-  workdir_path = Path(workdir)
+  workdir_path = anyio.Path(workdir)
 
   # [getjson(f) for f in workdir_path.glob('*/v8k.json')]
   vue_descriptors = pipe(
@@ -155,11 +155,11 @@ async def vue_purs_post_process(
       'base_url': server_config_base_url,
       'cli': server_config_cli
     }:
-      server_config_dir = Path(server_config_dir)
+      server_config_dir = anyio.Path(server_config_dir)
 
       rsync_command = (
         'rsync', '-a',
-        f'{Path(workdir) / "vue-small"}/',
+        f'{anyio.Path(workdir) / "vue-small"}/',
         f'{server_config_dir}/'
       )
 
@@ -209,7 +209,7 @@ async def do_up(
 ) -> V8kUpResult:
   vuedict = await read_all(workdir)
 
-  if not Path(args.filename).is_file():
+  if not await anyio.Path(args.filename).is_file():
     print(f"have you got the right filename? I can't see {args.filename} from here", file=sys.stderr)
 
   dead_slots = pyrs.s()
@@ -246,10 +246,10 @@ async def do_up(
             print("refreshing the purs file", file=sys.stderr)
             # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
             #  reread the file too soon, when the cp hasn't completed.
-            purs_file = Path(dir) / "src" / "RuleLib" / "Interview.purs"
+            purs_file = anyio.Path(dir) / "src" / "RuleLib" / "Interview.purs"
             print(f"cp {args.filename} {purs_file}", file=sys.stderr)
             taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
-            taskgroup.create_task(asyncio.to_thread(lambda: (Path(dir) / 'v8k.json').touch()))
+            taskgroup.create_task((anyio.Path(dir) / 'v8k.json').touch())
             # print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
             result = V8kUpResult(
               port = port,
@@ -297,8 +297,8 @@ async def do_up(
     "uuid": args.uuid,
     "port": portnum,
     "slot": chosen_slot,
-    "dir": f'{Path(workdir) / f"vue-{chosen_slot}"}',
-    "base_url": f'{Path("/") / args.uuid / args.ssid / args.sheetid}',
+    "dir": f'{anyio.Path(workdir) / f"vue-{chosen_slot}"}',
+    "base_url": f'{anyio.Path("/") / args.uuid / args.ssid / args.sheetid}',
     "cli": ('npm', 'run', 'serve', '--', f'--port={portnum}')
   }
 
@@ -409,7 +409,7 @@ async def main(
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}',
     f'--startport={v8k_startport}',
-    f'{Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
+    f'{anyio.Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
   ) # type: ignore
 
   print(f'hello.py main: calling {" ".join(v8k_args)}', file=sys.stderr)

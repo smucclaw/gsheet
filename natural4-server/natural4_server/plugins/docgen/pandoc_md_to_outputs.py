@@ -1,13 +1,14 @@
 from collections.abc import AsyncGenerator, Collection, Sequence
 import os
 import sys
-from pathlib import Path
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import pyrsistent as pyrs
+
+import anyio
 
 import pypandoc
 
@@ -38,22 +39,22 @@ pandoc_outputs: Collection[PandocOutput] = pyrs.s(
   )
 )
 
-def pandoc_md_to_output(
+async def pandoc_md_to_output(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
   pandoc_output: PandocOutput
 ) -> None:
-  uuid_ss_folder_path = Path(uuid_ss_folder)
-  md_file: Path = uuid_ss_folder_path / 'md' / 'LATEST.md' # f'{timestamp}.md'
+  uuid_ss_folder_path = anyio.Path(uuid_ss_folder)
+  md_file: anyio.Path = uuid_ss_folder_path / 'md' / 'LATEST.md' # f'{timestamp}.md'
   # pipe(
   #   uuid_ss_folder_path / 'md',
   #   do(lambda x: x.mkdir(parents=True, exist_ok=True)),
   #   lambda x: x / f'{timestamp}.md'
-  if md_file.exists():
+  if await md_file.exists():
     match pandoc_output:
       case {'file_extension': file_extension, 'extra_args': extra_args}:
-        outputpath:Path = uuid_ss_folder_path / file_extension
-        outputpath.mkdir(parents=True, exist_ok=True)
+        outputpath: anyio.Path = uuid_ss_folder_path / file_extension
+        await outputpath.mkdir(parents=True, exist_ok=True)
 
         timestamp_file: str = f'{timestamp}.{file_extension}'
         outputfile: str = f'{outputpath / timestamp_file}'
@@ -61,7 +62,7 @@ def pandoc_md_to_output(
         print(f'Outputting to {file_extension}', file=sys.stderr)
         try:
           pypandoc.convert_file(
-            md_file, file_extension,
+            f'{md_file}', file_extension,
             outputfile = outputfile, extra_args = extra_args 
           )
         except RuntimeError as exc:
@@ -70,9 +71,9 @@ def pandoc_md_to_output(
             file=sys.stderr
           )
 
-        latest_file: Path = outputpath / f'LATEST.{file_extension}'
-        latest_file.unlink(missing_ok = True)
-        latest_file.symlink_to(timestamp_file)
+        latest_file: anyio.Path = outputpath / f'LATEST.{file_extension}'
+        await latest_file.unlink(missing_ok = True)
+        await latest_file.symlink_to(timestamp_file)
       case _ : pass
 
 async def get_pandoc_tasks(
