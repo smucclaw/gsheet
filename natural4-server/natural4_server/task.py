@@ -16,7 +16,6 @@ class Task(pyrs.PRecord):
 
 no_op_task = Task(func = lambda: None)
 
-@curry
 def run_as_async(func, args):
   if asyncio.iscoroutinefunction(func):
     return func(*args)
@@ -42,9 +41,8 @@ async def run_tasks(
 
 @curry
 async def add_background_tasks(
-  app: Sanic,
   tasks: AsyncGenerator[Task, None] | Generator[Task]
 ) -> None:
   async for task in aiostream.stream.iterate(tasks):
     print(f'Adding background task: {task}', file=sys.stderr)
-    app.add_task(task_to_coro(task), name = task['name'])
+    asyncio.create_task(task_to_coro(task), name = task['name'])

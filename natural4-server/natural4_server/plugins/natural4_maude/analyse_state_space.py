@@ -43,7 +43,6 @@ def gen_state_space_and_find_race_cond(
     natural4_rules
   )
 
-@curry
 async def get_maude_tasks(
   natural4_file: str | os.PathLike,
   output_path: str | os.PathLike

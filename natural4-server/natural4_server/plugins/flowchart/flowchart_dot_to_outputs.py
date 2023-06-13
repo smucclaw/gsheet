@@ -38,49 +38,42 @@ flowchart_outputs: Collection[FlowchartOutput] = pyrs.s(
   )
 )
 
-try:
-  from pygraphviz import AGraph
+# try:
+from pygraphviz import AGraph
 
-  @curry
-  def _dot_file_to_output(
-    dot_file: str | os.PathLike[str],
-    output_file: str | os.PathLike[str],
-    args: Sequence[str]
-  ) -> None:
-    args = ' '.join(args)
-    print(f'Graphviz args: {args}', file=sys.stderr)
-    pipe(
-      dot_file,
-      AGraph,
-      do(lambda graph:
-          graph.draw(
-            output_file,
-            format = Path(output_file).suffix[1:],
-            prog = 'dot',
-            args = args
-          )
-      )
-    )
+@curry
+def _dot_file_to_output(
+  dot_file: str | os.PathLike[str],
+  output_file: str | os.PathLike[str],
+  args: Sequence[str]
+) -> None:
+  args = ' '.join(args)
+  print(f'Graphviz args: {args}', file=sys.stderr)
+  AGraph(dot_file).draw(
+    output_file,
+    format = Path(output_file).suffix[1:],
+    prog = 'dot',
+    args = args
+  )
 
-except ImportError:
-  @curry
-  def _dot_file_to_output(
-    dot_file: str | os.PathLike[str],
-    output_file: str | os.PathLike[str],
-    args: Sequence[str]
-  ) -> None:
-    graphviz_cmd: Sequence[str] = (
-      pyrse.sq('dot', f'-T{Path(output_file).suffix[1:]}', f'{dot_file}') +
-      pyrse.psequence(args) +
-      pyrse.sq('-o', f'{output_file}')
-    ) # type: ignore
-    print(f'Calling graphviz with: {" ".join(graphviz_cmd)}', file=sys.stderr)
+# except ImportError:
+#   @curry
+#   def _dot_file_to_output(
+#     dot_file: str | os.PathLike[str],
+#     output_file: str | os.PathLike[str],
+#     args: Sequence[str]
+#   ) -> None:
+#     graphviz_cmd: Sequence[str] = (
+#       pyrse.sq('dot', f'-T{Path(output_file).suffix[1:]}', f'{dot_file}') +
+#       pyrse.psequence(args) +
+#       pyrse.sq('-o', f'{output_file}')
+#     ) # type: ignore
+#     print(f'Calling graphviz with: {" ".join(graphviz_cmd)}', file=sys.stderr)
 
-    subprocess.run(
-      # Log(n) concat go brr
-      graphviz_cmd,
-      stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
+#     subprocess.run(
+#       graphviz_cmd,
+#       stdout=subprocess.PIPE, stderr=subprocess.PIPE
+#     )
 
 @curry
 def flowchart_dot_to_output(
@@ -115,7 +108,6 @@ def flowchart_dot_to_output(
           )
           print(f'hello.py main: {exc}', file=sys.stderr)
 
-@curry
 async def get_flowchart_tasks(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike
