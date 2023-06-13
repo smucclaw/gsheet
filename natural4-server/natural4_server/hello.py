@@ -349,13 +349,15 @@ async def process_csv(request: Request) -> HTTPResponse:
           v8k_url = None
 
   async def slow_tasks_coro():
-    await Process(
+    slow_tasks_proc = Process(
       loop_initializer = uvloop.new_event_loop,
       target = run_tasks,
       args = (slow_tasks,)
     )
+    slow_tasks_proc.start()
+    await slow_tasks_proc.join(timeout = 10)
 
-  app.add_task(slow_tasks_coro.join(timeout = 10))
+  app.add_task(slow_tasks_coro())
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
