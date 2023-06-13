@@ -8,7 +8,7 @@ from cytoolz.curried import *
 import aiofile
 
 import maude
-from natural4_server.task import Task, run_tasks
+from natural4_server.task import Task
 
 from .visualise import (
   init_maude_n_load_main_file,
@@ -58,11 +58,11 @@ async def get_maude_tasks(
   output_path.mkdir(parents=True, exist_ok=True)
   # natural4_file = maude_path / 'LATEST.natural4'
   async with aiofile.async_open(natural4_file) as f:
-    natural4_rules: str = await f.read()
+    natural4_rules: str = (await f.read()).strip()
 
   # We don't proceed with post processing if the natural4 file is empty or
   # contains only whitespaces.
-  if natural4_rules.strip():
+  if natural4_rules:
     # Transform the set of rules into the initial configuration of the
     # transition system.
     config: maude.Term | None = natural4_rules_to_config(
@@ -74,12 +74,3 @@ async def get_maude_tasks(
         func = gen_state_space_and_find_race_cond,
         args = (output_path, config, natural4_rules)
       )
-      # yield Task(
-      #   func = find_race_cond,
-      #   args = (output_path, natural4_rules)
-      #   # func = config_to_html_file,
-      #   # args = (
-      #   #   maude_main_mod, config, 'all *',
-      #   #   Path(output_path) / 'LATEST_state_space.html'
-      #   # )
-      # )

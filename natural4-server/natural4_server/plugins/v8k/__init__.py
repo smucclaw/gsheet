@@ -72,19 +72,19 @@ except KeyError:
 
 v8k_startport: str = os.environ.get('v8k_startport', '')
 
-async def getjson(pathin: str | os.PathLike):
+async def getjson(pathin: str | os.PathLike) -> Mapping:
   pathin = Path(pathin)
   data = None
   async with aiofile.async_open(pathin, 'rb') as read_file:
-    json_str = await read_file.read()
+    json_str = (await read_file.read()).strip()
     # raise Exception(f'json_str: {json_str}')
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
-    data = orjson.loads(json_str.strip())
+    data = orjson.loads(json_str)
     data['jsonfile'] = pathin
     data['modtime'] = pathin.stat().st_mtime
-  return data
+  return pyrs.pmap(data)
 
-def read_all(workdir: str | os.PathLike):
+def read_all(workdir: str | os.PathLike) -> Mapping:
   workdir_path = Path(workdir)
 
   # [getjson(f) for f in workdir_path.glob('*/v8k.json')]
@@ -116,7 +116,7 @@ async def print_server_info(portnum: int) -> Sequence[Any]:
       print(f"\tpid {mymatch[0]} is listening on port {mymatch[1]}", file=sys.stderr)
   else:
     print(f"\tport {portnum} is no longer listened, as far as we can detect", file=sys.stderr)
-  return mymatches
+  return pyrs.pvector(mymatches)
 
 async def do_list(
   args: argparse.Namespace,
@@ -164,12 +164,14 @@ async def vue_purs_post_process(
       )
 
       print(rsync_command, file=sys.stderr)
-      rsync_coro = await asyncio.subprocess.create_subprocess_exec(*rsync_command)
+      rsync_coro = await asyncio.subprocess.create_subprocess_exec(
+        *rsync_command
+      )
       await rsync_coro.wait()
 
       async with (
         aiofile.async_open(server_config_dir / 'v8k.json', 'wb')
-          as v8k_json_file,
+        as v8k_json_file,
         asyncio.TaskGroup() as taskgroup
       ):
         taskgroup.create_task(
@@ -199,13 +201,12 @@ async def vue_purs_post_process(
 class V8kUpResult(pyrs.PRecord):
   port = pyrs.field(type = int, mandatory = True)
   base_url = pyrs.field(type = str, mandatory = True)
-  vue_purs_task = pyrs.field(initial = None, mandatory = True)
-
+  vue_purs_task = pyrs.field(initial = None)
 
 async def do_up(
   args: argparse.Namespace,
   workdir: str | os.PathLike
-) -> Mapping[str, str | Callable[[], None]]:
+) -> V8kUpResult:
   vuedict = await read_all(workdir)
 
   if not Path(args.filename).is_file():
@@ -264,7 +265,7 @@ async def do_up(
   vuedict_keys = vuedict.keys()
 
   server_slots = pyrs.pset(
-    f"{n:02}" for n in range(0, pool_size)
+    f'{n:02}' for n in range(0, pool_size)
   )
   available_slots = server_slots - vuedict_keys | dead_slots
 
@@ -273,13 +274,13 @@ async def do_up(
   print(f"dead_slots      = {dead_slots}", file=sys.stderr)
   print(f"available_slots = {available_slots}", file=sys.stderr)
 
-  match (len(available_slots), any_existing, len(vuedict) >= pool_size):
-    case (0, _ , _) | (_, False, True):
+  match (not available_slots, any_existing, len(vuedict) >= pool_size):
+    case (True, _ , _) | (_, False, True):
       oldest = min(vuedict.values(), key=lambda js: js['modtime'])
       print(f"oldest = {oldest}", file=sys.stderr)
       print(f"** pool size reached, will replace oldest server {oldest['slot']}", file=sys.stderr)
       await take_down(vuedict, oldest['slot'])
-      available_slots = {oldest['slot']}
+      available_slots = pyrs.s(oldest['slot'])
     case _: pass
 
   chosen_slot = next(iter(available_slots))
@@ -300,8 +301,6 @@ async def do_up(
     "base_url": f'{Path("/") / args.uuid / args.ssid / args.sheetid}',
     "cli": ('npm', 'run', 'serve', '--', f'--port={portnum}')
   }
-
-  print(f'v8k up returning', file=sys.stderr)
 
   return V8kUpResult(
     port = server_config['port'],

@@ -1,5 +1,4 @@
-import asyncio
-from collections.abc import AsyncGenerator, Awaitable, Collection
+from collections.abc import AsyncGenerator, Collection, Sequence
 import os
 import sys
 from pathlib import Path
@@ -16,21 +15,21 @@ from natural4_server.task import Task
 
 class PandocOutput(pyrs.PRecord):
   file_extension = pyrs.field(mandatory = True, type = str)
-  extra_args = pyrs.pvector_field(
-    str, optional = True, initial = pyrs.pvector()
+  extra_args = pyrs.field(
+    Sequence, initial = ()
   )
 
 pandoc_outputs: Collection[PandocOutput] = pyrs.s(
   PandocOutput(
     file_extension = 'docx',
-    extra_args = pyrs.v(
+    extra_args = (
       '-f', 'markdown+hard_line_breaks',
       '-s'
     )
   ),
   PandocOutput(
     file_extension = 'pdf',
-    extra_args = pyrs.v(
+    extra_args = (
       '--pdf-engine=xelatex',
       '-V', 'CJKmainfont=Droid Sans Fallback',
       '-f', 'markdown+hard_line_breaks',

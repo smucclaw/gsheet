@@ -10,12 +10,7 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import (
-  AsyncGenerator,
-  Awaitable,
-  Collection,
-  Sequence
-)
+from collections.abc import AsyncGenerator, Collection, Sequence
 import datetime
 import os
 from pathlib import Path
@@ -82,8 +77,7 @@ static_dir: Path = basedir / "static"
 natural4_dir: Path = temp_dir / "workdir"
 
 app = Sanic(
-  __name__,
-  dumps = orjson.dumps, loads = orjson.loads
+  __name__, dumps = orjson.dumps, loads = orjson.loads
 )
 
 app.extend(config = {'templating_path_to_templates': template_dir})
@@ -258,9 +252,6 @@ async def process_csv(request: Request) -> HTTPResponse:
   nl4_stdout, nl4_stderr = nl4_out[:long_err_maxlen], nl4_err[:long_err_maxlen]
 
   if len(nl4_err) < short_err_maxlen: print(nl4_err)
-
-  # response = response.set('nl4_stderr', nl4_err[:long_err_maxlen])
-  # response = response.set('nl4_stdout', nl4_out[:long_err_maxlen])
 
   # ---------------------------------------------
   # postprocessing: for petri nets: turn the DOT files into PNGs
