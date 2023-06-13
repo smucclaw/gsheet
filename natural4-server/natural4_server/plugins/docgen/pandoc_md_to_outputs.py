@@ -40,6 +40,8 @@ pandoc_outputs: Collection[PandocOutput] = pyrs.s(
   )
 )
 
+pandoc_path = pypandoc.get_pandoc_path()
+
 async def pandoc_md_to_output(
   uuid_ss_folder: str | os.PathLike,
   timestamp: str | os.PathLike,
@@ -60,22 +62,22 @@ async def pandoc_md_to_output(
         timestamp_file: str = f'{timestamp}.{file_extension}'
         outputfile: anyio.Path = outputpath / timestamp_file
 
-        # pandoc_cmd = (
-        #   'pandoc', '-o', f'{outputfile}', *extra_args, f'{md_file}',
-        # )
-        # print(f'Running {" ".join(pandoc_cmd)}', file=sys.stderr)
+        pandoc_cmd = (
+          pandoc_path, '-o', f'{outputfile}', *extra_args, f'{md_file}',
+        )
+        print(f'Running {" ".join(pandoc_cmd)}', file=sys.stderr)
 
         try:
-          await asyncio.to_thread(
-            pypandoc.convert_file,
-            f'{md_file}', file_extension,
-            outputfile = f'{outputfile}', extra_args = extra_args 
-          )
-          # await asyncio.subprocess.create_subprocess_exec(
-          #   *pandoc_cmd,
-          #   stdout = asyncio.subprocess.PIPE,
-          #   stderr = asyncio.subprocess.PIPE
+          # await asyncio.to_thread(
+          #   pypandoc.convert_file,
+          #   f'{md_file}', file_extension,
+          #   outputfile = f'{outputfile}', extra_args = extra_args 
           # )
+          await asyncio.subprocess.create_subprocess_exec(
+            *pandoc_cmd,
+            stdout = asyncio.subprocess.PIPE,
+            stderr = asyncio.subprocess.PIPE
+          )
         except RuntimeError as exc:
           print(
             f'Error occured while outputting to {file_extension}: {exc}',
