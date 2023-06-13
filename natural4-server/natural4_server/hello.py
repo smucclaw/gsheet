@@ -34,7 +34,7 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
-from natural4_server.task import Task, run_tasks
+from natural4_server.task import Task, add_background_tasks, run_tasks
 from natural4_server.plugins.docgen import get_pandoc_tasks
 from natural4_server.plugins.flowchart import get_flowchart_tasks
 from natural4_server.plugins.natural4_maude import get_maude_tasks
@@ -85,7 +85,7 @@ app = Sanic(
 )
 
 app.extend(config = {'templating_path_to_templates': template_dir})
-app.static('/', static_dir)
+app.static('/static', static_dir)
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
@@ -213,13 +213,13 @@ async def process_csv(request: Request) -> HTTPResponse:
 
   # Coroutine which is awaited before pandoc is called to generate documents
   # (ie word and pdf) from the markdown file.
-  markdown_coro: Awaitable[asyncio.subprocess.Process] = (
-    asyncio.subprocess.create_subprocess_exec(
-      *markdown_cmd,
-      stdout = asyncio.subprocess.PIPE,
-      stderr = asyncio.subprocess.PIPE
-    )
-  )
+  # markdown_coro: Awaitable[asyncio.subprocess.Process] = (
+  #   asyncio.subprocess.create_subprocess_exec(
+  #     *markdown_cmd,
+  #     stdout = asyncio.subprocess.PIPE,
+  #     stderr = asyncio.subprocess.PIPE
+  #   )
+  # )
 
   # ---------------------------------------------
   # call natural4-exe, wait for it to complete.
@@ -229,7 +229,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   # one can leave out the ASP by adding the --toasp option
   create_files: Sequence[str] = (
     natural4_exe,
-    '--tomd', '--toasp', '--toepilog',
+    '--toasp', '--toepilog',
     f'--workdir={natural4_dir}',
     f'--uuiddir={Path(uuid) / spreadsheet_id/ sheet_id}',
     f'{target_path}'
@@ -238,7 +238,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
 
-  nl4exe = (
+  nl4exe: asyncio.subprocess.Process = (
     await asyncio.subprocess.create_subprocess_exec(
       *create_files,
       stdout = asyncio.subprocess.PIPE,
@@ -275,10 +275,10 @@ async def process_csv(request: Request) -> HTTPResponse:
   dot_path: Path = petri_folder / 'LATEST.dot'
   timestamp: Path = Path(dot_path.readlink().stem)
 
-  flowchart_coro: Awaitable[None] = pipe(
-    (uuid_ss_folder, timestamp),
-    lambda x: get_flowchart_tasks(*x),
-    run_tasks
+  flowchart_task = pipe(
+    get_flowchart_tasks(uuid_ss_folder, timestamp),
+    run_tasks,
+    app.add_task
   )
 
   # Slow tasks below.
@@ -290,7 +290,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
   pandoc_tasks: AsyncGenerator[Task, None] = (
-    get_pandoc_tasks(markdown_coro, uuid_ss_folder, timestamp)
+    get_pandoc_tasks(uuid_ss_folder, timestamp)
   )
 
   # ---------------------------------------------
@@ -304,12 +304,12 @@ async def process_csv(request: Request) -> HTTPResponse:
     get_maude_tasks(natural4_file, maude_output_path)
   )
 
-  print('Running v8k', file=sys.stderr)
-
   # Concurrently peform the following:
   # - Write natural4-exe's stdout to a file.
   # - Write natural4-exe's stderr to a file.
   # - Run v8k up.
+  print('Running v8k', file=sys.stderr)
+
   async with (
     aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
     aiofile.async_open(target_folder / f'{time_now}.err', 'w') as err_file,
@@ -378,8 +378,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     as aasvg_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    taskgroup.create_task(flowchart_coro)
     aasvg_index_task = taskgroup.create_task(aasvg_file.read())
+    await flowchart_task
 
   return json({
     'nl4_stdout': nl4_stdout,
