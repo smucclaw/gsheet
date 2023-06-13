@@ -357,7 +357,7 @@ async def process_csv(request: Request) -> HTTPResponse:
       args = (slow_tasks,)
     )
     slow_tasks_proc.start()
-    await slow_tasks_proc.join(timeout = 10)
+    await slow_tasks_proc.join(timeout = 30)
 
   app.add_task(slow_tasks_coro())
 
