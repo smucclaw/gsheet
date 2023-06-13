@@ -263,7 +263,9 @@ async def do_up(
 
   vuedict_keys = vuedict.keys()
 
-  server_slots = pyrs.s(f"{n:02}" for n in range(0, pool_size))
+  server_slots = pyrs.pset(
+    f"{n:02}" for n in range(0, pool_size)
+  )
   available_slots = server_slots - vuedict_keys | dead_slots
 
   print(f"server_slots    = {server_slots}", file=sys.stderr)
