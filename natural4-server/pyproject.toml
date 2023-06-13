@@ -9,6 +9,7 @@ packages = [{include = "natural4_server"}]
 [tool.poetry.dependencies]
 python = "^3.11.0"
 orjson = "^3.9.1"
+aiomultiprocess = "^0.9.0"
 sanic = {extras = ["ext"], version = "^23.3.0"}
 jinja2 = "^3.1.2"
 gunicorn = "^20.1.0"

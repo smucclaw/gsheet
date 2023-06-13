@@ -18,25 +18,27 @@ from collections.abc import (
 )
 import datetime
 import os
-from multiprocessing import Process
+from aiomultiprocess import Process
 from pathlib import Path
 import sys
 import typing
+
+import aiofile
 import aiostream
+import orjson
+import uvloop
+
+from sanic import HTTPResponse, Request, Sanic, file, json
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
-import aiofile
-
-from sanic import HTTPResponse, Request, Sanic, file, json
-
 from natural4_server.task import Task, run_tasks
-from plugins.docgen import get_pandoc_tasks
-from plugins.flowchart import get_flowchart_tasks
-from plugins.natural4_maude import get_maude_tasks
-import plugins.v8k as v8k
+from natural4_server.plugins.docgen import get_pandoc_tasks
+from natural4_server.plugins.flowchart import get_flowchart_tasks
+from natural4_server.plugins.natural4_maude import get_maude_tasks
+import natural4_server.plugins.v8k as v8k
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -77,7 +79,10 @@ temp_dir: Path = basedir / "temp"
 static_dir: Path = basedir / "static"
 natural4_dir: Path = temp_dir / "workdir"
 
-app = Sanic(__name__)
+app = Sanic(
+  __name__,
+  dumps = orjson.dumps, loads = orjson.loads
+)
 
 app.extend(config = {'templating_path_to_templates': template_dir})
 app.static('/', static_dir)
@@ -205,7 +210,7 @@ async def process_csv(request: Request) -> HTTPResponse:
 
   # Coroutine which is awaited before pandoc is called to generate documents
   # (ie word and pdf) from the markdown file.
-  markdown_coro: asyncio.subprocess.Process = (
+  markdown_coro: Awaitable[asyncio.subprocess.Process] = (
     asyncio.subprocess.create_subprocess_exec(
       *markdown_cmd,
       stdout = asyncio.subprocess.PIPE,
@@ -340,12 +345,15 @@ async def process_csv(request: Request) -> HTTPResponse:
             slow_tasks, aiostream.stream.just(vue_purs_task)
           )
 
-        case _: pass
+        case _:
+          v8k_url = None
 
-  Process(
-    target = compose_left(run_tasks, asyncio.run),
+  slow_tasks_proc = Process(
+    loop_initializer = uvloop.new_event_loop,
+    target = run_tasks,
     args = (slow_tasks,)
-  ).start()
+  )
+  app.add_task(slow_tasks_proc)
 
   print('hello.py main: v8k up returned', file=sys.stderr)
   print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
