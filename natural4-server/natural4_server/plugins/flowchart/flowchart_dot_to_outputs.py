@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator, Collection, Sequence
 import os
 import pathlib
@@ -40,44 +41,47 @@ flowchart_outputs: Collection[FlowchartOutput] = pyrs.s(
 )
 
 # try:
-from pygraphviz import AGraph
+# from pygraphviz import AGraph
 
-def _dot_file_to_output(
+# async def _dot_file_to_output(
+#   dot_file: str | os.PathLike[str],
+#   output_file: str | os.PathLike[str],
+#   args: Sequence[str]
+# ) -> None:
+#   output_file = pathlib.Path(output_file) 
+#   dot_file = pathlib.Path(dot_file)
+
+#   args = ' '.join(args)
+#   print(f'Graphviz args: {args}', file=sys.stderr)
+
+#   await asyncio.to_thread(
+#     AGraph(dot_file).draw,
+#     output_file,
+#     format = f'{output_file.suffix[1:]}',
+#     prog = 'dot',
+#     args = args
+#   )
+
+# except ImportError:
+async def _dot_file_to_output(
   dot_file: str | os.PathLike[str],
   output_file: str | os.PathLike[str],
   args: Sequence[str]
 ) -> None:
-  output_file = pathlib.Path(output_file) 
-  dot_file = pathlib.Path(dot_file)
+  output_file = anyio.Path(output_file)
 
-  args = ' '.join(args)
-  print(f'Graphviz args: {args}', file=sys.stderr)
+  graphviz_cmd: Sequence[str] = (
+    pyrse.sq('dot', f'-T{output_file.suffix[1:]}', f'{dot_file}') +
+    pyrse.psequence(args) +
+    pyrse.sq('-o', f'{output_file}')
+  ) # type: ignore
 
-  AGraph(dot_file).draw(
-    output_file,
-    format = f'{output_file.suffix[1:]}',
-    prog = 'dot',
-    args = args
+  print(f'Calling graphviz with: {" ".join(graphviz_cmd)}', file=sys.stderr)
+
+  await asyncio.subprocess.create_subprocess_exec(
+    *graphviz_cmd,
+    stdout = asyncio.subprocess.PIPE, stderr = asyncio.subprocess.PIPE
   )
-
-# except ImportError:
-#   @curry
-#   def _dot_file_to_output(
-#     dot_file: str | os.PathLike[str],
-#     output_file: str | os.PathLike[str],
-#     args: Sequence[str]
-#   ) -> None:
-#     graphviz_cmd: Sequence[str] = (
-#       pyrse.sq('dot', f'-T{Path(output_file).suffix[1:]}', f'{dot_file}') +
-#       pyrse.psequence(args) +
-#       pyrse.sq('-o', f'{output_file}')
-#     ) # type: ignore
-#     print(f'Calling graphviz with: {" ".join(graphviz_cmd)}', file=sys.stderr)
-
-#     subprocess.run(
-#       graphviz_cmd,
-#       stdout=subprocess.PIPE, stderr=subprocess.PIPE
-#     )
 
 async def flowchart_dot_to_output(
   uuid_ss_folder: str | os.PathLike,
@@ -97,7 +101,7 @@ async def flowchart_dot_to_output(
 
         print(f'Drawing {file_extension} from dot file', file=sys.stderr)
         print(f'Output file: {output_file}', file=sys.stderr)
-        _dot_file_to_output(dot_file, output_file, args)
+        await _dot_file_to_output(dot_file, output_file, args)
 
         latest_file: anyio.Path = output_path / f'LATEST{suffix}.{file_extension}'
         try:

@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator, Collection, Sequence
 import os
 import sys
@@ -57,14 +58,24 @@ async def pandoc_md_to_output(
         await outputpath.mkdir(parents=True, exist_ok=True)
 
         timestamp_file: str = f'{timestamp}.{file_extension}'
-        outputfile: str = f'{outputpath / timestamp_file}'
+        outputfile: anyio.Path = outputpath / timestamp_file
 
-        print(f'Outputting to {file_extension}', file=sys.stderr)
+        # pandoc_cmd = (
+        #   'pandoc', '-o', f'{outputfile}', *extra_args, f'{md_file}',
+        # )
+        # print(f'Running {" ".join(pandoc_cmd)}', file=sys.stderr)
+
         try:
-          pypandoc.convert_file(
+          await asyncio.to_thread(
+            pypandoc.convert_file,
             f'{md_file}', file_extension,
-            outputfile = outputfile, extra_args = extra_args 
+            outputfile = f'{outputfile}', extra_args = extra_args 
           )
+          # await asyncio.subprocess.create_subprocess_exec(
+          #   *pandoc_cmd,
+          #   stdout = asyncio.subprocess.PIPE,
+          #   stderr = asyncio.subprocess.PIPE
+          # )
         except RuntimeError as exc:
           print(
             f'Error occured while outputting to {file_extension}: {exc}',
