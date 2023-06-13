@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator
 import os
 from pathlib import Path
@@ -65,7 +66,8 @@ async def get_maude_tasks(
   if natural4_rules:
     # Transform the set of rules into the initial configuration of the
     # transition system.
-    config: maude.Term | None = natural4_rules_to_config(
+    config: maude.Term | None = await asyncio.to_thread(
+      natural4_rules_to_config,
       maude_main_mod, natural4_rules
     )
     # Do we need to worry about this being None?
