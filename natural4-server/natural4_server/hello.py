@@ -271,7 +271,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   dot_path: Path = petri_folder / 'LATEST.dot'
   timestamp: Path = Path(dot_path.readlink().stem)
 
-  flowchart_task = pipe(
+  flowchart_task: asyncio.Task[None] = pipe(
     get_flowchart_tasks(uuid_ss_folder, timestamp),
     run_tasks,
     app.add_task
@@ -374,7 +374,9 @@ async def process_csv(request: Request) -> HTTPResponse:
     as aasvg_file,
     asyncio.TaskGroup() as taskgroup
   ):
-    aasvg_index_task = taskgroup.create_task(aasvg_file.read())
+    aasvg_index_task: asyncio.Task[str] = taskgroup.create_task(
+      aasvg_file.read()
+    )
     await flowchart_task
 
   return json({
