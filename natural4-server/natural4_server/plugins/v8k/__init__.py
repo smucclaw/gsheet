@@ -43,7 +43,7 @@ from pathlib import Path
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
-import aiofile
+import anyio
 import aioshutil
 import aiostream
 
@@ -75,7 +75,7 @@ v8k_startport: str = os.environ.get('v8k_startport', '')
 async def getjson(pathin: str | os.PathLike) -> Mapping:
   pathin = Path(pathin)
   data = None
-  async with aiofile.async_open(pathin, 'rb') as read_file:
+  async with await anyio.open_file(pathin, 'rb') as read_file:
     json_str = (await read_file.read()).strip()
     # raise Exception(f'json_str: {json_str}')
     # print(f'getjson: {pathin} {json_str}', file=sys.stderr)
@@ -170,7 +170,7 @@ async def vue_purs_post_process(
       await rsync_coro.wait()
 
       async with (
-        aiofile.async_open(server_config_dir / 'v8k.json', 'wb')
+        await anyio.open_file(server_config_dir / 'v8k.json', 'wb')
         as v8k_json_file,
         asyncio.TaskGroup() as taskgroup
       ):

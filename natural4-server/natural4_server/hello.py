@@ -17,7 +17,7 @@ from pathlib import Path
 import sys
 import typing
 
-import aiofile
+import anyio
 import aiomultiprocess
 import aiostream
 import orjson
@@ -186,7 +186,7 @@ async def process_csv(request: Request) -> HTTPResponse:
 
   target_folder.mkdir(parents=True, exist_ok=True)
 
-  async with aiofile.async_open(target_path, 'w') as fout:
+  async with await anyio.open_file(target_path, 'w') as fout:
     await fout.write(data['csvString'][0])
 
   # Generate markdown files asynchronously in the background.
@@ -298,8 +298,8 @@ async def process_csv(request: Request) -> HTTPResponse:
   print('Running v8k', file=sys.stderr)
 
   async with (
-    aiofile.async_open(target_folder / f'{time_now}.out', 'w') as out_file,
-    aiofile.async_open(target_folder / f'{time_now}.err', 'w') as err_file,
+    await anyio.open_file(target_folder / f'{time_now}.out', 'w') as out_file,
+    await anyio.open_file(target_folder / f'{time_now}.err', 'w') as err_file,
     asyncio.TaskGroup() as taskgroup
   ):
     taskgroup.create_task(out_file.write(nl4_out))
@@ -361,7 +361,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   # - Wait for the flowcharts to be generated before returning to the sidebar.
   # - Read in the aasvg html file to return to the sidebar.
   async with (
-    aiofile.async_open(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
+    await anyio.open_file(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
     as aasvg_file,
     asyncio.TaskGroup() as taskgroup
   ):

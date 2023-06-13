@@ -5,7 +5,7 @@ from pathlib import Path
 from cytoolz.functoolz import *
 from cytoolz.curried import *
 
-import aiofile
+import anyio
 
 import maude
 from natural4_server.task import Task
@@ -57,7 +57,7 @@ async def get_maude_tasks(
   output_path = Path(output_path)
   output_path.mkdir(parents=True, exist_ok=True)
   # natural4_file = maude_path / 'LATEST.natural4'
-  async with aiofile.async_open(natural4_file) as f:
+  async with await anyio.open_file(natural4_file) as f:
     natural4_rules: str = (await f.read()).strip()
 
   # We don't proceed with post processing if the natural4 file is empty or
