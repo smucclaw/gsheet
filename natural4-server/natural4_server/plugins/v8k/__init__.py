@@ -211,7 +211,7 @@ async def do_up(
   if not Path(args.filename).is_file():
     print(f"have you got the right filename? I can't see {args.filename} from here", file=sys.stderr)
 
-  dead_slots = []
+  dead_slots = pyrs.s()
   start_port = args.startport
   pool_size = args.poolsize
   print(f"** startport = {start_port}", file=sys.stderr)
@@ -256,16 +256,18 @@ async def do_up(
             )
           else:
             print("but the server isn't running any longer.", file=sys.stderr)
-            dead_slots.append(f'{slot}')
+            dead_slots = dead_slots.add(f'{slot}')
         case _: pass
 
   if not need_to_relaunch: return result
 
-  server_slots = {f"{n:02}" for n in range(0, pool_size)}
-  available_slots = server_slots - set(vuedict.keys()) | set(dead_slots)
+  vuedict_keys = vuedict.keys()
+
+  server_slots = pyrs.s(f"{n:02}" for n in range(0, pool_size))
+  available_slots = server_slots - vuedict_keys | dead_slots
 
   print(f"server_slots    = {server_slots}", file=sys.stderr)
-  print(f"vuedict.keys()  = {vuedict.keys()}", file=sys.stderr)
+  print(f"vuedict.keys()  = {vuedict_keys}", file=sys.stderr)
   print(f"dead_slots      = {dead_slots}", file=sys.stderr)
   print(f"available_slots = {available_slots}", file=sys.stderr)
 
@@ -316,7 +318,7 @@ async def take_down(vuedict, slot) -> None:
   mymatches = await print_server_info(portnum)
   if mymatches:
     async with asyncio.TaskGroup() as taskgroup:
-      async for mymatch in aiostream.stream.just(mymatches):
+      for mymatch in mymatches:
         print("killing pid " + mymatch[0] + " running vue server on port " + mymatch[1], file=sys.stderr)
         taskgroup.create_task(
           asyncio.subprocess.create_subprocess_exec('kill', mymatch[0])
