@@ -18,12 +18,12 @@ from collections.abc import (
 )
 import datetime
 import os
-from aiomultiprocess import Process
 from pathlib import Path
 import sys
 import typing
 
 import aiofile
+import aiomultiprocess
 import aiostream
 import orjson
 import uvloop
@@ -91,6 +91,8 @@ app.static('/', static_dir)
 #            SERVE (MOST) STATIC FILES
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
+
+aiomultiprocess.set_start_method('fork')
 
 @app.route('/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>')
 async def get_workdir_file(
@@ -349,7 +351,7 @@ async def process_csv(request: Request) -> HTTPResponse:
           v8k_url = None
 
   async def slow_tasks_coro():
-    slow_tasks_proc = Process(
+    slow_tasks_proc = aiomultiprocess.Process(
       loop_initializer = uvloop.new_event_loop,
       target = run_tasks,
       args = (slow_tasks,)
