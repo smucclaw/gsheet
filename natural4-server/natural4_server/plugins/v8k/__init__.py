@@ -53,7 +53,7 @@ from cytoolz.curried import *
 import pyrsistent as pyrs
 import pyrsistent_extras as pyrse
 
-from natural4_server.task import Task, no_op_task
+from natural4_server.task import Task
 
 try:
   v8k_workdir: anyio.Path = anyio.Path(os.environ['V8K_WORKDIR'])

@@ -17,8 +17,6 @@ class Task(pyrs.PRecord):
   args = pyrs.field(type = Sequence, initial = tuple()) 
   name = pyrs.field(initial = None)
 
-no_op_task = Task(func = lambda: None)
-
 def _run_as_async(
   func: Callable,
   args: Sequence
