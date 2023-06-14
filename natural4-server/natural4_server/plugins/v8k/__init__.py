@@ -394,6 +394,8 @@ def setup_argparser() -> argparse.ArgumentParser:
 
   return argparser
 
+argparser: argparse.ArgumentParser = setup_argparser()
+
 async def main(
   command: str,
   uuid: str,
@@ -414,8 +416,9 @@ async def main(
 
   print(f'hello.py main: calling {" ".join(v8k_args)}', file=sys.stderr)
 
-  parser: argparse.ArgumentParser = await asyncio.to_thread(setup_argparser)
-  args: argparse.Namespace = await asyncio.to_thread(parser.parse_args, v8k_args)
+  args: argparse.Namespace = await asyncio.to_thread(
+    argparser.parse_args, v8k_args
+  )
 
   if not hasattr(args, 'func'):
     print("v8k: list / find / up / down / downdir")
