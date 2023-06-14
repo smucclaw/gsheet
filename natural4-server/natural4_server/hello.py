@@ -112,9 +112,9 @@ async def get_workdir_file(
   # Message to print to stderr for logging.
   msg = ''
   
-  if await workdir_folder.exists():
+  if not await workdir_folder.exists():
     msg = f'get_workdir_file: unable to find workdir_folder {workdir_folder}'
-  elif await workdir_folder_filename.is_file():
+  elif not await workdir_folder_filename.is_file():
     msg = f'get_workdir_file: unable to find file {workdir_folder_filename}'
   else:
     if anyio.Path(filename).suffix in exts:
