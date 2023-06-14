@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import AsyncGenerator
 import os
-from pathlib import Path
+import pathlib
 
 from cytoolz.functoolz import *
 from cytoolz.curried import *
@@ -18,7 +18,7 @@ from .visualise import (
   natural4_rules_to_race_cond_htmls
 )
 
-maude_main_file: Path = Path('plugins') / 'natural4_maude' / 'main.maude'
+maude_main_file: pathlib.Path = pathlib.Path('plugins') / 'natural4_maude' / 'main.maude'
 maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 @curry
@@ -35,12 +35,12 @@ def gen_state_space_and_find_race_cond(
 
   config_to_html_file(
     maude_main_mod, config, 'all *',
-    Path(output_path) / 'LATEST_state_space.html'
+    pathlib.Path(output_path) / 'LATEST_state_space.html'
   )
 
   natural4_rules_to_race_cond_htmls(
     maude_main_mod,
-    Path(output_path) / 'LATEST_race_cond.html',
+    pathlib.Path(output_path) / 'LATEST_race_cond.html',
     natural4_rules
   )
 
@@ -55,8 +55,8 @@ async def get_maude_tasks(
 
   # Read the textual natural4 file.
   # maude_path = Path(uuid_ss_folder) / 'maude'
-  output_path = Path(output_path)
-  output_path.mkdir(parents=True, exist_ok=True)
+  output_path = anyio.Path(output_path)
+  await output_path.mkdir(parents=True, exist_ok=True)
   # natural4_file = maude_path / 'LATEST.natural4'
   async with await anyio.open_file(natural4_file) as f:
     natural4_rules: str = (await f.read()).strip()
