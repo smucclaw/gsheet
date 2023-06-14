@@ -109,9 +109,6 @@ async def get_workdir_file(
     '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
   )
 
-  # Message to print to stderr for logging.
-  msg = ''
-  
   if not await workdir_folder.exists():
     msg = f'get_workdir_file: unable to find workdir_folder {workdir_folder}'
   elif not await workdir_folder_filename.is_file():
