@@ -1,12 +1,15 @@
 import asyncio
-from collections.abc import AsyncGenerator, Callable, Generator, Sequence
+from collections.abc import (
+  AsyncGenerator,
+  Callable,
+  Coroutine,
+  Generator,
+  Sequence
+)
 import sys
-
-from sanic import Sanic
 
 import aiostream
 
-from cytoolz.functoolz import curry
 import pyrsistent as pyrs
 
 class Task(pyrs.PRecord):
@@ -16,16 +19,21 @@ class Task(pyrs.PRecord):
 
 no_op_task = Task(func = lambda: None)
 
-def run_as_async(func, args):
+def _run_as_async(
+  func: Callable,
+  args: Sequence
+) -> Coroutine:
   if asyncio.iscoroutinefunction(func):
     return func(*args)
   else:
     return asyncio.to_thread(func, *args)
 
-def task_to_coro(task: Task):
+def task_to_coro(task: Task) -> Coroutine:
   match task:
     case {'func': func, 'args': args}:
-      return run_as_async(func, args)
+      return _run_as_async(func, args)
+    # Dummy fall-through case just to silence the type checker.
+    case _: return _run_as_async(lambda: None, tuple())
 
 async def run_tasks(
   tasks: AsyncGenerator[Task, None] | Generator[Task, None, None]
@@ -39,10 +47,10 @@ async def run_tasks(
       print(f'Running task: {task}', file=sys.stderr)
       taskgroup.create_task(task_to_coro(task))
 
-@curry
-async def add_background_tasks(
-  tasks: AsyncGenerator[Task, None] | Generator[Task]
-) -> None:
-  async for task in aiostream.stream.iterate(tasks):
-    print(f'Adding background task: {task}', file=sys.stderr)
-    asyncio.create_task(task_to_coro(task), name = task['name'])
+# @curry
+# async def add_background_tasks(
+#   tasks: AsyncGenerator[Task, None] | Generator[Task]
+# ) -> None:
+#   async for task in aiostream.stream.iterate(tasks):
+#     print(f'Adding background task: {task}', file=sys.stderr)
+#     asyncio.create_task(task_to_coro(task), name = task['name'])

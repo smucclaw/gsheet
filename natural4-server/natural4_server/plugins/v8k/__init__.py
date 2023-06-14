@@ -34,12 +34,11 @@
 #     Delete an existing vue server by slot number.
 
 import asyncio
+import re
 import sys
 import os
-import re
 import argparse
 import orjson
-import pathlib
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -102,6 +101,10 @@ def read_all(workdir: str | os.PathLike) -> Mapping:
   )
   return descriptor_map
 
+_mymatches_regex: re.Pattern[str] = re.compile(
+  r'^\S+\s+(\d+).*port=(\d+)', re.MULTILINE
+) 
+
 async def print_server_info(portnum: int) -> Sequence[Any]:
   completed = await asyncio.subprocess.create_subprocess_shell(
     f"ps wwaux | grep port={portnum} | grep -v grep | grep -v startport=",
@@ -110,7 +113,9 @@ async def print_server_info(portnum: int) -> Sequence[Any]:
   )
   stdout, stderr = await completed.communicate()
   stdout = stdout.decode()
-  mymatches = re.findall(r'^\S+\s+(\d+).*port=(\d+)', stdout, re.MULTILINE)
+  mymatches = await asyncio.to_thread(
+    re.findall, _mymatches_regex, stdout
+  )
   if mymatches:
     for mymatch in mymatches:
       print(f"\tpid {mymatch[0]} is listening on port {mymatch[1]}", file=sys.stderr)
@@ -123,7 +128,10 @@ async def do_list(
   workdir: str | os.PathLike
 ) -> None:
   descriptors = read_all(workdir)
-  for descriptor in sorted(descriptors.values(), key=lambda js: int(js['slot'])):
+  sorted_vals = await asyncio.to_thread(
+    sorted, descriptors.values(), key=lambda js: int(js['slot'])
+  )
+  for descriptor in sorted_vals:
     print(f"* {descriptor['dir']}", file=sys.stderr)
     await print_server_info(descriptor['port'])
 
@@ -276,7 +284,9 @@ async def do_up(
 
   match (not available_slots, any_existing, len(vuedict) >= pool_size):
     case (True, _ , _) | (_, False, True):
-      oldest = min(vuedict.values(), key=lambda js: js['modtime'])
+      oldest = await asyncio.to_thread(
+        min, vuedict.values(), key=lambda js: js['modtime']
+      )
       print(f"oldest = {oldest}", file=sys.stderr)
       print(f"** pool size reached, will replace oldest server {oldest['slot']}", file=sys.stderr)
       await take_down(vuedict, oldest['slot'])

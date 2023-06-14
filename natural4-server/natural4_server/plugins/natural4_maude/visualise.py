@@ -60,14 +60,10 @@ def trace_to_strat(mod, trace_str):
   # return strat
 
 # https://stackoverflow.com/questions/14693701/how-can-i-remove-the-ansi-escape-sequences-from-a-string-in-python
-@curry
+escape_ansi_regex = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
+
 def escape_ansi(term):
-  term = str(term)
-  return pipe(
-    r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]',
-    re.compile,
-    lambda ansi_escape: ansi_escape.sub('', term)
-  )
+  return escape_ansi_regex.sub('', f'{term}')
 
 class Edge(pyrs.PRecord):
   src_id = pyrs.field(int, mandatory = True)
