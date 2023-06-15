@@ -212,7 +212,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   # one can leave out the ASP by adding the --toasp option
   create_files: Sequence[str] = (
     natural4_exe,
-    '--toasp', '--toepilog',
+    # '--toasp', '--toepilog',
     f'--workdir={natural4_dir}',
     f'--uuiddir={anyio.Path(uuid) / spreadsheet_id / sheet_id}',
     f'{target_path}'
