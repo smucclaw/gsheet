@@ -49,10 +49,7 @@ async def pandoc_md_to_output(
 ) -> None:
   uuid_ss_folder_path = anyio.Path(uuid_ss_folder)
   md_file: anyio.Path = uuid_ss_folder_path / 'md' / 'LATEST.md' # f'{timestamp}.md'
-  # pipe(
-  #   uuid_ss_folder_path / 'md',
-  #   do(lambda x: x.mkdir(parents=True, exist_ok=True)),
-  #   lambda x: x / f'{timestamp}.md'
+
   if await md_file.exists():
     match pandoc_output:
       case {'file_extension': file_extension, 'extra_args': extra_args}:

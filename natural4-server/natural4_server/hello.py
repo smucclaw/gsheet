@@ -74,9 +74,7 @@ temp_dir: anyio.Path = basedir / "temp"
 static_dir: anyio.Path = basedir / "static"
 natural4_dir: anyio.Path = temp_dir / "workdir"
 
-app = Sanic(
-  __name__, dumps = orjson.dumps, loads = orjson.loads
-)
+app = Sanic(__name__, dumps = orjson.dumps, loads = orjson.loads)
 
 app.extend(config = {'templating_path_to_templates': pathlib.Path(template_dir)})
 app.static('/static', pathlib.Path(static_dir))
@@ -221,12 +219,10 @@ async def process_csv(request: Request) -> HTTPResponse:
   print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
   print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
 
-  nl4exe: asyncio.subprocess.Process = (
-    await asyncio.subprocess.create_subprocess_exec(
-      *create_files,
-      stdout = asyncio.subprocess.PIPE,
-      stderr = asyncio.subprocess.PIPE
-    )
+  nl4exe = await asyncio.subprocess.create_subprocess_exec(
+    *create_files,
+    stdout = asyncio.subprocess.PIPE,
+    stderr = asyncio.subprocess.PIPE
   )
 
   print(
@@ -268,8 +264,8 @@ async def process_csv(request: Request) -> HTTPResponse:
   # postprocessing:
   # Use pandoc to generate word and pdf docs from markdown.
   # ---------------------------------------------
-  pandoc_tasks: AsyncGenerator[Task, None] = (
-    get_pandoc_tasks(uuid_ss_folder, timestamp)
+  pandoc_tasks: AsyncGenerator[Task | None, None] = get_pandoc_tasks(
+    uuid_ss_folder, timestamp
   )
 
   # ---------------------------------------------
@@ -279,7 +275,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   maude_output_path: anyio.Path = uuid_ss_folder / 'maude'
   natural4_file: anyio.Path = maude_output_path / 'LATEST.natural4'
 
-  maude_tasks: AsyncGenerator[Task, None] = (
+  maude_tasks: AsyncGenerator[Task | None, None] = (
     get_maude_tasks(natural4_file, maude_output_path)
   )
 
