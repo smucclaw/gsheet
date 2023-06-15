@@ -44,20 +44,21 @@ poetry install --all-extras
   - Alternatively, you can install them selectively to only enable those
     functionalities which you want.
     These dependency groups include:
-    The `docgen` group is used by the `plugins/docgen` plugin to turn
-    markdown output to documents like `docx` and `pdf`.
-    Note that for `pdf` output to work, you also need a `latex` engine
-    installed.
-    To install this dependency group, you can run
+
+    - The `docgen` group is used by the `plugins/docgen` plugin to turn
+      markdown output to documents like `docx` and `pdf`.
+      Note that for `pdf` output to work, you also need a `latex` engine
+      installed.
+      To install this dependency group, you can run
 
 ```example
 poetry install --extras docgen
 ```
 
-  - The `natural4-maude` group is used by the `plugins/natural4-maude` plugin
-    to generate state spaces from contracts and find race conditions.
-    It utilizes Maude under the hood.
-    To install this dependency group, run
+    - The `natural4-maude` group is used by the `plugins/natural4-maude` plugin
+      to generate state spaces from contracts and find race conditions.
+      It utilizes Maude under the hood.
+      To install this dependency group, run
 
 ```example
 poetry install --extras natural4-maude
