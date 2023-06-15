@@ -1337,10 +1337,9 @@ files = [
 
 [extras]
 docgen = ["pypandoc_binary"]
-flowchart = []
 natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "a0c4fd4f863b89117554e6071590e6e0d5466be512de5b1696901f71c38daf0c"
+content-hash = "fd93069d724863c423f3ee1b1001aeb924cbd85a06de9ed585f4f46784ad3434"

@@ -30,7 +30,6 @@ ipdb = "*"
 [tool.poetry.extras]
 natural4-maude = ["maude", "umaudemc", "pyvis", "networkx"]
 docgen = ["pypandoc_binary"]
-flowchart = ["pygraphviz"]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.270"
