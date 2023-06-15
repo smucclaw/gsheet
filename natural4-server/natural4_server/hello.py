@@ -27,8 +27,6 @@ from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
-import pyrsistent as pyrs
-
 from natural4_server.task import Task, run_tasks
 from natural4_server.plugins.docgen import get_pandoc_tasks
 from natural4_server.plugins.flowchart import get_flowchart_tasks
@@ -103,9 +101,9 @@ async def get_workdir_file(
   
   response = HTTPResponse(status = 204)
 
-  exts: Collection[str] = pyrs.s(
+  exts: Collection[str] = {
     '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
-  )
+  }
 
   if not await workdir_folder.exists():
     msg = f'get_workdir_file: unable to find workdir_folder {workdir_folder}'
@@ -250,7 +248,7 @@ async def process_csv(request: Request) -> HTTPResponse:
   dot_path: anyio.Path = petri_folder / 'LATEST.dot'
   timestamp: anyio.Path = anyio.Path((await dot_path.readlink()).stem)
 
-  flowchart_task: asyncio.Task[None] = pipe(
+  flowchart_tasks: asyncio.Task[None] = pipe(
     get_flowchart_tasks(uuid_ss_folder, timestamp),
     run_tasks,
     app.add_task
@@ -275,8 +273,8 @@ async def process_csv(request: Request) -> HTTPResponse:
   maude_output_path: anyio.Path = uuid_ss_folder / 'maude'
   natural4_file: anyio.Path = maude_output_path / 'LATEST.natural4'
 
-  maude_tasks: AsyncGenerator[Task | None, None] = (
-    get_maude_tasks(natural4_file, maude_output_path)
+  maude_tasks: AsyncGenerator[Task | None, None] = get_maude_tasks(
+    natural4_file, maude_output_path
   )
 
   # Concurrently peform the following:
@@ -352,7 +350,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     aasvg_index_task: asyncio.Task[str] = taskgroup.create_task(
       aasvg_file.read()
     )
-    await flowchart_task
+    await flowchart_tasks
 
   return json({
     'nl4_stdout': nl4_stdout,
