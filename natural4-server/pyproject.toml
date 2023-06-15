@@ -3,7 +3,7 @@ name = "natural4-server"
 version = "0.1.0"
 description = ""
 authors = ["CCLAW"]
-readme = "README.org"
+readme = "README.md"
 packages = [{include = "natural4_server"}]
 
 [tool.poetry.dependencies]
