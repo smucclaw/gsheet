@@ -20,16 +20,16 @@ To use this:
     navigate to the dir with the
     poetry files (i.e., this subdir) and run
 
-``` example
-export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
-# you'll probably need this for the server
+    ``` example
+    export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+    # you'll probably need this for the server
 
-poetry env use /usr/bin/python3.11 
-# for the server. Replace that python path with the path to whereever your python3.11 is if it's different
+    poetry env use /usr/bin/python3.11 
+    # for the server. Replace that python path with the path to whereever your python3.11 is if it's different
 
-poetry shell
-poetry install
-```
+    poetry shell
+    poetry install
+    ```
 
 4. (Optional)
   There are also optional dependency groups that you can install for more
@@ -37,10 +37,10 @@ poetry install
   directory.
   To install all extra dependencies for maximum functionality, you can run
 
-```example
-poetry install --all-extras
-```
-
+  ```example
+  poetry install --all-extras
+  ```
+  
   - Alternatively, you can install them selectively to only enable those
     functionalities which you want.
     These dependency groups include:
@@ -51,18 +51,18 @@ poetry install --all-extras
       installed.
       To install this dependency group, you can run
 
-```example
-poetry install --extras docgen
-```
+      ```example
+      poetry install --extras docgen
+      ```
 
     - The `natural4-maude` group is used by the `plugins/natural4-maude` plugin
       to generate state spaces from contracts and find race conditions.
       It utilizes Maude under the hood.
       To install this dependency group, run
 
-```example
-poetry install --extras natural4-maude
-```
+      ```example
+      poetry install --extras natural4-maude
+      ```
 
 You can activate the virtual environment with `poetry shell`. Or to run
 the scripts, you can do `poetry run`. See the docs
@@ -214,12 +214,12 @@ code:
 3.  run sanic with certfile and keyfile
     ie adjust the `ssl` variable in `sanic.user.py` accordingly:
 
-```example
-ssl: dict[str, str] = {
-  'cert': path_to_certfile,
-  'key': path_to_private_key
-}
-```
+    ```example
+    ssl: dict[str, str] = {
+      'cert': path_to_certfile,
+      'key': path_to_private_key
+    }
+    ```
 
 4.  now the SVG and PNG should work in the sidebar main.html
 
