@@ -9,15 +9,29 @@
 # ################################################
 # There is no #! line because we are run out of gunicorn.
 
+import asyncio
+from collections.abc import AsyncGenerator, Collection, Sequence
 import datetime
-import json
 import os
-import re
-import subprocess
+import pathlib
 import sys
-from pathlib import Path
+import typing
 
-from flask import Flask, request, send_file
+import anyio
+import aiostream
+import orjson
+
+from sanic import HTTPResponse, Request, Sanic, file, json
+
+from cytoolz.functoolz import *
+from cytoolz.itertoolz import *
+from cytoolz.curried import *
+
+from natural4_server.task import Task, run_tasks
+from natural4_server.plugins.docgen import get_pandoc_tasks
+from natural4_server.plugins.flowchart import get_flowchart_tasks
+from natural4_server.plugins.natural4_maude import get_maude_tasks
+import natural4_server.plugins.v8k as v8k
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -26,87 +40,89 @@ from flask import Flask, request, send_file
 
 import signal
 import resource
-  
+
 # checking time limit exceed
-def time_exceeded(signo, frame):
-    print("hello.py: setrlimit time exceeded, exiting")
-    raise SystemExit(1)
-  
-def set_max_runtime(seconds):
-    # setting up the resource limit
-    soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
-    resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
-    signal.signal(signal.SIGXCPU, time_exceeded)
-  
+def time_exceeded(signo, frame) -> typing.NoReturn:
+  print("hello.py: setrlimit time exceeded, exiting")
+  raise SystemExit(1)
+
+def set_max_runtime(seconds) -> None:
+  # setting up the resource limit
+  soft, hard = resource.getrlimit(resource.RLIMIT_CPU)
+  resource.setrlimit(resource.RLIMIT_CPU, (seconds, hard))
+  signal.signal(signal.SIGXCPU, time_exceeded)
+
 # max run time
 set_max_runtime(10000)
 
 ########################################################## end of setrlimit
 
-
-try:
-  from natural4_maude.analyse_state_space import run_analyse_state_space 
-except ImportError:
-  run_analyse_state_space = lambda _natural4_file, _maude_output_path: None
-
-
-basedir = os.environ.get("basedir", ".")
-
-if "V8K_WORKDIR" in os.environ:
-  v8k_workdir = os.environ["V8K_WORKDIR"]
-else:
-  print("V8K_WORKDIR not set in os.environ -- check your gunicorn config!!", file=sys.stderr)
-
-if "V8K_SLOTS" in os.environ:
-  v8k_slots_arg = "--poolsize " + os.environ["V8K_SLOTS"]
-else:
-  v8k_slots_arg = ""
-
-if "v8k_startport" in os.environ:
-  v8k_startport = os.environ["v8k_startport"]
-
-if "v8k_path" in os.environ:
-  v8k_path = os.environ["v8k_path"]
-
+basedir = anyio.Path(os.environ.get("basedir", "."))
 
 default_filenm_natL4exe_from_stack_install = "natural4-exe"
-natural4_exe = os.environ.get("natural4_exe", default_filenm_natL4exe_from_stack_install)
-# sometimes it is desirable to override the default name 
+natural4_exe: str = os.environ.get('natural4_exe', default_filenm_natL4exe_from_stack_install)
+
+# sometimes it is desirable to override the default name
 # that `stack install` uses with a particular binary from a particular commit
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
 
-
 # see gunicorn.conf.py for basedir, workdir, startport
-template_dir = basedir + "/template/"
-temp_dir = basedir + "/temp/"
-static_dir = basedir + "/static/"
-natural4_dir = temp_dir + "workdir"
+template_dir: anyio.Path = basedir / "template"
+temp_dir: anyio.Path = basedir / "temp"
+static_dir: anyio.Path = basedir / "static"
+natural4_dir: anyio.Path = temp_dir / "workdir"
 
-app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+app = Sanic(__name__, dumps = orjson.dumps, loads = orjson.loads)
 
+app.extend(config = {'templating_path_to_templates': pathlib.Path(template_dir)})
+app.static('/static', pathlib.Path(static_dir))
 
 # ################################################
 #            SERVE (MOST) STATIC FILES
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
 
-@app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
-def get_workdir_file(uuid, ssid, sid, channel, filename):
-  print("get_workdir_file: handling request for %s/%s/%s/%s/%s" % (uuid, ssid, sid, channel, filename), file=sys.stderr)
-  workdir_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/" + channel
-  if not os.path.exists(workdir_folder):
-    print("get_workdir_file: unable to find workdir_folder " + workdir_folder, file=sys.stderr)
-  elif not os.path.isfile(workdir_folder + "/" + filename):
-    print("get_workdir_file: unable to find file %s/%s" % (workdir_folder, filename), file=sys.stderr)
+@app.route('/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>')
+async def get_workdir_file(
+  request: Request,
+  uuid: str,
+  ssid: str,
+  sid: str,
+  channel: str,
+  filename: str
+) -> HTTPResponse:
+  print(
+    f'get_workdir_file: handling request for {uuid}/{ssid}/{sid}/{channel}/{filename}',
+    file=sys.stderr
+  )
+
+  workdir_folder: anyio.Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
+  workdir_folder_filename: anyio.Path = workdir_folder / filename
+  
+  response = HTTPResponse(status = 204)
+
+  if not await workdir_folder.exists():
+    msg = f'get_workdir_file: unable to find workdir_folder {workdir_folder}'
+  elif not await workdir_folder_filename.is_file():
+    msg = f'get_workdir_file: unable to find file {workdir_folder_filename}'
   else:
-    (_, ext) = os.path.splitext(filename)
-    if ext in {".l4", ".epilog", ".purs", ".org", ".hs", ".ts", ".natural4"}:
-      print("get_workdir_file: returning text/plain %s/%s" % (workdir_folder, filename), file=sys.stderr)
-      mimetype = 'text/plain'
+    exts = {
+      '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
+    }
+    if anyio.Path(filename).suffix in exts:
+      mime_type, mime_type_str = ('text/plain',) * 2
     else:
-      print("get_workdir_file: returning %s/%s" % (workdir_folder, filename), file=sys.stderr)
-      mimetype = None
-    return send_file(workdir_folder + "/" + filename, mimetype=mimetype)
+      mime_type, mime_type_str = None, ''
+
+    msg = f'get_workdir_file: returning {mime_type_str} {workdir_folder_filename}'
+
+    response = await file(
+      pathlib.Path(workdir_folder_filename), mime_type = mime_type
+    )
+
+  print(msg, file=sys.stderr)
+
+  return response
 
 # ################################################
 #            SERVE SVG STATIC FILES
@@ -117,202 +133,228 @@ def get_workdir_file(uuid, ssid, sid, channel, filename):
 # There is a LATEST directory instead of a LATEST file
 # so the directory path is a little bit different.
 
-@app.route("/aasvg/<uuid>/<ssid>/<sid>/<image>")
-def show_aasvg_image(uuid, ssid, sid, image):
-  print("show_aasvg_image: handling request for /aasvg/ url", file=sys.stderr)
-  aasvg_folder = temp_dir + "workdir/" + uuid + "/" + ssid + "/" + sid + "/aasvg/LATEST/"
-  image_path = aasvg_folder + image
-  print("show_aasvg_image: sending path " + image_path, file=sys.stderr)
-  return send_file(image_path)
+@app.route('/aasvg/<uuid>/<ssid>/<sid>/<image>')
+async def show_aasvg_image(
+  request: Request,
+  uuid: str,
+  ssid: str,
+  sid: str,
+  image: str
+) -> HTTPResponse:
+  print('show_aasvg_image: handling request for /aasvg/ url', file=sys.stderr)
 
+  image_path = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image
+  print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
+
+  return await file(pathlib.Path(image_path))
 
 # ################################################
 #                      main
 #      HANDLE POSTED CSV, RUN NATURAL4 & ETC
-# ################################################
 # This is the function that does all the heavy lifting.
 
-@app.route("/post", methods=['GET', 'POST'])
-def process_csv():
-  start_time = datetime.datetime.now()
+@app.route('/post', methods=['GET', 'POST'])
+async def process_csv(request: Request) -> HTTPResponse:
+  start_time: datetime.datetime = datetime.datetime.now()
   print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
   print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-  data = request.form.to_dict()
+  data = request.form
 
-  response = {}
-
-  uuid = data['uuid']
-  spreadsheet_id = data['spreadsheetId']
-  sheet_id = data['sheetId']
-  target_folder = natural4_dir + "/" + uuid + "/" + spreadsheet_id + "/" + sheet_id + "/"
+  uuid: str = data['uuid'][0]
+  spreadsheet_id: str = data['spreadsheetId'][0]
+  sheet_id: str = data['sheetId'][0]
+  target_folder = anyio.Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
   print(target_folder)
-  time_now = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
-  target_file = time_now + ".csv"
-  target_path = target_folder + target_file
-
-  Path(target_folder).mkdir(parents=True, exist_ok=True)
-
-  with open(target_path, "w") as fout:
-    fout.write(data['csvString'])
-
+  time_now: str = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
+  target_file = anyio.Path(f'{time_now}.csv')
   # target_path is for CSV data
+  target_path: anyio.Path = target_folder / target_file
+
+  await target_folder.mkdir(parents=True, exist_ok=True)
+
+  async with await anyio.open_file(target_path, 'w') as fout:
+    await fout.write(data['csvString'][0])
+
+  # Generate markdown files asynchronously in the background.
+  # uuiddir: anyio.Path = anyio.Path(uuid) / spreadsheet_id / sheet_id
+
+  # markdown_cmd: Sequence[str] = (
+  #   natural4_exe,
+  #   '--only', 'tomd', f'--workdir={natural4_dir}',
+  #   f'--uuiddir={uuiddir}',
+  #   f'{target_path}'
+  # )
+
+  # print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
+  # print(f'hello.py child: {markdown_cmd}', file=sys.stderr)
+
+  # Coroutine which is awaited before pandoc is called to generate documents
+  # (ie word and pdf) from the markdown file.
+  # markdown_coro: Awaitable[asyncio.subprocess.Process] = (
+  #   asyncio.subprocess.create_subprocess_exec(
+  #     *markdown_cmd,
+  #     stdout = asyncio.subprocess.PIPE,
+  #     stderr = asyncio.subprocess.PIPE
+  #   )
+  # )
 
   # ---------------------------------------------
-  # call natural4-exe, wait for it to complete. see SECOND RUN below.
+  # call natural4-exe, wait for it to complete.
   # ---------------------------------------------
 
   # one can leave out the markdown by adding the --tomd option
   # one can leave out the ASP by adding the --toasp option
-  create_files = (natural4_exe + " --tomd --toasp --toepilog --workdir=" 
-                               + natural4_dir 
-                               + " --uuiddir=" + uuid + "/" 
-                               + spreadsheet_id + "/" 
-                               + sheet_id
-                               + " " + target_path)
-  print(f"hello.py main: calling natural4-exe {natural4_exe}", file=sys.stderr)
-  print(f"hello.py main: {create_files}", file=sys.stderr)
-  nl4exe = subprocess.run([create_files], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  print("hello.py main: back from natural4-exe (took", datetime.datetime.now() - start_time, ")", file=sys.stderr)
+  create_files: Sequence[str] = (
+    natural4_exe,
+    # '--toasp', '--toepilog',
+    f'--workdir={natural4_dir}',
+    f'--uuiddir={anyio.Path(uuid) / spreadsheet_id / sheet_id}',
+    f'{target_path}'
+  )
 
-  nl4_out, nl4_err = nl4exe.stdout.decode('utf-8'), nl4exe.stderr.decode('utf-8')
+  print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
+  print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
 
-  print(f"hello.py main: natural4-exe stdout length = {len(nl4_out)}", file=sys.stderr)
-  print(f"hello.py main: natural4-exe stderr length = {len(nl4_err)}", file=sys.stderr)
+  nl4exe = await asyncio.subprocess.create_subprocess_exec(
+    *create_files,
+    stdout = asyncio.subprocess.PIPE,
+    stderr = asyncio.subprocess.PIPE
+  )
+
+  print(
+    f'hello.py main: back from natural4-exe (took {datetime.datetime.now() - start_time})',
+    file=sys.stderr
+  )
+
+  nl4_out, nl4_err = await nl4exe.communicate()
+  nl4_out, nl4_err = nl4_out.decode(), nl4_err.decode()
+
+  print(f'hello.py main: natural4-exe stdout length = {len(nl4_out)}', file=sys.stderr)
+  print(f'hello.py main: natural4-exe stderr length = {len(nl4_err)}', file=sys.stderr)
 
   short_err_maxlen, long_err_maxlen = 2_000, 20_000
+  nl4_stdout, nl4_stderr = nl4_out[:long_err_maxlen], nl4_err[:long_err_maxlen]
 
-  if len(nl4_err) < short_err_maxlen:
-    print(nl4_err)
-
-  with open(target_folder + time_now + ".err", "w") as fout:
-    fout.write(nl4_err)
-  with open(target_folder + time_now + ".out", "w") as fout:
-    fout.write(nl4_out)
-
-  response['nl4_stderr'] = nl4_err[:long_err_maxlen]
-  response['nl4_stdout'] = nl4_out[:long_err_maxlen]
+  if len(nl4_err) < short_err_maxlen: print(nl4_err)
 
   # ---------------------------------------------
   # postprocessing: for petri nets: turn the DOT files into PNGs
+  # we run this asynchronously and block at the end before returning.
+  # ---------------------------------------------
+  uuid_ss_folder: anyio.Path = temp_dir / 'workdir' / uuid / spreadsheet_id / sheet_id
+  petri_folder: anyio.Path = uuid_ss_folder / 'petri'
+  dot_path: anyio.Path = petri_folder / 'LATEST.dot'
+  timestamp: anyio.Path = anyio.Path((await dot_path.readlink()).stem)
+
+  flowchart_tasks: asyncio.Task[None] = pipe(
+    get_flowchart_tasks(uuid_ss_folder, timestamp),
+    run_tasks,
+    app.add_task
+  )
+
+  # Slow tasks below.
+  # These are run in the background using app.add_background_task, which
+  # adds them to Sanic's event loop.
+
+  # ---------------------------------------------
+  # postprocessing:
+  # Use pandoc to generate word and pdf docs from markdown.
+  # ---------------------------------------------
+  pandoc_tasks: AsyncGenerator[Task | None, None] = get_pandoc_tasks(
+    uuid_ss_folder, timestamp
+  )
+
+  # ---------------------------------------------
+  # postprocessing:
+  # Use Maude to generate the state space and find race conditions
+  # ---------------------------------------------
+  maude_output_path: anyio.Path = uuid_ss_folder / 'maude'
+  natural4_file: anyio.Path = maude_output_path / 'LATEST.natural4'
+
+  maude_tasks: AsyncGenerator[Task | None, None] = get_maude_tasks(
+    natural4_file, maude_output_path
+  )
+
+  # Concurrently peform the following:
+  # - Write natural4-exe's stdout to a file.
+  # - Write natural4-exe's stderr to a file.
+  # - Run v8k up.
+  print('Running v8k', file=sys.stderr)
+
+  async with (
+    await anyio.open_file(target_folder / f'{time_now}.out', 'w') as out_file,
+    await anyio.open_file(target_folder / f'{time_now}.err', 'w') as err_file,
+    asyncio.TaskGroup() as taskgroup
+  ):
+    taskgroup.create_task(out_file.write(nl4_out))
+    taskgroup.create_task(err_file.write(nl4_err))
+
+    v8k_up_task: asyncio.Task[v8k.V8kUpResult | None] = taskgroup.create_task(
+      v8k.main('up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder))
+
+  # Once v8k up returns with the vue purs post processing task, we create a
+  # new process and get it to run the slow tasks concurrently.
+  # These include:
+  # - Maude tasks
+  # - Pandoc tasks
+  # - vue purs task
+  v8k_url = None
+  slow_tasks = aiostream.stream.chain(maude_tasks, pandoc_tasks)
+  match v8k_up_task.result():
+    case {
+      'port': v8k_port,
+      'base_url': v8k_base_url,
+      'vue_purs_task': vue_purs_task
+    }:
+      v8k_url = f':{v8k_port}{v8k_base_url}'
+      if vue_purs_task:
+        slow_tasks = aiostream.stream.chain(
+          aiostream.stream.just(vue_purs_task), slow_tasks
+        )
+
+  print('hello.py main: v8k up returned', file=sys.stderr)
+  print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
+  print(f'''
+  to see v8k bring up vue using npm run serve, run
+  tail -f {await (uuid_ss_folder / "v8k.out").resolve()}
+  ''', file=sys.stderr)
+
+  # Schedule all the slow tasks to run in the background.
+  app.add_task(run_tasks(slow_tasks))
+
+  # ---------------------------------------------
+  # construct other response elements and log run-timings.
   # ---------------------------------------------
 
-  uuid_ss_folder = temp_dir + "workdir/" + uuid + "/" + spreadsheet_id + "/" + sheet_id
-  petri_folder = uuid_ss_folder + "/petri/"
-  dot_path = petri_folder + "LATEST.dot"
-  (timestamp, ext) = os.path.splitext(os.readlink(dot_path))
+  end_time: datetime.datetime = datetime.datetime.now()
+  elapsed_time: datetime.timedelta = end_time - start_time
 
-  if not os.path.exists(petri_folder):
-    print("expected to find petri_folder %s but it's not there!" % (petri_folder), file=sys.stderr)
-  else:
-    petri_path_svg = petri_folder + timestamp + ".svg"
-    petri_path_png = petri_folder + timestamp + ".png"
-    small_petri_path = petri_folder + timestamp + "-small.png"
-    print("hello.py main: running: dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &", file=sys.stderr)
-    os.system("dot -Tpng -Gdpi=72  " + dot_path + " -o " + small_petri_path + " &")
-    os.system("dot -Tpng -Gdpi=150 " + dot_path + " -o " + petri_path_png + " &")
-    os.system("dot -Tsvg           " + dot_path + " -o " + petri_path_svg + " &")
-    try:
-      if os.path.isfile(petri_folder + "LATEST.svg"):       os.unlink(petri_folder + "LATEST.svg")
-      if os.path.isfile(petri_folder + "LATEST.png"):       os.unlink(petri_folder + "LATEST.png")
-      if os.path.isfile(petri_folder + "LATEST-small.png"): os.unlink(petri_folder + "LATEST-small.png")
-      os.symlink(os.path.basename(petri_path_svg), petri_folder + "LATEST.svg")
-      os.symlink(os.path.basename(petri_path_png), petri_folder + "LATEST.png")
-      os.symlink(os.path.basename(small_petri_path), petri_folder + "LATEST-small.png")
-    except Exception as e:
-      print("hello.py main: got some kind of OS error to do with the unlinking and the symlinking",
-            file=sys.stderr)
-      print("hello.py main: %s" % (e), file=sys.stderr)
+  print(
+    f'hello.py process_csv ready to return at {end_time} (total {elapsed_time})',
+    file=sys.stderr
+  )
 
-    # ---------------------------------------------
-    # postprocessing: (re-)launch the vue web server
-    # - call v8k up
-    # ---------------------------------------------
-    v8kargs = ["python", v8k_path,
-               "--workdir=" + v8k_workdir,
-               "up",
-               v8k_slots_arg,
-               "--uuid=" + uuid,
-               "--ssid=" + spreadsheet_id,
-               "--sheetid=" + sheet_id,
-               "--startport=" + v8k_startport,
-               uuid_ss_folder + "/purs/LATEST.purs"]
+  # Concurrently:
+  # - Wait for the flowcharts to be generated before returning to the sidebar.
+  # - Read in the aasvg html file to return to the sidebar.
+  async with (
+    await anyio.open_file(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
+    as aasvg_file,
+    asyncio.TaskGroup() as taskgroup
+  ):
+    aasvg_index_task: asyncio.Task[str] = taskgroup.create_task(
+      aasvg_file.read()
+    )
+    await flowchart_tasks
 
-    print("hello.py main: calling %s" % (" ".join(v8kargs)), file=sys.stderr)
-    os.system(" ".join(v8kargs) + "> " + uuid_ss_folder + "/v8k.out")
-    print("hello.py main: v8k up returned", file=sys.stderr)
-    with open(uuid_ss_folder + "/v8k.out", "r") as read_file:
-      v8k_out = read_file.readline()
-    print("v8k.out: %s" % (v8k_out), file=sys.stderr)
-
-    print("to see v8k bring up vue using npm run serve, run\n  tail -f %s" % (os.getcwd() + '/' + uuid_ss_folder + "/v8k.out"), file=sys.stderr)
-
-  if re.match(r':\d+', v8k_out):  # we got back the expected :8001/uuid/ssid/sid whatever from the v8k call
-    v8k_url = v8k_out.strip()
-    print("v8k up succeeded with: " + v8k_url, file=sys.stderr)
-    response['v8k_url'] = v8k_url
-  else:
-    response['v8k_url'] = None
-
-# ---------------------------------------------
-# load in the aasvg index HTML to pass back to sidebar
-# ---------------------------------------------
-
-  with open(uuid_ss_folder + "/aasvg/LATEST/index.html", "r") as read_file:
-    response['aasvg_index'] = read_file.read()
-
-# ---------------------------------------------
-# construct other response elements and log run-timings.
-# ---------------------------------------------
-
-  response['timestamp'] = timestamp
-
-  end_time = datetime.datetime.now()
-  elapsed_time = end_time - start_time
-
-  print("hello.py processCsv ready to return at", end_time, "(total", elapsed_time, ")", file=sys.stderr)
-
-# ---------------------------------------------
-# call natural4-exe; this is the SECOND RUN for any slow transpilers
-# ---------------------------------------------
-
-  print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
-        datetime.datetime.now() - start_time, ")", file=sys.stderr)
-
-  childpid = os.fork()
-  # if this leads to trouble we may need to double-fork with grandparent-wait
-  if childpid > 0:  # in the parent
-    # print("hello.py processCsv parent returning at", datetime.datetime.now(), 
-    #                   "(total", datetime.datetime.now() - start_time, ")", file=sys.stderr)
-    print("hello.py processCsv parent returning at ", datetime.datetime.now(), "(total",
-          datetime.datetime.now() - start_time, ")", file=sys.stderr)
-    # print(json.dumps(response), file=sys.stderr)
-
-    return json.dumps(response)
-  else:  # in the child
-    print("hello.py processCsv: fork(child): continuing to run", file=sys.stderr)
-
-    create_files = (natural4_exe 
-                  + " --only tomd --workdir=" + natural4_dir 
-                  + " --uuiddir=" + uuid + "/" + spreadsheet_id + "/" + sheet_id + " " + target_path)
-    print(f"hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd", file=sys.stderr)
-    print(f"hello.py child: {create_files}", file=sys.stderr)
-    nl4exe = subprocess.run([create_files], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print("hello.py child: back from slow natural4-exe 1 (took", datetime.datetime.now() - start_time, ")",
-          file=sys.stderr)
-    print("hello.py child: natural4-exe stdout length = %d" % len(nl4exe.stdout.decode('utf-8')), file=sys.stderr)
-    print("hello.py child: natural4-exe stderr length = %d" % len(nl4exe.stderr.decode('utf-8')), file=sys.stderr)
-
-    print("hello.py child: returning at", datetime.datetime.now(), "(total", datetime.datetime.now() - start_time,
-          ")", file=sys.stderr)
-
-    maude_output_path = Path(uuid_ss_folder) / 'maude'
-    natural4_file = maude_output_path / 'LATEST.natural4'
-
-    run_analyse_state_space(natural4_file, maude_output_path)
-
-    # this return shouldn't mean anything because we're in the child, but gunicorn may somehow pick it up?
-    return json.dumps(response)
+  return json({
+    'nl4_stdout': nl4_stdout,
+    'nl4_err': nl4_stderr,
+    'v8k_url': v8k_url,
+    'aasvg_index': aasvg_index_task.result(),
+    'timestamp': f'{timestamp}'
+  })
 
   # ---------------------------------------------
   # return to sidebar caller
@@ -328,4 +370,4 @@ def process_csv():
 # For local development purposes this running it as a
 # multi-process server is fine, change if needed
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port=8080, debug=False, threaded=False, processes=6)
+  app.run(host='0.0.0.0', port=8080, debug=False)

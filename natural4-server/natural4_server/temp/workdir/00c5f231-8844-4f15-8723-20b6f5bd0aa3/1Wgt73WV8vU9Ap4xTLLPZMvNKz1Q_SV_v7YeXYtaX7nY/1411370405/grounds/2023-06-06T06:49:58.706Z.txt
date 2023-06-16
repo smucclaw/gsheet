@@ -1,1 +1,0 @@
-[[MTT "Person",MTT "Qualifies"],[MTT "Qualifies"],[MTT "walks"],[MTT "drinks"],[MTT "eats"]]
