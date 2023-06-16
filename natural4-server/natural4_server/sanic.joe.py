@@ -1,6 +1,5 @@
 from io import StringIO
 from dotenv import load_dotenv
-from hello import app
 
 # Define and load environment variables.
 raw_env: str = '''
@@ -11,6 +10,8 @@ v8k_path=/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k
 '''
 
 load_dotenv(stream = StringIO(raw_env))
+
+from hello import app
 
 ssl: dict[str, str] = {
   'cert': '/etc/letsencrypt/live/cclaw.legalese.com/cert.pem',
