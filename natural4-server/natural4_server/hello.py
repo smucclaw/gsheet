@@ -101,15 +101,14 @@ async def get_workdir_file(
   
   response = HTTPResponse(status = 204)
 
-  exts: Collection[str] = {
-    '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
-  }
-
   if not await workdir_folder.exists():
     msg = f'get_workdir_file: unable to find workdir_folder {workdir_folder}'
   elif not await workdir_folder_filename.is_file():
     msg = f'get_workdir_file: unable to find file {workdir_folder_filename}'
   else:
+    exts = {
+      '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
+    }
     if anyio.Path(filename).suffix in exts:
       mime_type, mime_type_str = ('text/plain',) * 2
     else:
@@ -117,7 +116,7 @@ async def get_workdir_file(
 
     msg = f'get_workdir_file: returning {mime_type_str} {workdir_folder_filename}'
 
-    response: HTTPResponse = await file(
+    response = await file(
       pathlib.Path(workdir_folder_filename), mime_type = mime_type
     )
 
@@ -292,10 +291,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     taskgroup.create_task(err_file.write(nl4_err))
 
     v8k_up_task: asyncio.Task[v8k.V8kUpResult | None] = taskgroup.create_task(
-      v8k.main(
-        'up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder
-      )
-    )
+      v8k.main('up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder))
 
   # Once v8k up returns with the vue purs post processing task, we create a
   # new process and get it to run the slow tasks concurrently.
@@ -320,8 +316,8 @@ async def process_csv(request: Request) -> HTTPResponse:
   print('hello.py main: v8k up returned', file=sys.stderr)
   print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
   print(f'''
-    to see v8k bring up vue using npm run serve, run
-    tail -f {await (uuid_ss_folder / "v8k.out").resolve()}
+  to see v8k bring up vue using npm run serve, run
+  tail -f {await (uuid_ss_folder / "v8k.out").resolve()}
   ''', file=sys.stderr)
 
   # Schedule all the slow tasks to run in the background.
