@@ -291,7 +291,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     taskgroup.create_task(err_file.write(nl4_err))
 
     v8k_up_task: asyncio.Task[v8k.V8kUpResult | None] = taskgroup.create_task(
-      v8k.main('up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder))
+      v8k.main('up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder)
+    )
 
   # Once v8k up returns with the vue purs post processing task, we create a
   # new process and get it to run the slow tasks concurrently.
