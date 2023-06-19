@@ -51,7 +51,6 @@ from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import pyrsistent as pyrs
-import pyrsistent_extras as pyrse
 
 from natural4_server.task import Task
 
@@ -65,9 +64,9 @@ except KeyError:
   v8k_workdir: anyio.Path = anyio.Path()
 
 try:
-  v8k_slots_arg: str | None = f'--poolsize {os.environ["V8K_SLOTS"]}'
+  v8k_slots: str | None = f'{os.environ["V8K_SLOTS"]}'
 except KeyError:
-  v8k_slots_arg = None
+  v8k_slots = None
 
 v8k_startport: str = os.environ.get('v8k_startport', '')
 
@@ -413,13 +412,13 @@ async def main(
   sheet_id: str,
   uuid_ss_folder: str | os.PathLike,
 ) -> V8kUpResult | None:
-  v8k_args: Sequence[str] = pyrse.sq(
+  v8k_args: Sequence[str] = (
     f'--workdir={v8k_workdir}',
     command,
-  ) + (pyrse.sq(v8k_slots_arg) if v8k_slots_arg else pyrse.sq()) + pyrse.sq(
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}',
+    '--poolsize', f'{v8k_slots}',
     f'--startport={v8k_startport}',
     f'{anyio.Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
   ) # type: ignore
