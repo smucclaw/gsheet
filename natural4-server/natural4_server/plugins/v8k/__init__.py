@@ -412,16 +412,17 @@ async def main(
   sheet_id: str,
   uuid_ss_folder: str | os.PathLike,
 ) -> V8kUpResult | None:
-  v8k_args: Sequence[str] = (
+  v8k_args: Sequence[str] = [
     f'--workdir={v8k_workdir}',
     command,
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
-    f'--sheetid={sheet_id}',
+    f'--sheetid={sheet_id}'
+  ] + (['--poolsize', v8k_slots] if v8k_slots else []) +[
     '--poolsize', f'{v8k_slots}',
     f'--startport={v8k_startport}',
     f'{anyio.Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
-  ) # type: ignore
+  ]
 
   print(f'hello.py main: calling {" ".join(v8k_args)}', file=sys.stderr)
 
