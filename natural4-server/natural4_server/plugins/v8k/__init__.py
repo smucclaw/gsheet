@@ -418,7 +418,7 @@ async def main(
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}'
-  ] + (['--poolsize', v8k_slots] if v8k_slots else []) +[
+  ] + (['--poolsize', v8k_slots] if v8k_slots else []) + [
     '--poolsize', f'{v8k_slots}',
     f'--startport={v8k_startport}',
     f'{anyio.Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
