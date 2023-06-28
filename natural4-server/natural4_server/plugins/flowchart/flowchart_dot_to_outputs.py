@@ -1,7 +1,6 @@
 import asyncio
 from collections.abc import AsyncGenerator, Collection, Sequence
 import os
-import pathlib
 import sys
 
 from cytoolz.functoolz import *
