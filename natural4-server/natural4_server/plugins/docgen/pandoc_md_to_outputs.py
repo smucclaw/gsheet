@@ -94,7 +94,7 @@ async def get_pandoc_tasks(
   # markdown_proc: asyncio.subprocess.Process = await markdown_coro
   # await markdown_proc.wait()
 
-  print(f'Markdown output done.', file=sys.stderr)
+  print('Markdown output done.', file=sys.stderr)
 
   for output in pandoc_outputs:
     yield Task(
