@@ -10,7 +10,7 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import AsyncGenerator, Collection, Sequence
+from collections.abc import AsyncGenerator, Sequence
 import datetime
 import os
 import pathlib
