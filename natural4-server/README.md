@@ -197,12 +197,20 @@ If there are multiple users on the server, you can each agree amongst
 yourselves to each squat on a different set of 10 ports.
 
 By default, the v8k poolsize is 9.
+To change this, edit the `sanic.user.py` file and add a new environment
+variable `V8K_SLOTS = #` to the `raw_env` string, eg:
 
-If you need a poolsize greater than 9, we will need to tweak the source
-code:
+```example
 
--   in gunicorn.conf.py to set a `poolsize` parameter
--   in hello.py to pass that parameter to v8k.
+raw_env: str = '''
+basedir=.
+V8K_WORKDIR=/home/joe/v8k_workdir
+v8k_startport=8201
+v8k_path=/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k
+V8K_SLOTS=20
+'''
+
+```
 
 # SSL background
 
