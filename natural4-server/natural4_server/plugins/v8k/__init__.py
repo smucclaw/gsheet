@@ -51,7 +51,6 @@ from cytoolz.itertoolz import *
 from cytoolz.curried import *
 
 import pyrsistent as pyrs
-import pyrsistent_extras as pyrse
 
 from natural4_server.task import Task
 
@@ -413,16 +412,16 @@ async def main(
   sheet_id: str,
   uuid_ss_folder: str | os.PathLike,
 ) -> V8kUpResult | None:
-  v8k_args: Sequence[str] = pyrse.sq(
+  v8k_args: Sequence[str] = pyrs.v(
     f'--workdir={v8k_workdir}',
     command,
     f'--uuid={uuid}',
     f'--ssid={spreadsheet_id}',
     f'--sheetid={sheet_id}'
-   ) + (pyrse.sq('--poolsize', v8k_slots) if v8k_slots else pyrse.sq()) + pyrse.sq(
+   ) + (pyrs.v('--poolsize', v8k_slots) if v8k_slots else pyrs.v()) + pyrs.v(
     f'--startport={v8k_startport}',
     f'{anyio.Path(uuid_ss_folder) / "purs" / "LATEST.purs"}'
-   ) # type: ignore
+   )
 
   print(f'hello.py main: calling {" ".join(v8k_args)}', file=sys.stderr)
 
