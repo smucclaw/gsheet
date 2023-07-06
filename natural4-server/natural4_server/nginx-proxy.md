@@ -7,14 +7,14 @@ Vue additionally requires WebSocket on TLS.
 flowchart LR
     subgraph network
         direction LR
-        network_tls_8400_port(( ))-- HTTPS ---network_https_8400(172:8400)
-        network_tls_8401_port(( ))-- HTTPS ---network_https_8401(172:8401)
+        network_tls_8400_port(( TLS:8400 ))-- HTTPS ---network_https_8400(172:8400)
+        network_tls_8401_port(( TLS:8401 ))-- HTTPS ---network_https_8401(172:8401)
         network_tls_8401_port(( ))-- WSS ---network_wss_8401(172:8401)
     end
     subgraph localhost
         direction LR
-        loop_https_8400_port(( ))-- HTTPS ---loop_https_8400(127:8400)
-        loop_tls_8401_port(( ))-- HTTPS ---loop_https_8401(127:8401)
+        loop_https_8400_port(( TLS:8400 ))-- HTTPS ---loop_https_8400(127:8400)
+        loop_tls_8401_port(( TLS:8401 ))-- HTTPS ---loop_https_8401(127:8401)
         loop_tls_8401_port(( ))-- WSS ---loop_wss_8401(127:8401)
     end
     network_https_8400---sanic[[ Sanic ]]
@@ -25,12 +25,10 @@ flowchart LR
     network_wss_8401---vue
 ```
 
-This creates a hassle during local development as HTTPS either needs to be disabled or configured.
-Disabling HTTPS, while easy, creates unnecessary differences in GitHub.
-Configuring HTTPS for local development is unnecessary work.
+This setup creates an issue when networks(eduroam) interfere with TLS traffic on ports other than 433
 
 ## Terminate https
-I thought it might be beneficial to terminate HTTPS on Nginx and have Sanic and Vue always use plain HTTP.
+One solution is to direct TLS traffic on 443 port to Nginx and encode further routes in URL.
 
 ```mermaid
 flowchart LR
