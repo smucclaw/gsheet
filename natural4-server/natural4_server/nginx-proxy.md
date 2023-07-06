@@ -7,14 +7,14 @@ Vue additionally requires WebSocket on TLS.
 flowchart LR
     subgraph network
         direction LR
-        network_tls_8400_port(( TLS:8400 ))-- HTTPS ---network_https_8400(172:8400)
-        network_tls_8401_port(( TLS:8401 ))-- HTTPS ---network_https_8401(172:8401)
-        network_tls_8401_port(( ))-- WSS ---network_wss_8401(172:8401)
+        network_tls_8400_port((  ))-- HTTPS ---network_https_8400(172:8400)
+        network_tls_8401_port((  ))-- HTTPS ---network_https_8401(172:8401)
+        network_tls_8401_port((  ))-- WSS ---network_wss_8401(172:8401)
     end
     subgraph localhost
         direction LR
-        loop_https_8400_port(( TLS:8400 ))-- HTTPS ---loop_https_8400(127:8400)
-        loop_tls_8401_port(( TLS:8401 ))-- HTTPS ---loop_https_8401(127:8401)
+        loop_https_8400_port((  ))-- HTTPS ---loop_https_8400(127:8400)
+        loop_tls_8401_port((  ))-- HTTPS ---loop_https_8401(127:8401)
         loop_tls_8401_port(( ))-- WSS ---loop_wss_8401(127:8401)
     end
     network_https_8400---sanic[[ Sanic ]]
@@ -29,33 +29,33 @@ This setup creates an issue when networks(eduroam) interfere with TLS traffic on
 
 ## Terminate https
 One solution is to direct TLS traffic on 443 port to Nginx and encode further routes in URL.
+Further, if internet traffic is proxied by Nginx then Sanic and Vue don't need TLS.
 
 ```mermaid
 flowchart LR
     subgraph network
         direction LR
-        id1(( )) -- HTTPS --- network_port_8400(172:8400)
-        id2(( )) -- HTTPS --- network_port_8401(172:8401)
+        network_tls((  ))-- HTTPS ---network_https_8400(https:/../port/8400)
+        network_tls((  ))-- HTTPS ---network_https_8401(https:/../port/8401)
+        network_tls_((  ))-- WSS ---network_wss_8401(wss:/../port/8401)
     end
     nginx[[nginx]]
-    network_port_8400 --- nginx
-    network_port_8401 --- nginx
+    network_https_8400 --- nginx
+    network_https_8401 --- nginx
 
     subgraph localhost
         direction LR
-        id3(( )) -- http --- loop_port_8400(127:8400)
-        id4(( ))-- http --- loop_port_8401(127:8401)
+        loop_8400_port((  ))-- HTTP ---loop_http_8400(127:8400)
+        loop_8401_port((  ))-- HTTP ---loop_http_8401(127:8401)
+        loop_8401_port(( ))-- WS ---loop_ws_8401(127:8401)
     end
-    Sanic[[ Sanic ]]
-    loop_port_8400---Sanic
-    vue[[ vue ]]
-    loop_port_8401---vue
-    nginx---id3
-    nginx---id4
-    linkStyle 0 stroke:red;
-    linkStyle 1 stroke:red;
-    linkStyle 4 stroke:blue;
-    linkStyle 5 stroke:blue;
+    loop_http_8400---sanic[[ Sanic ]]
+    loop_http_8401---vue[[ vue ]]
+    loop_ws_8401---vue
+    nginx---loop_8400_port
+    nginx---loop_8401_port
+    nginx---loop_8401_port
+ 
 ```
 
 ## Complication #1: Vue doesn't give up the network port.
