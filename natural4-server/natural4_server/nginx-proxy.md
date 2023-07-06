@@ -6,21 +6,23 @@ Vue additionally requires WebSocket on TLS.
 ```mermaid
 flowchart LR
     subgraph network
+        direction LR
         network_tls_8400_port(( ))-- HTTPS ---network_https_8400(172:8400)
         network_tls_8401_port(( ))-- HTTPS ---network_https_8401(172:8401)
         network_tls_8401_port(( ))-- WSS ---network_wss_8401(172:8401)
     end
     subgraph localhost
+        direction LR
         loop_https_8400_port(( ))-- HTTPS ---loop_https_8400(127:8400)
         loop_tls_8401_port(( ))-- HTTPS ---loop_https_8401(127:8401)
         loop_tls_8401_port(( ))-- WSS ---loop_wss_8401(127:8401)
     end
-    sanic[[ Sanic ]]---network_https_8400
-    sanic---loop_https_8400
-    vue[[ vue ]]---network_https_8401
-    vue---loop_https_8401
-    vue---loop_wss_8401
-    vue---network_wss_8401
+    network_https_8400---sanic[[ Sanic ]]
+    loop_https_8400---sanic
+    network_https_8401---vue[[ vue ]]
+    loop_https_8401---vue
+    loop_wss_8401---vue
+    network_wss_8401---vue
 ```
 
 This creates a hassle during local development as HTTPS either needs to be disabled or configured.
