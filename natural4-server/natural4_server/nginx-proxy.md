@@ -1,21 +1,26 @@
 ## Initial state.
-In the initial state, both Gunicorn and Vue expose HTTPS on both the loopback (127.0.0.1) 
+In the initial state, both Sanic and Vue expose HTTPS on both the loopback (127.0.0.1) 
 and network (172.x.x.x) interfaces and manage their own HTTPS configuration.
+Vue additionally requires WebSocket on TLS.
 
 ```mermaid
-flowchart RL
+flowchart LR
     subgraph network
-        network_port_8400(172:8400)-- https ---id1(( ))
-        network_port_8401(172:8401)-- https ---id2(( ))
+        network_tls_8400_port(( ))-- HTTPS ---network_https_8400(172:8400)
+        network_tls_8401_port(( ))-- HTTPS ---network_https_8401(172:8401)
+        network_tls_8401_port(( ))-- WSS ---network_wss_8401(172:8401)
     end
     subgraph localhost
-        loop_port_8400(127:8400)-- https ---id3(( ))
-        loop_port_8401(127:8401)-- https ---id4(( ))
+        loop_https_8400_port(( ))-- HTTPS ---loop_https_8400(127:8400)
+        loop_tls_8401_port(( ))-- HTTPS ---loop_https_8401(127:8401)
+        loop_tls_8401_port(( ))-- WSS ---loop_wss_8401(127:8401)
     end
-    gunicorn[[ gunicorn ]]---network_port_8400
-    gunicorn---loop_port_8400
-    vue[[ vue ]]---network_port_8401
-    vue---loop_port_8401
+    sanic[[ Sanic ]]---network_https_8400
+    sanic---loop_https_8400
+    vue[[ vue ]]---network_https_8401
+    vue---loop_https_8401
+    vue---loop_wss_8401
+    vue---network_wss_8401
 ```
 
 This creates a hassle during local development as HTTPS either needs to be disabled or configured.
@@ -23,7 +28,7 @@ Disabling HTTPS, while easy, creates unnecessary differences in GitHub.
 Configuring HTTPS for local development is unnecessary work.
 
 ## Terminate https
-I thought it might be beneficial to terminate HTTPS on Nginx and have Gunicorn and Vue always use plain HTTP.
+I thought it might be beneficial to terminate HTTPS on Nginx and have Sanic and Vue always use plain HTTP.
 
 ```mermaid
 flowchart LR
@@ -41,8 +46,8 @@ flowchart LR
         id3(( )) -- http --- loop_port_8400(127:8400)
         id4(( ))-- http --- loop_port_8401(127:8401)
     end
-    gunicorn[[ gunicorn ]]
-    loop_port_8400---gunicorn
+    Sanic[[ Sanic ]]
+    loop_port_8400---Sanic
     vue[[ vue ]]
     loop_port_8401---vue
     nginx---id3
@@ -76,8 +81,8 @@ flowchart LR
         http_127_8400(( )) -- http --- loop_port_18400(127:18400)
         http_127_8401(( ))-- http --- loop_port_18401(127:18401)
     end
-    gunicorn[[ gunicorn ]]
-    loop_port_18400---gunicorn
+    Sanic[[ Sanic ]]
+    loop_port_18400---Sanic
     vue[[ vue ]]
     loop_port_18401---vue
     nginx---http_127_8400
@@ -120,8 +125,8 @@ flowchart LR
         http_127_8401(( ))-- http --- loop_port_18401(127:18401)
         ws_127_8401(( ))-- WS --- loop_port_18401(127:18401)
     end
-    gunicorn[[ gunicorn ]]
-    loop_port_18400---gunicorn
+    Sanic[[ Sanic ]]
+    loop_port_18400---Sanic
     vue[[ vue ]]
     loop_port_18401---vue
     nginx---http_127_8400
