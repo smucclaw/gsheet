@@ -1,5 +1,10 @@
+/**
+ * @OnlyCurrentDoc
+ */
+
+
 Logger.log("global top");
-var port       = "8080";
+var port       = "8090";
 const url_host = "https://cclaw.legalese.com";
 var liveUpdates = true;
 let sidebarRefreshInterval = 60000;
@@ -8,9 +13,8 @@ const key = "lastEditTime";
 let ui = SpreadsheetApp.getUi();
 
 function onOpen() {
-  let sidebar = HtmlService.createTemplateFromFile('main');
   createSidebarMenu();
-  showSidebar(sidebar);
+  showSidebar();
   resetLastEditTime();
 }
 
@@ -21,6 +25,7 @@ function resetLastEditTime() {
 function createSidebarMenu() {
   ui.createMenu('L4 Sidebar')
     .addItem('Refresh', 'showSidebar')
+    .addItem('L4 Help', 'showL4Help')
     .addToUi();
 }
 
@@ -46,23 +51,52 @@ function loadDev() {
   let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = SpreadsheetApp.getActiveSheet();
   let range = sheet.getRange("A1:Z10").getDisplayValues();
-
-  loadDev();
+  // expecting 249602568
+  Logger.log("expecting sheet = 249602568");
+  Logger.log("reading sheet = " + sheet.getSheetId());
   port = devPort(range) || "8080";
   liveUpdates = devScan(range, /live updates (true|false)/i) || true; if (liveUpdates.toString().toLowerCase() == "false") { liveUpdates = false }
   Logger.log("setting port to " + port);
   Logger.log("setting liveUpdates to " + liveUpdates);
 }
 
-function showSidebar(sidebar) {
+// function showL4Help() {
+//   let url = "https://l4-documentation.readthedocs.io/en/stable/";
+//   let html = '<script>window.open(url, "_blank");</script>';
+//   let l4Help = HtmlService.createTemplate(html);
+//   let page = l4Help.evaluate();
+//   SpreadsheetApp.getUi().showModalDialog(page, 'L4 Documentation');
+//   Utilities.sleep(2000);
+
+//   // // Import the JavaImporter function.
+//   // var JavaImporter = Packages.java.lang.importer;
+//   // // Import the webbrowser library.
+//   // var webbrowser = JavaImporter.importPackage("webbrowser");
+//   // // Open the URL in a new tab.
+//   // webbrowser.openNewTab(url);
+// }
+
+const showL4Help = () => {
+  const htmlTemplate = HtmlService.createTemplateFromFile('help.html');
+  htmlTemplate.url = 'https://l4-documentation.readthedocs.io/en/stable/';
+  const htmlOutput = htmlTemplate.evaluate().setHeight(50).setWidth(200);
+  const ui = SpreadsheetApp.getUi();
+  ui.showModelessDialog(htmlOutput, 'L4 Help');
+  Utilities.sleep(2000);
+};
+
+function showSidebar() {
+  loadDev();
   let cachedUuid = saveUuid();
   let [spreadsheetId, sheetId] = getSsid();
   let workDirUrl = (url_wd() + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/");
 
+  Logger.log("port     = " + port);
   Logger.log("url_host = " + url_host);
   Logger.log("url_hp() = " + url_hp());
   Logger.log("url_wd() = " + url_wd());
   Logger.log(`workDirUrl = ` + workDirUrl);
+  let sidebar = HtmlService.createTemplateFromFile('main');
   Logger.log("calling exportCSV()");
   sidebar.fromFlask = JSON.parse(exportCSV(cachedUuid, spreadsheetId, sheetId));
   Logger.log("fromFlask returned");
@@ -75,6 +109,8 @@ function showSidebar(sidebar) {
   sidebar.org_url             = workDirUrl + "org/LATEST.org"
   sidebar.purs_url            = workDirUrl + "purs/LATEST.purs"
   sidebar.md_url              = workDirUrl + "md/LATEST.md"
+  sidebar.docx_url             = workDirUrl + "docx/LATEST.docx"
+  sidebar.pdf_url              = workDirUrl + "pdf/LATEST.pdf"
   sidebar.maude_plaintext_url  = workDirUrl + "maude/LATEST.natural4"
   sidebar.maude_vis_url = workDirUrl + "maude/LATEST_state_space.html"
   sidebar.maude_race_cond_url = workDirUrl + "maude/LATEST_race_cond_0.html"
@@ -742,4 +778,3 @@ function putChangedCommand(command) {
   let userCache = CacheService.getUserCache();
   userCache.put("command", command, 21600);
 }
-
