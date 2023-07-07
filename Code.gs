@@ -4,7 +4,7 @@
 
 
 Logger.log("global top");
-var port       = "8090";
+var port       = "8400";
 const url_host = "https://cclaw.legalese.com";
 var liveUpdates = true;
 let sidebarRefreshInterval = 60000;
@@ -223,7 +223,7 @@ function saveUuid() {
 
 function url_hp() {
   Logger.log("url_hp() called");
-  var toreturn = `${url_host}:${port}`;
+  var toreturn = `${url_host}/port/${port}`;
   Logger.log("returning " + toreturn);
   return toreturn;
 }
