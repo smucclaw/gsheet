@@ -18,7 +18,7 @@ repos:
         args: ["--directory=natural4-server"]
       - id: poetry-lock
         args: ["--directory=natural4-server", "--no-update"]
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.276
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.277
     hooks:
       - id: ruff
