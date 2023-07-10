@@ -4,8 +4,16 @@
 
 
 Logger.log("global top");
-var port       = "8400";
-const url_host = "https://cclaw.legalese.com";
+Logger.log("legalSSConfigLib PARENT_URL_HOST = " + LegalSSConfigLib.PARENT_URL_HOST)
+Logger.log("legalSSConfigLib PARENT_URL_PORT = " + LegalSSConfigLib.PARENT_URL_PORT)
+Logger.log("legalSSConfigLib configLibDefaults")
+Logger.log(LegalSSConfigLib.configLibDefaults())
+
+const configLibDefaults = LegalSSConfigLib.configLibDefaults();
+
+var port       = configLibDefaults.parentUrlPort;
+const url_host = configLibDefaults.parentUrlHost;
+
 var liveUpdates = true;
 let sidebarRefreshInterval = 60000;
 var properties = PropertiesService.getDocumentProperties();
@@ -14,7 +22,7 @@ let ui = SpreadsheetApp.getUi();
 
 function onOpen() {
   createSidebarMenu();
-  showSidebar();
+  showSidebar();  
   resetLastEditTime();
 }
 
@@ -54,7 +62,7 @@ function loadDev() {
   // expecting 249602568
   Logger.log("expecting sheet = 249602568");
   Logger.log("reading sheet = " + sheet.getSheetId());
-  port = devPort(range) || "8080";
+  port = devPort(range) || port;
   liveUpdates = devScan(range, /live updates (true|false)/i) || true; if (liveUpdates.toString().toLowerCase() == "false") { liveUpdates = false }
   Logger.log("setting port to " + port);
   Logger.log("setting liveUpdates to " + liveUpdates);
@@ -86,11 +94,11 @@ const showL4Help = () => {
 };
 
 function showSidebar() {
-  loadDev();
+  loadDev();  
   let cachedUuid = saveUuid();
   let [spreadsheetId, sheetId] = getSsid();
   let workDirUrl = (url_wd() + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/");
-
+  
   Logger.log("port     = " + port);
   Logger.log("url_host = " + url_host);
   Logger.log("url_hp() = " + url_hp());
@@ -132,12 +140,12 @@ function showSidebar() {
 
   let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
 
-  sidebar.fromFlask.aasvg_index =
+  sidebar.fromFlask.aasvg_index = 
     sidebar.fromFlask.aasvg_index
     .replace(/href="(\S+)(\.svg">)(.+)<\/a>/g,
              "href=\"" + aasvgUrl + "$1-full$2<br/>$3" +
              "<br><img src=\"" + aasvgUrl + "$1-tiny.svg\"></a>");
-
+  
 
 
   Logger.log("rewrote aasvg_index = ")
@@ -165,7 +173,7 @@ function exportCSV(uuid, spreadsheetId, sheetId) {
   let cellArraysOfText = sheet.getDataRange().getDisplayValues();
   let csvStr = cellArraysToCsv(cellArraysOfText);
   // ui.prompt(csvStr);
-
+  
   let formData = {
     'name': 'Max Loo',
     'email': 'maxloo@smu.edu.sg',
@@ -223,7 +231,10 @@ function saveUuid() {
 
 function url_hp() {
   Logger.log("url_hp() called");
+
   var toreturn = `${url_host}/port/${port}`;
+//  var toreturn = `${url_host}:${port}`;
+
   Logger.log("returning " + toreturn);
   return toreturn;
 }
@@ -243,13 +254,13 @@ function devScan(range, scanregex) {
 function devPort(range) {
   let mymatch = devScan(range, /devMode port (\d+)/i);
   if (mymatch) { return mymatch }
-  return "8080";
+  return configLibDefaults.parentUrlPort;
 }
 
 
 
 function onChange(e) {
-  loadDev();
+  loadDev();  
   if (! liveUpdates) { return }
 
   Logger.log(`onChange running. liveUpdates=${liveUpdates}; port=${port}`);
@@ -320,7 +331,7 @@ function onEdit(e) {
     return null;
   }
 
-  loadDev();
+  loadDev();  
 
   // Respond to Edit events on spreadsheet.
   if (! liveUpdates) { return }
@@ -352,7 +363,7 @@ function onEdit(e) {
     //   .after(5000)
     //   .create();
   }
-
+  
   // ui.prompt(lastEditTime);
   // google.script.host.editor.focus();
   // var triggers = ScriptApp.getProjectTriggers();
@@ -778,3 +789,4 @@ function putChangedCommand(command) {
   let userCache = CacheService.getUserCache();
   userCache.put("command", command, 21600);
 }
+
