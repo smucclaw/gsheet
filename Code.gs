@@ -4,8 +4,6 @@
 
 
 Logger.log("global top");
-Logger.log("legalSSConfigLib PARENT_URL_HOST = " + LegalSSConfigLib.PARENT_URL_HOST)
-Logger.log("legalSSConfigLib PARENT_URL_PORT = " + LegalSSConfigLib.PARENT_URL_PORT)
 Logger.log("legalSSConfigLib configLibDefaults")
 Logger.log(LegalSSConfigLib.configLibDefaults())
 
