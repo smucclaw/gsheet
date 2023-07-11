@@ -32,6 +32,7 @@ The strategy can also be a strategy describing a trace, say
 Note that it is important to put parens around "... does ..." actions.
 '''
 
+import itertools as it
 from pathlib import Path
 import re
 import sys
@@ -323,77 +324,17 @@ def safe_viewleft(pseq):
 
 
 def rewrite_graph_to_edge_pairs(rewrite_graph):
-    '''
-    BFS to explore all edges in a rewrite graph, computed via fixed point
-    iteration.
+    seen_ids = pyrs.pset([0])
+    next_ids = pyrs.pdeque([0])
 
-    Note that there is a possibility of nontermination if for instance the
-    transition system has infinitely many states so that the fixpoint lies
-    beyond omega.
-    In such scenarios however, we can at least guarantee that we will always
-    make progress in each step < omega.
-    '''
-
-    # Apply a function f to a key k in the map m
-    apply_key = curry(lambda k, f, m: m.set(k, f(m[k])))
-
-    def one_step_transition(bfs_state):
-        match safe_viewleft(bfs_state['next_ids']):
-            case None:
-                result = bfs_state.set('is_fixed_point', True)
-            case (curr_id, next_ids):
-                def append_new_edge(curr_bfs_state, succ_id):
-                    next_bfs_state = apply_key(
-                        'edge_pairs',
-                        lambda edge_pairs: edge_pairs.add((curr_id, succ_id)),
-                        curr_bfs_state
-                    )
-                    if succ_id not in next_bfs_state['seen_ids']:
-                        next_bfs_state = pipe(
-                            next_bfs_state,
-                            apply_key('seen_ids', lambda seen_ids: seen_ids.add(succ_id)),
-                            apply_key('next_ids', lambda next_ids: next_ids.append(succ_id))
-                        )
-                    return next_bfs_state
-
-                result = reduce(
-                    append_new_edge,
-                    rewrite_graph.getNextStates(curr_id),
-                    bfs_state.set('next_ids', next_ids)
-                )
-        return result
-
-    return pipe(
-        # Initialize the transition system
-        pyrs.pmap({
-            'seen_ids': pyrs.pset([0]),
-            'next_ids': psequence([0]),
-            'edge_pairs': pyrs.pset(),
-            'is_fixed_point': False
-        }),
-        # Compute the transitive closure of the transition relation, stopping once
-        # we reach the fixed point (if it exists < omega).
-        iterate(one_step_transition),
-        filter(
-            lambda state:
-            # Bound the generated state space by 200 states.
-            len(state['seen_ids']) <= 200 and state['is_fixed_point']
-        ),
-        first,
-        get('edge_pairs')
-    )
-
-    # seen_ids = pyrs.pset([0])
-    # next_ids = pyrs.pdeque([0])
-
-    # while next_ids:
-    #   curr_id = next_ids.left
-    #   next_ids = next_ids.popleft()
-    #   for succ_id in rewrite_graph.getNextStates(curr_id):
-    #     if succ_id not in seen_ids:
-    #       seen_ids = seen_ids.add(succ_id)
-    #       next_ids = next_ids.append(succ_id)
-    #     yield (curr_id, succ_id)
+    while next_ids and len(seen_ids) <= 200:
+      curr_id = next_ids.left
+      next_ids = next_ids.popleft()
+      for succ_id in rewrite_graph.getNextStates(curr_id):
+        if succ_id not in seen_ids:
+          seen_ids = seen_ids.add(succ_id)
+          next_ids = next_ids.append(succ_id)
+        yield (curr_id, succ_id)
 
 
 @curry
