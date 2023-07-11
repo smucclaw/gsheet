@@ -32,7 +32,6 @@ The strategy can also be a strategy describing a trace, say
 Note that it is important to put parens around "... does ..." actions.
 '''
 
-import itertools as it
 from pathlib import Path
 import re
 import sys
@@ -41,7 +40,6 @@ import maude
 from umaudemc.wrappers import create_graph
 
 import pyrsistent as pyrs
-from pyrsistent_extras import psequence
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
