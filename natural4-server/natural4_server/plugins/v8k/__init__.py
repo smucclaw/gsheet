@@ -205,7 +205,7 @@ async def vue_purs_post_process(
 
             sub_env = os.environ.copy()
             sub_env["LEGALSS_PROXY_PORT"] = str(server_config["port"])
-            sub_env["BASE_URL"] = f'/port/{server_config["port"]}{server_config_base_url}'
+            sub_env["BASE_URL"] = f'/webapp/{server_config["port"]}{server_config_base_url}'
 
             # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
             runvue = await asyncio.subprocess.create_subprocess_exec(
