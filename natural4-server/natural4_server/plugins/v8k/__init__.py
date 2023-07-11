@@ -203,11 +203,13 @@ async def vue_purs_post_process(
                     taskgroup.create_task
                 )
 
-            os.environ["BASE_URL"] = server_config_base_url
+            sub_env = os.environ.copy()
+            sub_env["LEGALSS_PROXY_PORT"] = str(server_config["port"])
+            sub_env["BASE_URL"] = f'/port/{server_config["port"]}{server_config_base_url}'
 
             # deliberately not capturing STDOUT and STDERR so it goes to console and we can see errors
             runvue = await asyncio.subprocess.create_subprocess_exec(
-                *server_config_cli, cwd=server_config_dir
+                *server_config_cli, cwd=server_config_dir, env=sub_env
             )
 
         case _:
