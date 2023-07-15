@@ -29,9 +29,9 @@ function resetLastEditTime() {
 }
 
 function createSidebarMenu() {
-  ui.createMenu('L4 Sidebar')
+  ui.createMenu('L4')
     .addItem('Refresh', 'showSidebar')
-    .addItem('L4 Help', 'showL4Help')
+    .addItem('Help', 'showL4Help')
     .addToUi();
 }
 
