@@ -322,17 +322,17 @@ def safe_viewleft(pseq):
 
 
 def rewrite_graph_to_edge_pairs(rewrite_graph):
-    seen_ids = pyrs.pset([0])
-    next_ids = pyrs.pdeque([0])
+  seen_ids = pyrs.pset([0])
+  next_ids = pyrs.pdeque([0])
 
-    while next_ids and len(seen_ids) <= 200:
-      curr_id = next_ids.left
-      next_ids = next_ids.popleft()
-      for succ_id in rewrite_graph.getNextStates(curr_id):
-        if succ_id not in seen_ids:
-          seen_ids = seen_ids.add(succ_id)
-          next_ids = next_ids.append(succ_id)
-        yield (curr_id, succ_id)
+  while next_ids and len(seen_ids) <= 200:
+    curr_id = next_ids.left
+    next_ids = next_ids.popleft()
+    for succ_id in rewrite_graph.getNextStates(curr_id):
+      if succ_id not in seen_ids:
+        seen_ids = seen_ids.add(succ_id)
+        next_ids = next_ids.append(succ_id)
+      yield (curr_id, succ_id)
 
 
 @curry
