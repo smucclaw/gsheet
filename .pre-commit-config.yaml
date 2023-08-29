@@ -12,14 +12,14 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
   - repo: https://github.com/python-poetry/poetry
-    rev: 1.5.0
+    rev: 1.6.0
     hooks:
       - id: poetry-check
         args: ["--directory=natural4-server"]
       - id: poetry-lock
         args: ["--directory=natural4-server", "--no-update"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.284
+    rev: v0.0.286
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
