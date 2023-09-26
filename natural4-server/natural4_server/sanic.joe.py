@@ -8,6 +8,7 @@ V8K_WORKDIR=/home/joe/v8k_workdir
 v8k_startport=8201
 v8k_path=/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k
 CCLAW_HTTPS="true, set in sanic.*.py"
+NL4EXE_TIME_LIMIT=10
 '''
 
 load_dotenv(stream=StringIO(raw_env))
