@@ -67,7 +67,10 @@ natural4_exe: str = os.environ.get('natural4_exe', default_filenm_natL4exe_from_
 
 try:
     nl4exe_time_limit: float = float(os.environ['NL4EXE_TIME_LIMIT'])
-except ValueError:
+except:
+    # Here we're catching:
+    # KeyError that could arise in accessing NL4EXE_TIME_LIMIT from the env
+    # ValueError that could occur when casting that to a float.
     nl4exe_time_limit: float = 20
 
 # sometimes it is desirable to override the default name
