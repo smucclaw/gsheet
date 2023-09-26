@@ -68,7 +68,7 @@ natural4_exe: str = os.environ.get('natural4_exe', default_filenm_natL4exe_from_
 try:
     nl4exe_time_limit: float = float(os.environ['NL4EXE_TIME_LIMIT'])
 except ValueError:
-    nl4exe_time_limit: float = 60.0
+    nl4exe_time_limit: float = 20
 
 # sometimes it is desirable to override the default name
 # that `stack install` uses with a particular binary from a particular commit
