@@ -239,10 +239,12 @@ async def process_csv(request: Request) -> HTTPResponse:
     try:
         nl4exe = await asyncio.wait_for(nl4exe, timeout=nl4exe_time_limit)
     except TimeoutError:
-        (await nl4exe).terminate()
-        return json({
-            'nl4_err': f'natural4_exe timed out after {nl4exe_time_limit} seconds.'
-        })
+      try:
+          (await nl4exe).terminate()
+      finally:
+          return json({
+              'nl4_err': f'natural4_exe timed out after {nl4exe_time_limit} seconds.'
+          })
 
     print(
         f'hello.py main: back from natural4-exe (took {datetime.datetime.now() - start_time})',
