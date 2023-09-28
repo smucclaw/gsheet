@@ -65,6 +65,14 @@ basedir = anyio.Path(os.environ.get("basedir", "."))
 default_filenm_natL4exe_from_stack_install = "natural4-exe"
 natural4_exe: str = os.environ.get('natural4_exe', default_filenm_natL4exe_from_stack_install)
 
+try:
+    nl4exe_time_limit: float = float(os.environ['NL4EXE_TIME_LIMIT'])
+except:
+    # Here we're catching:
+    # KeyError that could arise in accessing NL4EXE_TIME_LIMIT from the env
+    # ValueError that could occur when casting that to a float.
+    nl4exe_time_limit: float = 20
+
 # sometimes it is desirable to override the default name
 # that `stack install` uses with a particular binary from a particular commit
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
@@ -222,11 +230,21 @@ async def process_csv(request: Request) -> HTTPResponse:
     print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
     print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
 
-    nl4exe = await asyncio.subprocess.create_subprocess_exec(
+    nl4exe = asyncio.subprocess.create_subprocess_exec(
         *create_files,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
+
+    try:
+        nl4exe = await asyncio.wait_for(nl4exe, timeout=nl4exe_time_limit)
+    except TimeoutError:
+      try:
+          (await nl4exe).terminate()
+      finally:
+          return json({
+              'nl4_err': f'natural4_exe timed out after {nl4exe_time_limit} seconds.'
+          })
 
     print(
         f'hello.py main: back from natural4-exe (took {datetime.datetime.now() - start_time})',
