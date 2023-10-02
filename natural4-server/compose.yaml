@@ -1,0 +1,13 @@
+services:
+  nginx-proxy:
+    image: nginx-cclaw
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - dsl-app
+  dsl-app:
+    image: dsl-cclaw
+    restart: always
+    env_file:
+      - .env.local
