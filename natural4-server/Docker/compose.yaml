@@ -1,13 +1,13 @@
 services:
   nginx-proxy:
-    image: nginx-cclaw
+    image: ghcr.io/smucclaw/nginx-router:main
     restart: always
     ports:
       - "80:80"
     depends_on:
       - dsl-app
   dsl-app:
-    image: dsl-cclaw
+    image: ghcr.io/smucclaw/dsl-app:main
     restart: always
     env_file:
-      - .env.local
+      - env.local
