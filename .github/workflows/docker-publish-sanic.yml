@@ -1,4 +1,4 @@
-name: Docker Nginx
+name: Docker Sanic
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -10,18 +10,18 @@ on:
     branches: [ "main" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
-    paths:
+    paths-ignore:
       - 'natural4-server/Docker/nginx/**'
   pull_request:
     branches: [ "main" ]
-    paths:
+    paths-ignore:
       - 'natural4-server/Docker/nginx/**'
 
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
-  IMAGE_NAME: smucclaw/nginx-router
+  IMAGE_NAME: smucclaw/dsl-app
 
 
 jobs:
@@ -69,7 +69,11 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5.0.0
         with:
-          context: 'natural4-server/Docker/nginx/'
+          context: 'natural4-server/Docker/sanic/'
+          build-contexts: |
+            gsheet=https://github.com/smucclaw/gsheet.git
+            vue-pure-pdpa=https://github.com/smucclaw/vue-pure-pdpa.git
+            dsl=https://github.com/smucclaw/dsl.git
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
