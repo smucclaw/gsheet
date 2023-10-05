@@ -386,6 +386,198 @@ async def process_csv(request: Request) -> HTTPResponse:
     # ---------------------------------------------
 
 
+@app.route('/pjson', methods=['POST'])
+async def process_json(request: Request) -> HTTPResponse:
+    start_time: datetime.datetime = datetime.datetime.now()
+    print("\n--------------------------------------------------------------------------\n", file=sys.stderr)
+    print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
+
+    data = request.json
+
+    uuid: str = data['uuid']
+    spreadsheet_id: str = data['spreadsheetId']
+    sheet_id: str = data['sheetId']
+    target_folder = anyio.Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
+    print(target_folder)
+    time_now: str = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
+    target_file = anyio.Path(f'{time_now}.csv')
+    # target_path is for CSV data
+    target_path: anyio.Path = target_folder / target_file
+
+    await target_folder.mkdir(parents=True, exist_ok=True)
+
+    async with await anyio.open_file(target_path, 'w') as fout:
+        await fout.write(data['csvString'])
+
+    # ---------------------------------------------
+    # call natural4-exe, wait for it to complete.
+    # ---------------------------------------------
+
+    # one can leave out the markdown by adding the --tomd option
+    # one can leave out the ASP by adding the --toasp option
+    create_files: Sequence[str] = (
+        natural4_exe,
+        # '--toasp', '--toepilog',
+        f'--workdir={natural4_dir}',
+        f'--uuiddir={anyio.Path(uuid) / spreadsheet_id / sheet_id}',
+        f'{target_path}'
+    )
+
+    print(f'hello.py main: calling natural4-exe {natural4_exe}', file=sys.stderr)
+    print(f'hello.py main: {" ".join(create_files)}', file=sys.stderr)
+
+    nl4exe = asyncio.subprocess.create_subprocess_exec(
+        *create_files,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+
+    try:
+        nl4exe = await asyncio.wait_for(nl4exe, timeout=nl4exe_time_limit)
+    except TimeoutError:
+      try:
+          (await nl4exe).terminate()
+      finally:
+          return json({
+              'nl4_err': f'natural4_exe timed out after {nl4exe_time_limit} seconds.'
+          })
+
+    print(
+        f'hello.py main: back from natural4-exe (took {datetime.datetime.now() - start_time})',
+        file=sys.stderr
+    )
+
+    nl4_out, nl4_err = await nl4exe.communicate()
+    nl4_out, nl4_err = nl4_out.decode(), nl4_err.decode()
+
+    print(f'hello.py main: natural4-exe stdout length = {len(nl4_out)}', file=sys.stderr)
+    print(f'hello.py main: natural4-exe stderr length = {len(nl4_err)}', file=sys.stderr)
+
+    short_err_maxlen, long_err_maxlen = 2_000, 20_000
+    nl4_stdout, nl4_stderr = nl4_out[:long_err_maxlen], nl4_err[:long_err_maxlen]
+
+    if len(nl4_err) < short_err_maxlen: print(nl4_err)
+
+    # ---------------------------------------------
+    # postprocessing: for petri nets: turn the DOT files into PNGs
+    # we run this asynchronously and block at the end before returning.
+    # ---------------------------------------------
+    uuid_ss_folder: anyio.Path = temp_dir / 'workdir' / uuid / spreadsheet_id / sheet_id
+    petri_folder: anyio.Path = uuid_ss_folder / 'petri'
+    dot_path: anyio.Path = petri_folder / 'LATEST.dot'
+    timestamp: anyio.Path = anyio.Path((await dot_path.readlink()).stem)
+
+    flowchart_tasks: asyncio.Task[None] = pipe(
+        get_flowchart_tasks(uuid_ss_folder, timestamp),
+        run_tasks,
+        app.add_task
+    )
+
+    # Slow tasks below.
+    # These are run in the background using app.add_background_task, which
+    # adds them to Sanic's event loop.
+
+    # ---------------------------------------------
+    # postprocessing:
+    # Use pandoc to generate word and pdf docs from markdown.
+    # ---------------------------------------------
+    pandoc_tasks: AsyncGenerator[Task | None, None] = get_pandoc_tasks(
+        uuid_ss_folder, timestamp
+    )
+
+    # ---------------------------------------------
+    # postprocessing:
+    # Use Maude to generate the state space and find race conditions
+    # ---------------------------------------------
+    maude_output_path: anyio.Path = uuid_ss_folder / 'maude'
+    natural4_file: anyio.Path = maude_output_path / 'LATEST.natural4'
+
+    maude_tasks: AsyncGenerator[Task | None, None] = get_maude_tasks(
+        natural4_file, maude_output_path
+    )
+
+    # Concurrently peform the following:
+    # - Write natural4-exe's stdout to a file.
+    # - Write natural4-exe's stderr to a file.
+    # - Run v8k up.
+    print('Running v8k', file=sys.stderr)
+
+    async with (
+        await anyio.open_file(target_folder / f'{time_now}.out', 'w') as out_file,
+        await anyio.open_file(target_folder / f'{time_now}.err', 'w') as err_file,
+        asyncio.TaskGroup() as taskgroup
+    ):
+        taskgroup.create_task(out_file.write(nl4_out))
+        taskgroup.create_task(err_file.write(nl4_err))
+
+        v8k_up_task: asyncio.Task[v8k.V8kUpResult | None] = taskgroup.create_task(
+            v8k.main('up', uuid, spreadsheet_id, sheet_id, uuid_ss_folder)
+        )
+
+    # Once v8k up returns with the vue purs post processing task, we create a
+    # new process and get it to run the slow tasks concurrently.
+    # These include:
+    # - Maude tasks
+    # - Pandoc tasks
+    # - vue purs task
+    v8k_url = None
+    slow_tasks = aiostream.stream.chain(maude_tasks, pandoc_tasks)
+    match v8k_up_task.result():
+        case {
+            'port': v8k_port,
+            'base_url': v8k_base_url,
+            'vue_purs_task': vue_purs_task
+        }:
+            v8k_url = f'/webapp/{v8k_port}{v8k_base_url}'
+            if vue_purs_task:
+                slow_tasks = aiostream.stream.chain(
+                    aiostream.stream.just(vue_purs_task), slow_tasks
+                )
+
+    print('hello.py main: v8k up returned', file=sys.stderr)
+    print(f'v8k up succeeded with: {v8k_url}', file=sys.stderr)
+    print(f'''
+  to see v8k bring up vue using npm run serve, run
+  tail -f {await (uuid_ss_folder / "v8k.out").resolve()}
+  ''', file=sys.stderr)
+
+    # Schedule all the slow tasks to run in the background.
+    app.add_task(run_tasks(slow_tasks))
+
+    # ---------------------------------------------
+    # construct other response elements and log run-timings.
+    # ---------------------------------------------
+
+    end_time: datetime.datetime = datetime.datetime.now()
+    elapsed_time: datetime.timedelta = end_time - start_time
+
+    print(
+        f'hello.py process_csv ready to return at {end_time} (total {elapsed_time})',
+        file=sys.stderr
+    )
+
+    # Concurrently:
+    # - Wait for the flowcharts to be generated before returning to the sidebar.
+    # - Read in the aasvg html file to return to the sidebar.
+    async with (
+        await anyio.open_file(uuid_ss_folder / 'aasvg' / 'LATEST' / 'index.html', 'r')
+        as aasvg_file,
+        asyncio.TaskGroup() as taskgroup
+    ):
+        aasvg_index_task: asyncio.Task[str] = taskgroup.create_task(
+            aasvg_file.read()
+        )
+        await flowchart_tasks
+
+    return json({
+        'nl4_stdout': nl4_stdout,
+        'nl4_err': nl4_stderr,
+        'v8k_url': v8k_url,
+        'aasvg_index': aasvg_index_task.result(),
+        'timestamp': f'{timestamp}'
+    })
+
+
 # ################################################
 # run when not launched via gunicorn
 # ################################################
