@@ -1,5 +1,7 @@
 from io import StringIO
 from dotenv import load_dotenv
+from hello import app
+
 
 # Define and load environment variables.
 raw_env: str = '''
@@ -17,7 +19,6 @@ CCLAW_HTTPS="true, set in sanic.*.py"
 
 load_dotenv(stream=StringIO(raw_env))
 
-from hello import app
 
 ssl: dict[str, str] = {
     'cert': '/etc/letsencrypt/live/dev.cclaw.legalese.com/cert.pem',
