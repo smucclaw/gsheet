@@ -70,7 +70,10 @@ flowchart LR
         network_tls(( 443 ))-- WSS ---network_wss_8401(wss:/../port/8401)
     end
 
-
+    subgraph docker
+        direction TD
+        nginx[[nginx]]
+    end
 
     loop_http_8400---sanic[[ Sanic ]]
     loop_http_8401---vue[[ vue ]]
