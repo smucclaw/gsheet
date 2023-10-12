@@ -70,9 +70,9 @@ flowchart LR
         network_tls(( 443 ))-- WSS ---network_wss_8401(wss:/../port/8401)
     end
 
-    subgraph docker
-        direction TD
-        webs[[ webs ]]
+    subgraph network2
+        direction LR
+        network_tls1((  ))
     end
 
     loop_http_8400---sanic[[ Sanic ]]
