@@ -69,7 +69,7 @@ flowchart LR
         network_tls(( 443 ))-- WSS ---network_wss_8401(wss:/../port/8401)
     end
 
-    subgrapsh docker
+    subgraph docker
         direction TD
         nginx[[nginx]]
         network_https_8400 --- nginx
