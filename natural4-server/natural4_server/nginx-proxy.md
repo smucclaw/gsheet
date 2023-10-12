@@ -72,7 +72,7 @@ flowchart LR
 
     subgraph docker
         direction TD
-        nginx[[nginx]]
+        webs[[ webs ]]
     end
 
     loop_http_8400---sanic[[ Sanic ]]
