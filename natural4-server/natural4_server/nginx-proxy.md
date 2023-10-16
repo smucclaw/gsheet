@@ -62,31 +62,59 @@ flowchart LR
 Now add Docker
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph host [host network]
         direction LR
-        network_tls((  ))-- HTTPS ---network_https_8400(https:/../port/8400)
-        network_tls((  ))-- HTTPS ---network_https_8401(https:/../port/8401)
-        network_tls(( 443 ))-- WSS ---network_wss_8401(wss:/../port/8401)
-        nginx[[nginx]]
+        network_tls(( 443 ))
+        nginx_host[[nginx]]
+        network_tls---nginx_host
     end
 
+    host_http_11080((:11080))
+    
     subgraph docker [docker network]
         direction TB
-        network_https_8400 --- nginx
-        network_https_8401 --- nginx
-        network_wss_8401 --- nginx
+        docker_http_80((:80))
+        http_8400(:/port/8400)
+        http_8401(:/port/8401)
+        ws_8401(:/port/8401)
+        
+        docker_http_80---http_8400
+        docker_http_80---http_8401
+        docker_http_80---ws_8401
 
-        loop_8400_port(( 8400 ))-- HTTP ---loop_http_8400(http:/..:8400/port/8400)
-        loop_8401_port(( 8401 ))-- HTTP ---loop_http_8401(http:/..:8401/port/8401)
-        loop_8401_port(( 8401 ))-- WS ---loop_ws_8401(ws:/..:8401/port/8401)
+        subgraph nginx
+            nginx_docker[[nginx]]
+
+            http_8400---nginx_docker
+            http_8401---nginx_docker
+            ws_8401---nginx_docker
+            
+            loop_http_8400(:8400/port/8400)
+            loop_http_8401(:8401/port/8401)
+            loop_ws_8401(:8401/port/8401)
+            nginx_docker---loop_http_8400
+            nginx_docker---loop_http_8401
+            nginx_docker---loop_ws_8401
+        end
+        
+        subgraph sanic 
+            loop_8400_port((8400))
+            loop_8401_port((8401))
+            loop_8400_port---sanic[[ Sanic ]]
+            loop_8401_port---|HTTP|vue[[ vue ]]
+            loop_8401_port---|WS|vue[[ vue ]]
+        end
+
+
+        loop_http_8400---loop_8400_port
+        loop_http_8401---loop_8401_port
+        loop_ws_8401---loop_8401_port
+
     end
 
-    loop_http_8400---sanic[[ Sanic ]]
-    loop_http_8401---vue[[ vue ]]
-    loop_ws_8401---vue
-    nginx---loop_8400_port
-    nginx---loop_8401_port
+    nginx_host---|HTTP|host_http_11080
+    host_http_11080---docker_http_80
  
 ```
 
