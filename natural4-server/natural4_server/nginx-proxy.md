@@ -63,16 +63,16 @@ Now add Docker
 
 ```mermaid
 flowchart LR
-    subgraph network
+    subgraph host [host network]
         direction LR
         network_tls((  ))-- HTTPS ---network_https_8400(https:/../port/8400)
         network_tls((  ))-- HTTPS ---network_https_8401(https:/../port/8401)
         network_tls(( 443 ))-- WSS ---network_wss_8401(wss:/../port/8401)
+        nginx[[nginx]]
     end
 
-    subgraph docker
+    subgraph docker [docker network]
         direction TB
-        nginx[[nginx]]
         network_https_8400 --- nginx
         network_https_8401 --- nginx
         network_wss_8401 --- nginx
