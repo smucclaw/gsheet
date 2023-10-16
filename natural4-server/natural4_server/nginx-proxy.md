@@ -71,7 +71,7 @@ flowchart LR
     end
 
     subgraph docker
-        direction TD
+        direction TB
         network_tls1((  ))
     end
 
