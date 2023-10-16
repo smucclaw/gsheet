@@ -72,7 +72,14 @@ flowchart LR
 
     subgraph docker
         direction TB
-        network_tls1((  ))
+        nginx[[nginx]]
+        network_https_8400 --- nginx
+        network_https_8401 --- nginx
+        network_wss_8401 --- nginx
+
+        loop_8400_port(( 8400 ))-- HTTP ---loop_http_8400(http:/..:8400/port/8400)
+        loop_8401_port(( 8401 ))-- HTTP ---loop_http_8401(http:/..:8401/port/8401)
+        loop_8401_port(( 8401 ))-- WS ---loop_ws_8401(ws:/..:8401/port/8401)
     end
 
     loop_http_8400---sanic[[ Sanic ]]
@@ -83,17 +90,7 @@ flowchart LR
  
 ```
 
-    subgraph docker
-        direction TD
-        nginx[[nginx]]
-        network_https_8400 --- nginx
-        network_https_8401 --- nginx
-        network_wss_8401 --- nginx
 
-        loop_8400_port(( 8400 ))-- HTTP ---loop_http_8400(http:/..:8400/port/8400)
-        loop_8401_port(( 8401 ))-- HTTP ---loop_http_8401(http:/..:8401/port/8401)
-        loop_8401_port(( 8401 ))-- WS ---loop_ws_8401(ws:/..:8401/port/8401)
-    end
 
 ## Complication #1: Vue doesn't give up the network port.
 
