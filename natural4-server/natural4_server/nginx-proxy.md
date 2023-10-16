@@ -70,8 +70,8 @@ flowchart LR
         network_tls(( 443 ))-- WSS ---network_wss_8401(wss:/../port/8401)
     end
 
-    subgraph network2
-        direction LR
+    subgraph docker
+        direction TD
         network_tls1((  ))
     end
 
