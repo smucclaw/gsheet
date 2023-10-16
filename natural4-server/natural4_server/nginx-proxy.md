@@ -68,9 +68,10 @@ flowchart TB
         network_tls(( 443 ))
         nginx_host[[nginx]]
         network_tls---nginx_host
+        host_http_11080((:11080))
     end
 
-    host_http_11080((:11080))
+
     
     subgraph docker [docker network]
         direction TB
@@ -83,7 +84,7 @@ flowchart TB
         docker_http_80---http_8401
         docker_http_80---ws_8401
 
-        subgraph nginx
+        subgraph nginx [nginx container]
             nginx_docker[[nginx]]
 
             http_8400---nginx_docker
@@ -97,8 +98,8 @@ flowchart TB
             nginx_docker---loop_http_8401
             nginx_docker---loop_ws_8401
         end
-        
-        subgraph sanic 
+
+        subgraph l4 [l4 container]
             loop_8400_port((8400))
             loop_8401_port((8401))
             loop_8400_port---sanic[[ Sanic ]]
@@ -106,16 +107,13 @@ flowchart TB
             loop_8401_port---|WS|vue[[ vue ]]
         end
 
-
         loop_http_8400---loop_8400_port
         loop_http_8401---loop_8401_port
         loop_ws_8401---loop_8401_port
-
     end
 
     nginx_host---|HTTP|host_http_11080
-    host_http_11080---docker_http_80
- 
+    host_http_11080---|Docker Map|docker_http_80
 ```
 
 
