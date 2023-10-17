@@ -119,7 +119,7 @@ async def get_workdir_file(
         msg = f'get_workdir_file: unable to find file {workdir_folder_filename}'
     else:
         exts = {
-            '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4'
+            '.l4', '.epilog', '.purs', '.org', '.hs', '.ts', '.natural4', '.le', '.json'
         }
         if anyio.Path(filename).suffix in exts:
             mime_type, mime_type_str = ('text/plain',) * 2
