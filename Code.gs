@@ -10,7 +10,7 @@ Logger.log(LegalSSConfigLib.configLibDefaults())
 const configLibDefaults = LegalSSConfigLib.configLibDefaults();
 
 var port       = configLibDefaults.parentUrlPort;
-const url_host = configLibDefaults.parentUrlHost;
+var url_host = configLibDefaults.parentUrlHost;
 
 var liveUpdates = true;
 let sidebarRefreshInterval = 60000;
@@ -20,7 +20,8 @@ let ui = SpreadsheetApp.getUi();
 
 function onOpen() {
   createSidebarMenu();
-  showSidebar();  
+  showSidebar();
+  Logger.log("onOpen: after UrlFetchApp");
   resetLastEditTime();
 }
 
@@ -61,8 +62,10 @@ function loadDev() {
   Logger.log("expecting sheet = 249602568");
   Logger.log("reading sheet = " + sheet.getSheetId());
   port = devPort(range) || port;
+  url_host = devHost(range);
   liveUpdates = devScan(range, /live updates (true|false)/i) || true; if (liveUpdates.toString().toLowerCase() == "false") { liveUpdates = false }
   Logger.log("setting port to " + port);
+  Logger.log("setting host to " + url_host);
   Logger.log("setting liveUpdates to " + liveUpdates);
 }
 
@@ -120,6 +123,7 @@ function showSidebar() {
   sidebar.maude_plaintext_url  = workDirUrl + "maude/LATEST.natural4"
   sidebar.maude_vis_url = workDirUrl + "maude/LATEST_state_space.html"
   sidebar.maude_race_cond_url = workDirUrl + "maude/LATEST_race_cond_0.html"
+  sidebar.logical_english_url = workDirUrl + "logical_english/LATEST.le"
   sidebar.ts_url              = workDirUrl + "ts/LATEST.ts"
   sidebar.petri_thumbnail_img = workDirUrl + "petri/LATEST-small.png"
   sidebar.port                = port;
@@ -187,6 +191,7 @@ function exportCSV(uuid, spreadsheetId, sheetId) {
   Logger.log("exportCSV: calling UrlFetchApp");
 
   let response = UrlFetchApp.fetch(url_hp() + '/post', options);
+  Logger.log("exportCSV: after UrlFetchApp");
   return response.getContentText();
 }
 
@@ -253,6 +258,13 @@ function devPort(range) {
   let mymatch = devScan(range, /devMode port (\d+)/i);
   if (mymatch) { return mymatch }
   return configLibDefaults.parentUrlPort;
+}
+
+
+function devHost(range) {
+  let mymatch = devScan(range, /devMode host (\S+)/i);
+  if (mymatch) { return mymatch }
+  return configLibDefaults.parentUrlHost;
 }
 
 
