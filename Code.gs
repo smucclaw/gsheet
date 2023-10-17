@@ -114,6 +114,7 @@ function showSidebar() {
   sidebar.corel4url           = workDirUrl + "corel4/LATEST.l4";
   sidebar.petri_url           = workDirUrl + "petri/LATEST.png"
   sidebar.json_url            = workDirUrl + "json/LATEST.json"
+  sidebar.jsonTp_url          = workDirUrl + "jsonTp/LATEST.json"
   sidebar.epilog_url          = workDirUrl + "epilog/LATEST.epilog"
   sidebar.org_url             = workDirUrl + "org/LATEST.org"
   sidebar.purs_url            = workDirUrl + "purs/LATEST.purs"
