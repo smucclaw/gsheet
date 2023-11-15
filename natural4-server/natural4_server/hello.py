@@ -21,7 +21,7 @@ import anyio
 import aiostream
 import orjson
 
-from sanic import HTTPResponse, Request, Sanic, file, json, text
+from sanic import HTTPResponse, Request, Sanic, file, json, html
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -393,13 +393,12 @@ async def process_csv(request: Request) -> HTTPResponse:
     # ---------------------------------------------
 
 @app.route('/logical_english', methods=['POST'])
-async def query_le(request: Request) -> HTTPResponse:
+async def handle_le_query(request: Request) -> HTTPResponse:
   data = request.json
-  return text(
-    logical_english.query_le(
-        data['le_prog'], data['scenario_name'], data['query_name']
-    )
+  le_html_str_result: str = logical_english.query_le(
+    data['le_prog'], data['scenario_name'], data['query_name']
   )
+  return html(le_html_str_result)
 
 # ################################################
 # run when not launched via gunicorn
