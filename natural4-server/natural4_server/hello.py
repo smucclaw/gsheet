@@ -21,7 +21,7 @@ import anyio
 import aiostream
 import orjson
 
-from sanic import HTTPResponse, Request, Sanic, file, json
+from sanic import HTTPResponse, Request, Sanic, file, json, text
 
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
@@ -32,6 +32,8 @@ from natural4_server.plugins.docgen import get_pandoc_tasks
 from natural4_server.plugins.flowchart import get_flowchart_tasks
 from natural4_server.plugins.natural4_maude import get_maude_tasks
 import natural4_server.plugins.v8k as v8k
+
+import natural4_server.plugins.logical_english as logical_english
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -390,6 +392,14 @@ async def process_csv(request: Request) -> HTTPResponse:
     # return to sidebar caller
     # ---------------------------------------------
 
+@app.route('/logical_english', methods=['POST'])
+async def query_le(request: Request) -> HTTPResponse:
+  data = request.json
+  return text(
+    logical_english.query_le(
+        data['le_prog'], data['scenario_name'], data['query_name']
+    )
+  )
 
 # ################################################
 # run when not launched via gunicorn

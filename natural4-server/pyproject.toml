@@ -23,6 +23,7 @@ maude = {version = "^1.2.2", optional = true}
 umaudemc = {version = "^0.12.1", optional = true}
 networkx = {version = "^3.0", optional = true}
 pypandoc_binary = {version = "^1.11", optional = true}
+janus_swi = {git = "https://github.com/SWI-Prolog/packages-swipy.git", tag="V9.1.18"}
 
 [tool.poetry.dev-dependencies]
 ipdb = "*"
