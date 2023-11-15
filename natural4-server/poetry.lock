@@ -351,7 +351,7 @@ test-extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.22)", "pa
 name = "janus-swi"
 version = "0.9.5"
 description = "Janus library to call SWI-Prolog"
-optional = false
+optional = true
 python-versions = ">=3.6"
 files = []
 develop = false
@@ -1326,9 +1326,10 @@ files = [
 
 [extras]
 docgen = ["pypandoc_binary"]
+logical-english = ["janus-swi"]
 natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "e06be0ee1942086da1c2fa851614fb59959037d833ed93878e0db9d4a5bca657"
+content-hash = "c24945c56a37a45d9d6ac703da5dd6a1709b361515a7a76215503851e4fe6542"
