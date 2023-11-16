@@ -1,5 +1,5 @@
 try:
-  from query_le import query_le
+  from .query_le import query_le
 except ImportError as exc:
-  def query_le(_le_prog: str, _scenario_name: str, _query_name: str) -> str:
+  async def query_le(query_params: dict[str, str]) -> str:
     return f'Failed to load SWI-Prolog: {exc}'

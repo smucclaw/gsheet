@@ -394,10 +394,8 @@ async def process_csv(request: Request) -> HTTPResponse:
 
 @app.route('/logical_english', methods=['POST'])
 async def handle_le_query(request: Request) -> HTTPResponse:
-  data = request.json
-  le_html_str_result: str = logical_english.query_le(
-    data['le_prog'], data['scenario_name'], data['query_name']
-  )
+  query_params = request.json
+  le_html_str_result: str = await logical_english.query_le(query_params)
   return html(le_html_str_result)
 
 # ################################################

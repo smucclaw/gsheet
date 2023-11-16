@@ -19,5 +19,5 @@ if __name__ == '__main__':
         host='0.0.0.0', port=8200,
         fast=True,
         access_log=False,
-        ssl='/etc/letsencrypt/live/cclaw.legalese.com/'
+        # ssl='/etc/letsencrypt/live/cclaw.legalese.com/'
     )
