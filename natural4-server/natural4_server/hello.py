@@ -86,6 +86,7 @@ static_dir: anyio.Path = basedir / "static"
 natural4_dir: anyio.Path = temp_dir / "workdir"
 
 app = Sanic(__name__, dumps=orjson.dumps, loads=orjson.loads)
+app.config.CORS_ORIGINS = "*"
 
 app.extend(config={'templating_path_to_templates': pathlib.Path(template_dir)})
 app.static('/static', pathlib.Path(static_dir))
