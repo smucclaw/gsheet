@@ -1,6 +1,6 @@
 FROM ghcr.io/smucclaw/dsl:main as builder
 
-FROM python:3.11.5-slim-bookworm
+FROM python:3.11.6-slim-bookworm
 
 COPY --from=builder /root/.local/bin/natural4-exe /usr/local/bin/
 
