@@ -302,13 +302,13 @@ ipython = {version = ">=7.31.1", markers = "python_version >= \"3.11\""}
 
 [[package]]
 name = "ipython"
-version = "8.18.0"
+version = "8.18.1"
 description = "IPython: Productive Interactive Computing"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "ipython-8.18.0-py3-none-any.whl", hash = "sha256:d538a7a98ad9b7e018926447a5f35856113a85d08fd68a165d7871ab5175f6e0"},
-    {file = "ipython-8.18.0.tar.gz", hash = "sha256:4feb61210160f75e229ce932dbf8b719bff37af123c0b985fd038b14233daa16"},
+    {file = "ipython-8.18.1-py3-none-any.whl", hash = "sha256:e8267419d72d81955ec1177f8a29aaa90ac80ad647499201119e2f05e99aa397"},
+    {file = "ipython-8.18.1.tar.gz", hash = "sha256:ca6f079bb33457c66e233e4580ebfc4128855b4cf6370dddd73842a9563e8a27"},
 ]
 
 [package.dependencies]
@@ -317,7 +317,7 @@ decorator = "*"
 jedi = ">=0.16"
 matplotlib-inline = "*"
 pexpect = {version = ">4.3", markers = "sys_platform != \"win32\""}
-prompt-toolkit = ">=3.0.30,<3.0.37 || >3.0.37,<3.1.0"
+prompt-toolkit = ">=3.0.41,<3.1.0"
 pygments = ">=2.4.0"
 stack-data = "*"
 traitlets = ">=5"
@@ -347,8 +347,8 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/SWI-Prolog/packages-swipy.git"
-reference = "V9.1.19"
-resolved_reference = "2ff7d63999ea08da03d5880476cfcffe2589999a"
+reference = "V9.1.20"
+resolved_reference = "11bc1fef1aed0f6220bbbc93dbc30202c4e79024"
 
 [[package]]
 name = "jedi"
@@ -1064,18 +1064,18 @@ html5tagger = ">=1.2.1"
 
 [[package]]
 name = "traitlets"
-version = "5.13.0"
+version = "5.14.0"
 description = "Traitlets Python configuration system"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "traitlets-5.13.0-py3-none-any.whl", hash = "sha256:baf991e61542da48fe8aef8b779a9ea0aa38d8a54166ee250d5af5ecf4486619"},
-    {file = "traitlets-5.13.0.tar.gz", hash = "sha256:9b232b9430c8f57288c1024b34a8f0251ddcc47268927367a0dd3eeaca40deb5"},
+    {file = "traitlets-5.14.0-py3-none-any.whl", hash = "sha256:f14949d23829023013c47df20b4a76ccd1a85effb786dc060f34de7948361b33"},
+    {file = "traitlets-5.14.0.tar.gz", hash = "sha256:fcdaa8ac49c04dfa0ed3ee3384ef6dfdb5d6f3741502be247279407679296772"},
 ]
 
 [package.extras]
 docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
-test = ["argcomplete (>=3.0.3)", "mypy (>=1.6.0)", "pre-commit", "pytest (>=7.0,<7.5)", "pytest-mock", "pytest-mypy-testing"]
+test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "pre-commit", "pytest (>=7.0,<7.5)", "pytest-mock", "pytest-mypy-testing"]
 
 [[package]]
 name = "typing-extensions"
@@ -1321,4 +1321,4 @@ natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "dc7ef50c1b772a51cd472e63035a881a7325e2303e1a60ca5719848026b4acb4"
+content-hash = "c39559dc5de2563ce0bbf91f6c887302a5e81e48364c5da1b744f17dc979b9d7"
