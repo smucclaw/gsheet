@@ -12,10 +12,12 @@ on:
     tags: [ 'v*.*.*' ]
     paths:
       - 'natural4-server/Docker/nginx/**'
+      - '.github/workflows/docker-publish-nginx.yml'
   pull_request:
     branches: [ "main" ]
     paths:
       - 'natural4-server/Docker/nginx/**'
+      - '.github/workflows/docker-publish-nginx.yml'
 
 env:
   # Use docker.io for Docker Hub if empty
