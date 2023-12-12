@@ -303,7 +303,6 @@ ipython = {version = ">=7.31.1", markers = "python_version >= \"3.11\""}
 [[package]]
 name = "ipython"
 version = "8.18.1"
-version = "8.18.1"
 description = "IPython: Productive Interactive Computing"
 optional = false
 python-versions = ">=3.9"
@@ -1326,4 +1325,4 @@ natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "c362a33a86359178d676315dd3a604233d40668d86315d9ed43076889126b2b3"
+content-hash = "8dfe2c31a658abea8409bc8d60ad489804ac1f1244b9cd426a6bbef154a5be7e"
