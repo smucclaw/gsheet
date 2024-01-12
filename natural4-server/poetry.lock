@@ -371,13 +371,13 @@ testing = ["Django", "attrs", "colorama", "docopt", "pytest (<7.0.0)"]
 
 [[package]]
 name = "jinja2"
-version = "3.1.2"
+version = "3.1.3"
 description = "A very fast and expressive template engine."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "Jinja2-3.1.2-py3-none-any.whl", hash = "sha256:6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61"},
-    {file = "Jinja2-3.1.2.tar.gz", hash = "sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852"},
+    {file = "Jinja2-3.1.3-py3-none-any.whl", hash = "sha256:7d6d50dd97d52cbc355597bd845fabfbac3f551e1f99619e39a35ce8c370b5fa"},
+    {file = "Jinja2-3.1.3.tar.gz", hash = "sha256:ac8bd6544d4bb2c9792bf3a159e80bba8fda7f07e81bc3aed565432d5925ba90"},
 ]
 
 [package.dependencies]
@@ -937,13 +937,13 @@ files = [
 
 [[package]]
 name = "sanic"
-version = "23.12.0"
+version = "23.12.1"
 description = "A web server and web framework that's written to go fast. Build fast. Run fast."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "sanic-23.12.0-py3-none-any.whl", hash = "sha256:33a92c66c9a533065744fc20339a13974736d2f87d505813076d344b43ae9956"},
-    {file = "sanic-23.12.0.tar.gz", hash = "sha256:de829a85b02d7ceea3795e5ba3552cd6cb656321654b5bbd7789bb9c0384a19a"},
+    {file = "sanic-23.12.1-py3-none-any.whl", hash = "sha256:e292293b2663a7afeb380bdc48ab93978468b27deae46ad9561513941eb0311f"},
+    {file = "sanic-23.12.1.tar.gz", hash = "sha256:2528ca81d2bdc58ea67d93c500df1a9c58404904b0bc3442425b464c72b4bb84"},
 ]
 
 [package.dependencies]
