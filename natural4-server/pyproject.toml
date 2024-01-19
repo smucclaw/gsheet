@@ -32,7 +32,7 @@ natural4-maude = ["maude", "umaudemc", "pyvis", "networkx"]
 docgen = ["pypandoc_binary"]
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.0.270"
+ruff = "^0.1.13"
 
 [build-system]
 requires = ["poetry-core"]
