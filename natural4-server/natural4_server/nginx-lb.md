@@ -10,11 +10,14 @@ Current deployment is as follows:
 ```mermaid
 flowchart TB
     subgraph VPC
-    nginx-->docker
-    end
-    subgraph docker
-    nginx2-->sanic
-    sanic-->id1[(files)]
+        subgraph prod
+            nginx-->docker
+            subgraph docker
+                direction LR
+                nginx2-->sanic
+                sanic-->id1[(files)]
+            end
+        end
     end
 ```
 
@@ -26,14 +29,20 @@ S3 bucket.
 flowchart LR
     subgraph VPC
         direction LR
-        nginx
+        subgraph host1
+            nginx
+        end
 
-        subgraph docker1
-        nginx2-->sanic1
+        subgraph host2
+            subgraph docker1
+                nginx2-->sanic1
+            end
         end
         
-        subgraph docker2
-        nginx3-->sanic2
+        subgraph host3
+            subgraph docker2
+                nginx3-->sanic2
+            end
         end
         
         nginx-->nginx3
