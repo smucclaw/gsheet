@@ -17,3 +17,29 @@ flowchart TB
     sanic-->id1[(files)]
     end
 ```
+
+One issue is files are stored inside the docker container. So when host is reloading other host won't be able to serve
+these files. To solve this issue, we need to store files outside of the docker container. This can be done by storing them in 
+S3 bucket. 
+
+```mermaid
+flowchart LR
+    subgraph VPC
+        direction LR
+        nginx
+
+        subgraph docker1
+        nginx2-->sanic1
+        end
+        
+        subgraph docker2
+        nginx3-->sanic2
+        end
+        
+        nginx-->nginx3
+        nginx-->nginx2
+    end
+    bucket[\S3 Bucket/]
+    sanic1-->bucket
+    sanic2-->bucket
+```
