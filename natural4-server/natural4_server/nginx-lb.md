@@ -22,8 +22,8 @@ flowchart TB
 ```
 
 One issue is files are stored inside the docker container. So when host is reloading other host won't be able to serve
-these files. To solve this issue, we need to store files outside of the docker container. This can be done by storing them in 
-S3 bucket. 
+these files. To solve this issue, we need to store files outside of the docker container and host.
+This can be done by storing them in EFS or S3 bucket. 
 
 ```mermaid
 flowchart LR
@@ -48,7 +48,7 @@ flowchart LR
         nginx-->nginx3
         nginx-->nginx2
     end
-    bucket[\S3 Bucket/]
-    sanic1-->bucket
-    sanic2-->bucket
+    efs[(EFS)]
+    sanic1-->efs
+    sanic2-->efs
 ```
