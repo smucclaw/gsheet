@@ -361,8 +361,8 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/SWI-Prolog/packages-swipy.git"
-reference = "V9.1.22"
-resolved_reference = "fb77d6517e2958afc85747d3fee33267a3ab65a1"
+reference = "V9.3.0"
+resolved_reference = "d372d76e75309173778a01fd33187a598d1c91a8"
 
 [[package]]
 name = "jedi"
@@ -1354,4 +1354,4 @@ natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "b1c336e992eaa96ff110944d6147b639be1f3f7ed41ec7178299bf1179012e4d"
+content-hash = "4c0eb804cacfae6bc4dc5bc15eed0469bd934e48d6c13c191fa89b1b0f31f8e2"
