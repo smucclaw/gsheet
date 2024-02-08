@@ -81,7 +81,7 @@ except (KeyError, ValueError):
 template_dir: anyio.Path = basedir / "template"
 temp_dir: anyio.Path = basedir / "temp"
 static_dir: anyio.Path = basedir / "static"
-natural4_dir: anyio.Path = temp_dir / "workdir"
+natural4_dir: anyio.Path = anyio.Path(os.environ.get('NL4_WORKDIR', temp_dir / "workdir"))
 
 app = Sanic(__name__, dumps=orjson.dumps, loads=orjson.loads)
 
@@ -108,7 +108,7 @@ async def get_workdir_file(
         file=sys.stderr
     )
 
-    workdir_folder: anyio.Path = temp_dir / 'workdir' / uuid / ssid / sid / channel
+    workdir_folder: anyio.Path = natural4_dir / uuid / ssid / sid / channel
     workdir_folder_filename: anyio.Path = workdir_folder / filename
 
     response = HTTPResponse(status=204)
@@ -156,7 +156,7 @@ async def show_aasvg_image(
 ) -> HTTPResponse:
     print('show_aasvg_image: handling request for /aasvg/ url', file=sys.stderr)
 
-    image_path = temp_dir / 'workdir' / uuid / ssid / sid / 'aasvg' / 'LATEST' / image
+    image_path = natural4_dir / uuid / ssid / sid / 'aasvg' / 'LATEST' / image
     print(f'show_aasvg_image: sending path {image_path}', file=sys.stderr)
 
     return await file(pathlib.Path(image_path))
@@ -271,7 +271,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     # postprocessing: for petri nets: turn the DOT files into PNGs
     # we run this asynchronously and block at the end before returning.
     # ---------------------------------------------
-    uuid_ss_folder: anyio.Path = temp_dir / 'workdir' / uuid / spreadsheet_id / sheet_id
+    uuid_ss_folder: anyio.Path = natural4_dir / uuid / spreadsheet_id / sheet_id
     petri_folder: anyio.Path = uuid_ss_folder / 'petri'
     dot_path: anyio.Path = petri_folder / 'LATEST.dot'
     timestamp: anyio.Path = anyio.Path((await dot_path.readlink()).stem)
