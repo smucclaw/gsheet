@@ -9,3 +9,9 @@ services:
   dsl-app:
     image: ${CCLAW_REGISTRY}/smucclaw/dsl-app:main
     restart: always
+    volumes:
+      - type: bind
+        source: /var/nl4
+        target: /var/nl4
+    environment:
+      - NL4_WORKDIR=/var/nl4
