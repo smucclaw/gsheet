@@ -1,0 +1,18 @@
+[Unit]
+Description=L4 Web Service
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+TimeoutStartSec=0
+WorkingDirectory=/home/cclaw/src/gsheet/natural4-server/Docker
+Restart=always
+ExecStartPre=-/usr/bin/docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod pull
+ExecStart=/usr/bin/docker compose -f compose.yaml -f compose.prod.yaml --env-file .env.prod up
+ExecStop=/usr/bin/docker compose stop
+User=cclaw
+Environment=L4_APP_HOSTNAME=cclaw.legalese.com
+
+[Install]
+WantedBy=default.target
