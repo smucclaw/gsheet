@@ -361,7 +361,7 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/SWI-Prolog/packages-swipy.git"
-reference = "V9.3.2"
+reference = "V9.3.3"
 resolved_reference = "feff32f02a82363df86483f1b9448ccc16d5ac1b"
 
 [[package]]
@@ -1371,4 +1371,4 @@ natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.0"
-content-hash = "f144b64d7acd98f1f47e63811f05a21430db672aa4f4cff22dee9211d455484f"
+content-hash = "bb19b5742685a1c48b59403d0f40be78faed02288a87616527eebb4368356998"
