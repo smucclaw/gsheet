@@ -188,7 +188,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     sheet_id: str = data['sheetId'][0]
     target_folder = anyio.Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
     print(target_folder)
-    time_now: str = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S.%fZ")
+    time_now: str = datetime.datetime.now().strftime("%Y%m%dT%H%M%S.%fZ")
     target_file = anyio.Path(f'{time_now}.csv')
     # target_path is for CSV data
     target_path: anyio.Path = target_folder / target_file
