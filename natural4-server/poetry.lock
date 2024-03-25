@@ -500,30 +500,31 @@ traitlets = "*"
 
 [[package]]
 name = "maude"
-version = "1.3.0"
+version = "1.4.0"
 description = "Python bindings for Maude"
 optional = true
 python-versions = "*"
 files = [
-    {file = "maude-1.3.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:00681db7074fa99c9b1ff700191758ccf5f6270626777403bc7903b46eb95f94"},
-    {file = "maude-1.3.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:83be2d8846d8a162ebbedb5a78658155a238be38b709dd075a6856305d3a1299"},
-    {file = "maude-1.3.0-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:5fa00e2cb50e7194a355dea0d7c7e44ffcec39c63af9e8d92a59a6318c49de36"},
-    {file = "maude-1.3.0-cp310-cp310-win_amd64.whl", hash = "sha256:56929dca7ecf616c3c693373b003cde5a41c045c543a47ee85c4720a5b743d2f"},
-    {file = "maude-1.3.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:88a8d169c50096c80d270cd7a393c765a0d586b44888c3497a3e71e86e2abed6"},
-    {file = "maude-1.3.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:db197e1656b474105798e4988e2cd8ceeb309b1b4eba80cb50078ba8972b11d1"},
-    {file = "maude-1.3.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:430b2ffcd4e4826792bb458f8d8c47f9821de812923a867521f2602426e4bd17"},
-    {file = "maude-1.3.0-cp311-cp311-win_amd64.whl", hash = "sha256:ffeb5c598ae33ce8abd8a0227afdd5652bee7911edb8dab38b2d689b7f6efd2b"},
-    {file = "maude-1.3.0-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:0ef70b0b4ac74a037bac9791f972ae4fb23e64734faf5c059a81c0cb339e8201"},
-    {file = "maude-1.3.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:a59a9532371d52c1680aa8de74adb7f62cddd1cb0f474315ab49602cf8696a2a"},
-    {file = "maude-1.3.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:00138fed57cffd729acac372c802ef812055af5ba6650a0bf9512bc5d68fb220"},
-    {file = "maude-1.3.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:5ae0cad4584ff94627b1bb5abe920f2c5644a87349174fd7cc0ddf66eb99b245"},
-    {file = "maude-1.3.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:e00877f3a782b40dac8a5ebe8d1ef79ddca419e97513ef0ba280871b5bc34a58"},
-    {file = "maude-1.3.0-cp38-cp38-manylinux_2_28_x86_64.whl", hash = "sha256:50d82092830721778397b9d7523808cf70dfb9f75c447b77a9313e4f53b65edb"},
-    {file = "maude-1.3.0-cp38-cp38-win_amd64.whl", hash = "sha256:dda4774749314fe4855a4c96b5af59afad35acd421bbbcf433997a043a6b4492"},
-    {file = "maude-1.3.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:56faf3a47bf9f59da0235a5850d0ccb1a0fb395af69d133f3ba8477d0e37187b"},
-    {file = "maude-1.3.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:b396f863a12664f5d044a698451dc03903552f0e25748544bd60b80e69b84a01"},
-    {file = "maude-1.3.0-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:664d9a412a40e1dfdd40cfea4eeca1e8f6f2ef069bce545ef023a8715ef8110a"},
-    {file = "maude-1.3.0-cp39-cp39-win_amd64.whl", hash = "sha256:cb51dbb476b9bfb427115419d80ed3f9f49e31955f3d55412701a14c337a3074"},
+    {file = "maude-1.4.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:a52ee748ec9923bb3d4e5b56c067e12332a5e26e919bc10394695efe9c247dad"},
+    {file = "maude-1.4.0-cp310-cp310-macosx_12_0_x86_64.whl", hash = "sha256:ce3ca6bdae3eb51f47455df59b4c2051ccbfe5f5e89f36aa1b0afa07bfee1f06"},
+    {file = "maude-1.4.0-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:18c961fa930cd42bb7b89c2c89971d818397921b7e82e3bf09f04ac3de730b2d"},
+    {file = "maude-1.4.0-cp310-cp310-win_amd64.whl", hash = "sha256:48d606155a45dc2025fb2d3fa4e7460d98d45b48d17e2bd33b697a4242fb58fe"},
+    {file = "maude-1.4.0-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:453b3240100e455e898439395b96f5291b9e25d1e27926e346eb4040285196c1"},
+    {file = "maude-1.4.0-cp311-cp311-macosx_12_0_x86_64.whl", hash = "sha256:a39f6586e6543df619ae84eaaef453a4711729369660520d44ff382462e9815d"},
+    {file = "maude-1.4.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:83ab0eb8a81d1a9c423c0bb67a0e79e50ba05dff9264dc026e9524370b9502dd"},
+    {file = "maude-1.4.0-cp311-cp311-win_amd64.whl", hash = "sha256:937a0dbd5dbc947a757a9f81176c47a5c7eac19bf4f7545e053f29f117b4b8e0"},
+    {file = "maude-1.4.0-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:7bfc7cce4d188f14855fe609568c7d0aada0552e66d4f335560ddc8972267746"},
+    {file = "maude-1.4.0-cp312-cp312-macosx_12_0_x86_64.whl", hash = "sha256:200dd017e1bf9838dd1943a53457f5f5f5a0e55a27356b268a74e9ed6f6c2eed"},
+    {file = "maude-1.4.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:9fef4772426a3d28a72154021b353d36d09f7caf963f744eb3b4aafa59b46478"},
+    {file = "maude-1.4.0-cp312-cp312-win_amd64.whl", hash = "sha256:884dac6ecb45e7009571cf866ca03a544c85b656fc4eeb260757d5c5cf676fca"},
+    {file = "maude-1.4.0-cp38-cp38-macosx_12_0_arm64.whl", hash = "sha256:40654410b794657728ab9bbdc0c1c7427a94e727f1c13cc7616a95bde81280f5"},
+    {file = "maude-1.4.0-cp38-cp38-macosx_12_0_x86_64.whl", hash = "sha256:bcef98df2d747b548915b59314ef8376e55ce8a236334d61d95124a6351eed8d"},
+    {file = "maude-1.4.0-cp38-cp38-manylinux_2_28_x86_64.whl", hash = "sha256:fe85ff46efc1c03d356b443fbb218a5b18a94f5255ceb851d5b2e7f06c6059fb"},
+    {file = "maude-1.4.0-cp38-cp38-win_amd64.whl", hash = "sha256:8bcf9b838ffc1f350df6ffc597ecfce2c7c5f5977d7a693515c8f4553fc48fac"},
+    {file = "maude-1.4.0-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:007a57d815cab7ef753ff0b5cf23b7f5a1972aea2e4a469016396efda9d05d84"},
+    {file = "maude-1.4.0-cp39-cp39-macosx_12_0_x86_64.whl", hash = "sha256:9bc6905280e21284f154fe91c7172fedccd12d46daa2b179bddf2d6640fcd29c"},
+    {file = "maude-1.4.0-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:750f20f4302609ce970919529bd6ab0f9c05d68fab0d6008fcbc4e1f363a4c9e"},
+    {file = "maude-1.4.0-cp39-cp39-win_amd64.whl", hash = "sha256:7167a7baf6ac4b1e8c3e56908240837af794d07dcc33d28f8645b5ab7d218b88"},
 ]
 
 [[package]]
@@ -1210,12 +1211,12 @@ files = [
 
 [[package]]
 name = "umaudemc"
-version = "0.13.0"
+version = "0.13.1"
 description = "Unified Maude model-checking utility"
 optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "umaudemc-0.13.0-py3-none-any.whl", hash = "sha256:b5138f7fd297b5385ede40022dc820f848fb34531858efdb1b62c3451cf53d8c"},
+    {file = "umaudemc-0.13.1-py3-none-any.whl", hash = "sha256:74af1ad7aafe9d8fd93f9e0079fcacc499f891398a0bb85c75da7c605f69f211"},
 ]
 
 [package.dependencies]
