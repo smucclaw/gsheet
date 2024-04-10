@@ -16,6 +16,7 @@ RUN apt update; \
     npm \
     rsync \
     git \
+    procps \
     libpcre3-dev
 
 WORKDIR /opt/vue-pure-pdpa
