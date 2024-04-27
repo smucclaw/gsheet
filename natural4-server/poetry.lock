@@ -335,7 +335,6 @@ prompt-toolkit = ">=3.0.41,<3.1.0"
 pygments = ">=2.4.0"
 stack-data = "*"
 traitlets = ">=5.13.0"
-typing-extensions = {version = ">=4.6", markers = "python_version < \"3.12\""}
 
 [package.extras]
 all = ["ipython[black,doc,kernel,matplotlib,nbconvert,nbformat,notebook,parallel,qtconsole]", "ipython[test,test-extra]"]
@@ -1375,5 +1374,5 @@ natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.11.0"
-content-hash = "6a89a6d83b6cf9465668ecee1b302c54782fda6adf33d2bd00ac262e6212d683"
+python-versions = "^3.12.0"
+content-hash = "c07ae064a082bdbac4cb6b363b41d3d71486aa253d9701b2508b3f6d625ec7be"
