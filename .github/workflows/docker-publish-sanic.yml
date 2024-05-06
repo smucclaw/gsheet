@@ -16,6 +16,13 @@ on:
     branches: [ "main" ]
     paths-ignore:
       - 'natural4-server/Docker/nginx/**'
+  workflow_dispatch:
+    inputs:
+      dsl_app_tag:
+        description: 'Tag of the DSL Docker container'
+        required: false
+        type: string
+        default: main
 
 env:
   # Use docker.io for Docker Hub if empty

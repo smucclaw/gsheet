@@ -1,4 +1,5 @@
-FROM ghcr.io/smucclaw/dsl:main as builder
+ARG DSL_TAG=main
+FROM ghcr.io/smucclaw/dsl:$DSL_TAG as builder
 
 FROM python:3.12.3-slim-bookworm
 
