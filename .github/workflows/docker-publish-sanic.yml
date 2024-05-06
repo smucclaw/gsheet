@@ -18,7 +18,7 @@ on:
       - 'natural4-server/Docker/nginx/**'
   workflow_dispatch:
     inputs:
-      dsl_app_tag:
+      dsl_app_tag_input:
         description: 'Tag of the DSL Docker container'
         required: false
         type: string
@@ -29,6 +29,7 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: smucclaw/dsl-app
+  DSL_CONTAINER_TAG: ${{ inputs.dsl_app_tag_input || 'main' }}
 
 
 jobs:
@@ -88,6 +89,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: 'natural4-server/Docker/sanic/'
+          build-args: |
+            DSL_TAG=${{ env.DSL_CONTAINER_TAG }}
           build-contexts: |
             gsheet=https://github.com/smucclaw/gsheet.git
             vue-pure-pdpa=https://github.com/smucclaw/vue-pure-pdpa.git
