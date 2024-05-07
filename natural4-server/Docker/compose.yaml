@@ -1,13 +1,13 @@
 services:
   nginx-proxy:
-    image: "${CCLAW_REGISTRY}/smucclaw/nginx-router:main"
+    image: ${CCLAW_REGISTRY}/smucclaw/nginx-router:${DSL_TAG:-main}
     restart: always
     ports:
       - "${LOCAL_PORT}:80"
     depends_on:
       - dsl-app
   dsl-app:
-    image: ${CCLAW_REGISTRY}/smucclaw/dsl-app:main
+    image: ${CCLAW_REGISTRY}/smucclaw/dsl-app:${DSL_TAG:-main}
     restart: always
     volumes:
       - type: bind
