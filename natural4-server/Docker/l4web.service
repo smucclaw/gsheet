@@ -13,6 +13,7 @@ ExecStart=/usr/bin/docker compose -f compose.yaml -f compose.prod.yaml --env-fil
 ExecStop=/usr/bin/docker compose stop
 User=cclaw
 Environment=L4_APP_HOSTNAME=cclaw.legalese.com
+#Environment=DSL_TAG=latest
 
 [Install]
 WantedBy=default.target
