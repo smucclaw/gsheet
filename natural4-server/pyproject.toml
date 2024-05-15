@@ -43,7 +43,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 130
-target-version = "py311"
+target-version = "py312"
 
 ignore = ["E731", "E701"] 
 # E731: we are FPers, assigning lambdas is OK
