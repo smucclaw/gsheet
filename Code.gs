@@ -143,6 +143,20 @@ function showSidebar() {
 
   let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
 
+  // the natural4/LS/XPile/SVG.hs backend outputs a number of SVG files and an index.html to "manifest" them
+  // the index.html file is returned by the hello.py backend as uuid_ss_folder/aasvg/LATEST/index.html
+  // however, the links inside this index.html file are relative, not absolute, because the hello.py
+  // doesn't know the details of which hostname and port it is being called with.
+  // so it is up to the apps script to fully qualify each of the links.
+  // we rewrite   <a target="aasvg" href="XXX.svg">YYY</a>
+  // to           <a target="aasvg" href="https://hostname:port/prefix/XXX-full.svg">
+  //              <br/>YYY<br> <img  src="https://hostname:port/prefix/XXX-tiny.svg">
+  //              </a>
+  // this happens for each list item returned in the index.html
+  // note that the `.` in the regex `(.+)` below does not span lines;
+  // if the \n and \r newlines are stripped from the response HTML, then there will be a problem
+  // when the `(.+)` overmatches; then you would need to `(.+?)` to get it to work correctly.
+
   sidebar.fromFlask.aasvg_index = 
     sidebar.fromFlask.aasvg_index
     .replace(/href="(\S+)(\.svg">)(.+)<\/a>/g,
