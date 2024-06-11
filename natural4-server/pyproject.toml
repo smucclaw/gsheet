@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "natural4_server"}]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 setuptools = "^69.5"
 orjson = "^3.9.1"
 anyio = "^4.2.0"
