@@ -404,13 +404,13 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jsonpickle"
-version = "3.2.1"
+version = "3.2.2"
 description = "Python library for serializing arbitrary object graphs into JSON"
 optional = true
 python-versions = ">=3.7"
 files = [
-    {file = "jsonpickle-3.2.1-py3-none-any.whl", hash = "sha256:ec291e4719674dd35d390fbdb521ac6517fbe9f541d361c8bffc8131133b1661"},
-    {file = "jsonpickle-3.2.1.tar.gz", hash = "sha256:4b6d7640974199f7acf9035295365b5a1a71a91109effa15ba170fbb48cf871c"},
+    {file = "jsonpickle-3.2.2-py3-none-any.whl", hash = "sha256:87cd82d237fd72c5a34970e7222dddc0accc13fddf49af84111887ed9a9445aa"},
+    {file = "jsonpickle-3.2.2.tar.gz", hash = "sha256:d425fd2b8afe9f5d7d57205153403fbf897782204437882a477e8eed60930f8c"},
 ]
 
 [package.extras]
