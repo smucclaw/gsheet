@@ -1,0 +1,21 @@
+{
+  "timeZone": "Asia/Singapore",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "dependencies": {
+    "libraries": [
+      {
+        "userSymbol": "LegalSSCommonLib",
+        "libraryId": "1yuYSTXiWIoM6vgwb8Of4TJXuTezF6LfaEkyYLOwZDLY6cHmYVIrkibYS",
+        "version": "2",
+        "developmentMode": false
+      },
+      {
+        "userSymbol": "LegalSSConfigLib",
+        "libraryId": "1S8Copl66NgLyslTR1AnP9YfcEvmrJCugJb7vSAiSLCNh1zd2oD1OxYVK",
+        "version": "0",
+        "developmentMode": true
+      }
+    ]
+  }
+}

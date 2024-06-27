@@ -1,7 +1,28 @@
 <!DOCTYPE html>
 <html>
+  <script>
+    function focusEditor() {
+      // Check if the editor is loaded and has focus
+      if (typeof google !== 'undefined' && google.script && google.script.host && google.script.host.editor && google.script.host.editor.focus) {
+        google.script.host.editor.focus();
+      } else {
+        // Schedule the function to run again in 100 milliseconds
+        setTimeout(focusEditor, 100);
+      }
+    }
+
+    // Call the function after the page has loaded
+    window.addEventListener('load', focusEditor);
+  </script>
+  <style>
+    h3 {
+      /* padding: 0px 0px 0px 20px; */
+      text-align: center;
+    }
+  </style>
   <body>
     <ol>
+    <li><a target="L4Help" href="https://l4-documentation.readthedocs.io/en/stable/">L4 Help</a>: L4 Documentation</li>
     <li id="v8k"><a target="v8k" href="<?= v8k_url ?>">View as <b>web app</b></a> for citizens and customers</li>
     <li id="petri"><a target="petri" href="<?= petri_url ?>">View flowchart of regulative rules ("dynamics")
       <br /><img src="<?= petri_thumbnail_img ?>" width="220"></a>
@@ -9,13 +30,13 @@
     <li id="aasvg">View Constituent True/False Logic ("statics")<ul><?!= fromFlask.aasvg_index ?></ul></li>
     <li id="json"><a target="json" href="<?= json_url ?>">Export data elements as <b>JSON</b></a> for use by document automation software</li>
 
-    <li id="epilog">Export as <a target="l4_epilog" href="<?= epilog_url ?>">Epilog</a></li>
+    <li id="epilog">Export as Epilog</li>
     <li id="purs">Export the decision trees as <a target="purs" href="<?= purs_url ?>">Purescript</a></li>
     <li id="corel4"><a target="corel4" href="<?= corel4url ?>">Export as CoreL4</a></li>
     <li id="native"><a target="native" href="<?= native_url ?>">Export as Haskell</a></li>
     <li id="org"><a target="org" href="<?= org_url ?>">View in Org-mode</a></li>
-    <li id="ts">Export ontology as <a target="ts" href="<?= ts_url ?>">Typescript</a> schemas</li>
-
+    <li id="ts">Export the ontology as <a target="ts" href="<?= ts_url ?>">Typescript</a></li>
+    <li id="md">Export as <a target="md" href="<?= md_url ?>">Markdown</a> generically</li>
     <li> <b>Maude plaintext natural4</b>
       <ul>
         <li id="maude_plaintext"><a target="maude_plaintext" href="<?= maude_plaintext_url ?>">Export spreadsheet as plaintext</a></li>
@@ -23,18 +44,16 @@
         <li id="maude_race_cond"><a target="maude_race_cond" href="<?= maude_race_cond_url ?>">Visualise race condition trace (if any)</a></li>
       </ul>
     </li>
-
     <li id="prolog">Export as <b>Prolog</b> generically</li>
-    <li id="le"><a target="le" href="<?= logical_english_url ?>">Export as <b>Logical English</b></a></li>
-    <li id="jsonTp"><a target="jsonTp" href="<?= jsonTp_url ?>">Export <b>JSON Schema</b></a> to autogenerate a JSONforms web app</li>
+    <li id="lps">Export as <b>Logical English</b></li>
     <li id="catala">Export the computations as <b>Catala</b></li>
     <li id="dmn">Export as <b>DMN decision diagram</b></li>
     <li id="docassemble">Export to <b>DocAssemble</b></li>
     <li id="checkfirst">Export to <b>CheckFirst</b></li>
     <li id="blawx">Export the type system to <b>Blawx</b></li>
     <li id="morphir">Export the IR AST semantics to <b>Morphir</b></li>
-    <li id="word">Export as <b>Word doc</b> for further editing and signature</li>
-    <li id="pdf">Export as <b>PDF</b> for signature</li>
+    <li id="word"><a target="docx" href="<?= docx_url ?>">Export as <b>Word doc</b> for further editing and signature</a></li>
+    <li id="pdf"><a target="pdf" href="<?= pdf_url ?>">Export as <b>PDF</b> for signature</a></li>
     <li id="legaldocml">Export as <b>Akoma Ntoso</b> LegalDocumentML <i>in a choice of languages</i></li>
     <li id="bpmn">Export as <b>BPMN workflow</b></li>
     <li id="tapaal">Export as <b>Tapaal Petri Net</b> for verification</li>
