@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <a href="<?= url; ?>" target="_blank">L4 Documentation</a>
+  </body>
+  <script>
+    var windowReference = window.open('<?= url; ?>', '_blank');
+    if (windowReference !== null) {
+      google.script.host.close();
+    }
+  </script>
+</html>
