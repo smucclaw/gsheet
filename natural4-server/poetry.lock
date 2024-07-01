@@ -1007,13 +1007,13 @@ files = [
 
 [[package]]
 name = "sanic"
-version = "23.12.1"
+version = "23.12.2"
 description = "A web server and web framework that's written to go fast. Build fast. Run fast."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "sanic-23.12.1-py3-none-any.whl", hash = "sha256:e292293b2663a7afeb380bdc48ab93978468b27deae46ad9561513941eb0311f"},
-    {file = "sanic-23.12.1.tar.gz", hash = "sha256:2528ca81d2bdc58ea67d93c500df1a9c58404904b0bc3442425b464c72b4bb84"},
+    {file = "sanic-23.12.2-py3-none-any.whl", hash = "sha256:b65a13ff8c06f3fb5790a132d9b7740cde1d5f70c0fd25c44a587552eeb3dbab"},
+    {file = "sanic-23.12.2.tar.gz", hash = "sha256:4d909aa8a1cb39b0c42a5ec9fe6eb128013cc822bcf4c554326304b9ac427117"},
 ]
 
 [package.dependencies]
