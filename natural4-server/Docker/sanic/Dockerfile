@@ -39,7 +39,7 @@ WORKDIR /opt/natural4-server
 
 RUN python3 -m pip install pipx ;\
     pipx install poetry ;\
-    ~/.local/bin/poetry install
+    ~/.local/bin/poetry install --all-extras
 
 ENV START_PORT=8090
 ENV natural4_datadir=/usr/local/share/natural4
