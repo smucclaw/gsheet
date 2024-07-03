@@ -5,9 +5,9 @@
 //Max
 Logger.log("global top");
 Logger.log("legalSSConfigLib configLibDefaults")
-Logger.log(LegalSSConfigLib.configLibDefaults())
+Logger.log(LegalSSconfigdevgmail.configLibDefaults())
 
-const configLibDefaults = LegalSSConfigLib.configLibDefaults();
+const configLibDefaults = LegalSSconfigdevgmail.configLibDefaults();
 
 var port       = configLibDefaults.parentUrlPort;
 var url_host = configLibDefaults.parentUrlHost;
@@ -797,4 +797,3 @@ function putChangedCommand(command) {
   let userCache = CacheService.getUserCache();
   userCache.put("command", command, 21600);
 }
-
