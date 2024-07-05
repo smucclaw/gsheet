@@ -5,9 +5,9 @@
 //Max
 Logger.log("global top");
 Logger.log("legalSSConfigLib configLibDefaults")
-Logger.log(LegalSSconfigdevgmail.configLibDefaults())
+Logger.log(ConfigLib.configLibDefaults())
 
-const configLibDefaults = LegalSSconfigdevgmail.configLibDefaults();
+const configLibDefaults = ConfigLib.configLibDefaults();
 
 var port       = configLibDefaults.parentUrlPort;
 var url_host = configLibDefaults.parentUrlHost;
