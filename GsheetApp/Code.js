@@ -36,24 +36,6 @@ function createSidebarMenu() {
     .addToUi();
 }
 
-function testIP() {
-  let url = "https://l2.io/ip.js?var=userIP"
-  let response1 = UrlFetchApp.fetch(url);
-  Logger.log(response1.getContentText());
-  // testWindow = this.window.location.hostname;
-  // eval(UrlFetchApp.fetch('https://cdn.jsdelivr.net/npm/dohjs@latest/dist/doh.min.js').getContentText());
-  // const resolver = new doh.DohResolver('https://1.1.1.1/dns-query');
-  // resolver.query(testWindow, 'A')
-  //   .then(response => {
-  //     response.answers.forEach(ans => Logger.log(ans.data));
-  //   })
-  //   .catch(err => Logger.log(err));
-  // const execSync = require('child_process').execSync;
-  // const output = execSync('ls', { encoding: 'utf-8' });  // the default is 'buffer'
-  // Logger.log('Output was:\n', output);
-  return null;
-}
-
 function loadDev() {
   let spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = SpreadsheetApp.getActiveSheet();
@@ -67,22 +49,6 @@ function loadDev() {
   Logger.log("setting port to " + port);
   Logger.log("setting liveUpdates to " + liveUpdates);
 }
-
-// function showL4Help() {
-//   let url = "https://l4-documentation.readthedocs.io/en/stable/";
-//   let html = '<script>window.open(url, "_blank");</script>';
-//   let l4Help = HtmlService.createTemplate(html);
-//   let page = l4Help.evaluate();
-//   SpreadsheetApp.getUi().showModalDialog(page, 'L4 Documentation');
-//   Utilities.sleep(2000);
-
-//   // // Import the JavaImporter function.
-//   // var JavaImporter = Packages.java.lang.importer;
-//   // // Import the webbrowser library.
-//   // var webbrowser = JavaImporter.importPackage("webbrowser");
-//   // // Open the URL in a new tab.
-//   // webbrowser.openNewTab(url);
-// }
 
 const showL4Help = () => {
   const htmlTemplate = HtmlService.createTemplateFromFile('help.html');
@@ -167,6 +133,7 @@ function getSsid() {
   console.log("getSsid: " + spreadsheetId + " / "+ sheetId)
   return [spreadsheetId, sheetId];
 }
+
 function exportCSV(uuid, spreadsheetId, sheetId) {
   let sheet = SpreadsheetApp.getActiveSheet();
   Logger.log("exportCSV: initialized. constructing CSV.");
@@ -234,12 +201,14 @@ function url_hp() {
   Logger.log("url_hp() called");
 
   var toreturn = `${url_host}/port/${port}`;
-//  var toreturn = `${url_host}:${port}`;
 
   Logger.log("returning " + toreturn);
   return toreturn;
 }
-function url_wd() { return `${url_hp()}/workdir/`; }
+
+function url_wd() {
+  return `${url_hp()}/workdir/`;
+}
 
 function devScan(range, scanregex) {
   for (let i = 0; i < range.length; i++) {
@@ -272,31 +241,15 @@ function onChange(e) {
   if (! liveUpdates) { return }
 
   Logger.log(`onChange running. liveUpdates=${liveUpdates}; port=${port}`);
-//  const sheet = SpreadsheetApp.getActiveSheet();
-//  if (e.changeType=="INSERT_ROW") {
-//    testWait();
-//    // sheet.getRange(1, 4).setValue("row inserted");
-//    scanDocIF(sheet);
-//    // sheet.getRange(1, 5).setValue("insert complete");
-//  }
-//  else if (e.changeType=="REMOVE_ROW") {
-//    testWait();
-//    // sheet.getRange(1, 4).setValue("row deleted");
-//    scanDocIF(sheet);
-//    // sheet.getRange(1, 5).setValue("delete complete");
-//  }
-//  else if (e.changeType=="EDIT") {
-//    // sheet.getRange(1, 4).setValue("cell edited");
-//    sheet.getRange(1, 5).setValue("");
-//  }
-//
 }
+
 function testWait(){
   const lock = LockService.getScriptLock();
   lock.waitLock(3000);
   SpreadsheetApp.flush();
   lock.releaseLock();
 }
+
 function scanDocIF(sheet) {
   // If IF detected in a row,
   // check next row for IF and act accordingly
@@ -322,6 +275,7 @@ function scanDocIF(sheet) {
     }
   }
 }
+
 function onEdit(e) {
   var lastEditTime = properties.getProperty(key);
   // ui.alert("after lastEditTime = properties.getProperty(key): " + lastEditTime)
@@ -349,37 +303,13 @@ function onEdit(e) {
     return;
   }
 
-// const sheet = SpreadsheetApp.getActiveSheet();
-// const h = new ElementHistory();
-// if (goodLayout(c) && !c.isBlank()) {
-//   drawWords(c);
-//   c = startProcessing(c, h, sheet);
-// }
-// else if (c.isBlank()) {
-//   if (e.oldValue=="IF" || e.oldValue=="WHEN"
-//       || e.oldValue=="IS" || e.oldValue=="MEANS") {
-//     c.offset(-1,0).clear();
-//   }
-// }
   if (lastEditTime && (timePassed > sidebarRefreshInterval)) {
     // If more than 60 seconds have passed since the last edit, refresh Sidebar.
     showSidebar();
     // Reset lastEditTime.
     resetLastEditTime();
-    // ScriptApp.newTrigger("resetLastEditTime")
-    //   .timeBased()
-    //   .after(5000)
-    //   .create();
   }
   
-  // ui.prompt(lastEditTime);
-  // google.script.host.editor.focus();
-  // var triggers = ScriptApp.getProjectTriggers();
-  // for (var i = 0; i < triggers.length; i++) {
-  //   if (triggers[i].getHandlerFunction() == "onEdit") {
-  //     ScriptApp.deleteTrigger(triggers[i]);
-  //   }
-  // }
 }
 
 function startProcessing(c, h, sheet) {
@@ -394,11 +324,13 @@ function startProcessing(c, h, sheet) {
   // sheet.getRange(1, 3).setValue(h.history.toString());
   return c;
 }
+
 class ElementHistory {
   constructor(history = []) {
     this.history = history;
   }
 }
+
 function findStart(c) {
   // Find the topLeft start of a block of keywords.
   let nextCol = 0;
@@ -422,6 +354,7 @@ function findStart(c) {
   }
   return c;
 }
+
 function scanDownwards(c, h) {
   // Scan downwards for keywords and
   // put keywords into h.history Array.
@@ -443,6 +376,7 @@ function scanDownwards(c, h) {
   } while (cellCol >= columnLimit)
   return [c, h];
 }
+
 function drawBridgeIfAndOr(h, sheet) {
   // SpreadsheetApp.getUi().alert("drawBridgeIfAndOr");
   // sheet.getRange(1, 6).setValue("drawBridgeIfAndOr");
@@ -518,6 +452,7 @@ function drawBridgeIfAndOr(h, sheet) {
     rowStop = rowBegin = 0;
   }
 }
+
 function processHistory(h, sheet) {
   // Process the h.history Array.
   let restart = true;
@@ -579,10 +514,12 @@ function processHistory(h, sheet) {
     rowStop = 0;
   }
 }
+
 function getFurthest(prevIndex, index) {
   if (prevIndex < index) return index;
   else return prevIndex;
 }
+
 function isKeyword(cValue){
   return (cValue=="IF" || cValue=="OR"
 	  || cValue=="AND" || cValue=="WHEN"
@@ -593,6 +530,7 @@ function isKeyword(cValue){
 	  || cValue=="UNLESS"
 	 );
 }
+
 function goodLayout(c) {
   if (c.getBackground() != "#ffffff") {
     // SpreadsheetApp.getUi().alert(
@@ -613,6 +551,7 @@ function goodLayout(c) {
   }
   return true;
 }
+
 function drawWords(c) {
   // Identify keywords for formatting and drawing.
   const cValue = c.getValue();
@@ -647,6 +586,7 @@ function drawWords(c) {
     drawUnless(c);
   }
 }
+
 function drawIfWhenTop(c) {
   // Check cell above for checkbox.
   // If no checkbox, move cValue down
@@ -667,6 +607,7 @@ function drawIfWhenTop(c) {
     return c.offset(1,0);
   }
 }
+
 function drawIfWhenOr(c) {
   if (c.getValue()=="OR") {
     c.offset(0,-1,1,9).clearFormat();
@@ -683,6 +624,7 @@ function drawIfWhenOr(c) {
     c.offset(0,2).setValue("some condition");
   }
 }
+
 function drawAnd(c) {
   c.offset(0,-1,1,9).clearFormat();
   c.setHorizontalAlignment("right");
@@ -700,6 +642,7 @@ function drawAnd(c) {
     c.offset(0,2).setValue("some condition");
   }
 }
+
 function drawTeeOverIsMeans(c) {
   c.offset(0,-1,1,9).clearFormat();
   c.offset(-1,1).setValue("a Defined Term");
@@ -718,6 +661,7 @@ function drawTeeOverIsMeans(c) {
   c.offset(1,1).insertCheckboxes();
   c.offset(1,2).setValue("another thing");
 }
+
 function drawTeeForITIS(c) {
   const cValue = c.getValue();
   c.offset(0,-1,3,9).clear();
@@ -737,6 +681,7 @@ function drawTeeForITIS(c) {
   c.offset(2,2).insertCheckboxes();
   c.offset(2,3).setValue("something else holds");
 }
+
 function drawPlusUnderEvery(c) {
   const cValue = c.getValue();
   c.offset(0,-1,3,9).clear();
@@ -756,6 +701,7 @@ function drawPlusUnderEvery(c) {
   c.offset(1,0).setBorder( false,false,true,true,false,false,
 			   "grey", SpreadsheetApp.BorderStyle.SOLID_THICK);
 }
+
 function drawHenceLest(c) {
   const cValue = c.getValue();
   c.offset(0,-1,1,9).clearFormat();
@@ -763,6 +709,7 @@ function drawHenceLest(c) {
   c.offset(0,1,1,2).setBorder(false,true,true,false,false,false,
                               "grey",SpreadsheetApp.BorderStyle.SOLID_THICK);
 }
+
 function drawUnless(c) {
   const cValue = c.getValue();
   c.offset(0,-1,1,9).clearFormat();
@@ -781,18 +728,21 @@ function saveCommands() {
   let scriptCache = CacheService.getScriptCache();
   scriptCache.put('commands', JSON.stringify(commandArray), 21600);
 }
+
 function getAllCommands() {
   saveCommands();
   let scriptCache = CacheService.getScriptCache();
   const commandArray = JSON.parse(scriptCache.get('commands'));
   return commandArray;
 }
+
 function getFirstCommand() {
   let scriptCache = CacheService.getScriptCache();
   const commandArray = JSON.parse(scriptCache.get('commands'));
   // Logger.log(commandArray);
   return commandArray[0];
 }
+
 function putChangedCommand(command) {
   let userCache = CacheService.getUserCache();
   userCache.put("command", command, 21600);
