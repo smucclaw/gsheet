@@ -159,7 +159,7 @@ function showSidebar() {
 
   sidebar.fromFlask.aasvg_index = 
     sidebar.fromFlask.aasvg_index
-    .replace(/href="(\S+)(\.svg">)(.+)<\/a>/g,
+    .replace(/href="(.+?)(\.svg">)(.+?)<\/a>/sg,
              "href=\"" + aasvgUrl + "$1-full$2<br/>$3" +
              "<br><img src=\"" + aasvgUrl + "$1-tiny.svg\"></a>");
   
