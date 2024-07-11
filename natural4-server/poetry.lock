@@ -353,7 +353,7 @@ test-extra = ["curio", "ipython[test]", "matplotlib (!=3.2.0)", "nbformat", "num
 
 [[package]]
 name = "janus_swi"
-version = "1.3.0"
+version = "1.4.0"
 description = "Janus library to call SWI-Prolog"
 optional = true
 python-versions = ">=3.6"
@@ -363,8 +363,8 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/SWI-Prolog/packages-swipy.git"
-reference = "V9.3.7"
-resolved_reference = "16d284c2540ed6879faf0f7bb59ecf4c14b9170e"
+reference = "V9.3.8"
+resolved_reference = "b5ef1c68f0277e388a04dd5eadf61e3d8d0e72bb"
 
 [[package]]
 name = "jedi"
@@ -1429,4 +1429,4 @@ natural4-maude = ["maude", "networkx", "pyvis", "umaudemc"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "c895a92c2809be51f9a386b35fe4fa51def63876e68d16e881b81f8c8850339d"
+content-hash = "113c0486c5740e0731e5190e3f939de459a94d5e599a1c8dd9d667fb48b6c4ec"
