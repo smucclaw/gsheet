@@ -108,7 +108,7 @@ function showSidebar() {
 
   sidebar.fromFlask.aasvg_index = 
     sidebar.fromFlask.aasvg_index
-    .replace(/href="(\S+)(\.svg">)(.+)<\/a>/g,
+    .replace(/href="(\S+)(\.svg">)(.+?)<\/a>/sg,
              "href=\"" + aasvgUrl + "$1-full$2<br/>$3" +
              "<br><img src=\"" + aasvgUrl + "$1-tiny.svg\"></a>");
   
@@ -234,15 +234,12 @@ function devHost(range) {
   return configLibDefaults.parentUrlHost;
 }
 
-
-
 function onChange(e) {
   loadDev();  
   if (! liveUpdates) { return }
 
   Logger.log(`onChange running. liveUpdates=${liveUpdates}; port=${port}`);
 }
-
 
 function onEdit(e) {
   var lastEditTime = properties.getProperty(key);
