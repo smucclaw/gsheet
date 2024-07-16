@@ -7,13 +7,12 @@
       {
         "userSymbol": "CommonLib",
         "libraryId": "1gx6GOFRzciY4BZKOPLwWbkvia4Dk9GP_6hO4ZYFQ3lgQra3seaeykMc6",
-        "version": "2"
+        "version": "5"
       },
       {
         "userSymbol": "ConfigLib",
         "libraryId": "1noP6oaryosCzOFsQYbdpc6MImFEmKep6UsNx1atfhd6QxflOb5HTuGag",
-        "version": "2",
-        "developmentMode": false
+        "version": "2"
       }
     ]
   }
