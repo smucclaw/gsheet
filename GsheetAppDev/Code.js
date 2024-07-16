@@ -72,7 +72,7 @@ function showSidebar() {
   Logger.log(`workDirUrl = ` + workDirUrl);
   let sidebar = HtmlService.createTemplateFromFile('main');
   Logger.log("calling exportCSV()");
-  sidebar.fromFlask = JSON.parse(exportCSV(cachedUuid, spreadsheetId, sheetId));
+  sidebar.fromFlask = JSON.parse(CommonLib.exportCSV(url_hp() + '/post', cachedUuid, spreadsheetId, sheetId));
   Logger.log("fromFlask returned");
   Logger.log(sidebar.fromFlask);
   sidebar.native_url          = workDirUrl + "native/LATEST.hs";
@@ -142,8 +142,6 @@ function exportCSV(uuid, spreadsheetId, sheetId) {
   // ui.prompt(csvStr);
   
   let formData = {
-    'name': 'Max Loo',
-    'email': 'maxloo@smu.edu.sg',
     'uuid': uuid,
     'spreadsheetId': spreadsheetId,
     'sheetId': sheetId,
