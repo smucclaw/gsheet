@@ -63,12 +63,13 @@ function showSidebar() {
   loadDev();  
   let cachedUuid = saveUuid();
   let [spreadsheetId, sheetId] = getSsid();
-  let workDirUrl = (url_wd() + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/");
+  const workDir =  `${url_host}/port/${port}/workdir/`;
+  let workDirUrl = (workDir + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/");
   
   Logger.log("port     = " + port);
   Logger.log("url_host = " + url_host);
   Logger.log("url_hp() = " + url_hp());
-  Logger.log("url_wd() = " + url_wd());
+  Logger.log("url_wd() = " + workDir);
   Logger.log(`workDirUrl = ` + workDirUrl);
   let sidebar = HtmlService.createTemplateFromFile('main');
   Logger.log("calling exportCSV()");
@@ -154,10 +155,6 @@ function url_hp() {
   return toreturn;
 }
 
-function url_wd() {
-  return `${url_hp()}/workdir/`;
-}
-
 function devScan(range, scanregex) {
   for (let i = 0; i < range.length; i++) {
     let asOneLine = range[i].join(" ");
@@ -214,7 +211,6 @@ function onEdit(e) {
   if (lastEditTime && (timePassed > sidebarRefreshInterval)) {
     // If more than 60 seconds have passed since the last edit, refresh Sidebar.
     showSidebar();
-    // Reset lastEditTime.
     resetLastEditTime();
   }
   
