@@ -18,7 +18,7 @@ from .visualise import (
     natural4_rules_to_race_cond_htmls
 )
 
-maude_main_file: pathlib.Path = pathlib.Path('plugins') / 'natural4_maude' / 'main.maude'
+maude_main_file: pathlib.Path = pathlib.Path(__file__).parent / 'main.maude'
 maude_main_mod = init_maude_n_load_main_file(maude_main_file)
 
 
