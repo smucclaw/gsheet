@@ -226,9 +226,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     # one can leave out the ASP by adding the --toasp option
     create_files: Sequence[str] = (
         natural4_exe,
-        # '--toasp', '--toepilog',
-        f'--workdir={natural4_dir}',
-        f'--uuiddir={anyio.Path(uuid) / spreadsheet_id / sheet_id}',
+        f'--uuiddir={natural4_dir / anyio.Path(uuid) / spreadsheet_id / sheet_id}',
         f'{target_path}'
     )
 
@@ -271,7 +269,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     # postprocessing: for petri nets: turn the DOT files into PNGs
     # we run this asynchronously and block at the end before returning.
     # ---------------------------------------------
-    uuid_ss_folder: anyio.Path = natural4_dir / uuid / spreadsheet_id / sheet_id
+    uuid_ss_folder: anyio.Path = natural4_dir / uuid / spreadsheet_id / sheet_id / "no-uuid"
     petri_folder: anyio.Path = uuid_ss_folder / 'petri'
     dot_path: anyio.Path = petri_folder / 'LATEST.dot'
     timestamp: anyio.Path = anyio.Path((await dot_path.readlink()).stem)
