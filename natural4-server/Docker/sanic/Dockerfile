@@ -24,8 +24,7 @@ WORKDIR /opt/vue-pure-pdpa
 ENV V8K_WORKDIR=/var/v8kworkdir
 
 RUN npm install -g node-gyp@latest ;\
-    npm install ;\
-    npm run deps
+    npm install
 
 RUN mkdir $V8K_WORKDIR \
     && rsync -a /opt/vue-pure-pdpa/ $V8K_WORKDIR/vue-big/ \
@@ -33,9 +32,9 @@ RUN mkdir $V8K_WORKDIR \
     && ln -r -s -t $V8K_WORKDIR/vue-small \
       $V8K_WORKDIR/vue-big/.git \
       $V8K_WORKDIR/vue-big/node_modules \
-      $V8K_WORKDIR/vue-big/.spago \
     && ln -r -s -t $V8K_WORKDIR/vue-small/anyall-purs \
-    $V8K_WORKDIR/vue-big/anyall-purs/.spago
+      $V8K_WORKDIR/vue-big/anyall-purs/.spago \
+      $V8K_WORKDIR/vue-big/anyall-purs/node_modules
 
 WORKDIR /opt/natural4-server
 
