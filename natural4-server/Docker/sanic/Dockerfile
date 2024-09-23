@@ -33,7 +33,9 @@ RUN mkdir $V8K_WORKDIR \
     && ln -r -s -t $V8K_WORKDIR/vue-small \
       $V8K_WORKDIR/vue-big/.git \
       $V8K_WORKDIR/vue-big/node_modules \
-      $V8K_WORKDIR/vue-big/.spago
+      $V8K_WORKDIR/vue-big/.spago \
+    && ln -r -s -t $V8K_WORKDIR/vue-small/anyall-purs \
+    $V8K_WORKDIR/vue-big/anyall-purs/.spago
 
 WORKDIR /opt/natural4-server
 

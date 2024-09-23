@@ -191,7 +191,7 @@ async def vue_purs_post_process(
                 taskgroup.create_task(
                     aioshutil.copy(
                         args.filename,
-                        server_config_dir / 'src' / 'RuleLib' / 'Interview.purs'
+                        server_config_dir / 'anyall-purs' / 'src' / 'RuleLib' / 'Interview.purs'
                     )
                 )
 
