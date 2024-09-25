@@ -265,7 +265,7 @@ async def do_up(
                         print("refreshing the purs file", file=sys.stderr)
                         # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
                         #  reread the file too soon, when the cp hasn't completed.
-                        purs_file = anyio.Path(dir) / "src" / "RuleLib" / "Interview.purs"
+                        purs_file = anyio.Path(dir) / "anyall-purs" / "src" / "RuleLib" / "Interview.purs"
                         print(f"cp {args.filename} {purs_file}", file=sys.stderr)
                         taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
                         taskgroup.create_task((anyio.Path(dir) / 'v8k.json').touch())
