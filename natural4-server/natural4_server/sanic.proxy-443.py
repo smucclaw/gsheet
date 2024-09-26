@@ -3,17 +3,17 @@ from dotenv import load_dotenv
 from hello import app
 
 # Define and load environment variables.
-raw_env: str = '''
+raw_env: str = """
 basedir=.
 V8K_WORKDIR=/home/rkhafizov/v8kworkdir
 v8k_startport=8401
-'''
+"""
 
 load_dotenv(stream=StringIO(raw_env))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(
-        host='0.0.0.0',
+        host="0.0.0.0",
         port=8400,
         fast=True,
         access_log=False,
