@@ -39,8 +39,8 @@ RUN mkdir $V8K_WORKDIR \
 WORKDIR /opt/natural4-server
 
 RUN python3 -m pip install pipx ;\
-    pipx install poetry ;\
-    ~/.local/bin/poetry install --all-extras
+    pipx install uv ;\
+    ~/.local/bin/uv sync --all-extras
 
 ENV START_PORT=8090
 ENV natural4_datadir=/usr/local/share/natural4
@@ -50,4 +50,4 @@ ENV WS_PROXY_PROTOCOL="wss"
 
 EXPOSE 8090
 
-ENTRYPOINT ["/root/.local/bin/poetry", "run", "python", "natural4_server/sanic.docker.py"]
+ENTRYPOINT ["/root/.local/bin/uv", "run", "natural4_server/sanic.docker.py"]
