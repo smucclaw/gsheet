@@ -92,7 +92,7 @@ jobs:
           build-args: |
             DSL_TAG=${{ env.DSL_CONTAINER_TAG }}
           build-contexts: |
-            gsheet=https://github.com/smucclaw/gsheet.git
+            gsheet=${{ github.workspace }}
             vue-pure-pdpa=https://github.com/smucclaw/vue-pure-pdpa.git
             dsl=https://github.com/smucclaw/dsl.git
           push: ${{ github.event_name != 'pull_request' }}
