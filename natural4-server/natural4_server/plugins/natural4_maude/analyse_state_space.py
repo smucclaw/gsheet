@@ -1,19 +1,18 @@
 import asyncio
-from collections.abc import AsyncGenerator
 import os
 import pathlib
-
-from cytoolz.functoolz import *
-from cytoolz.curried import *
+from collections.abc import AsyncGenerator
 
 import anyio
-
 import maude
+from cytoolz.curried import *
+from cytoolz.functoolz import *
+
 from natural4_server.task import Task
 
 from .visualise import (
-    init_maude_n_load_main_file,
     config_to_html_file,
+    init_maude_n_load_main_file,
     natural4_rules_to_config,
     natural4_rules_to_race_cond_htmls,
 )

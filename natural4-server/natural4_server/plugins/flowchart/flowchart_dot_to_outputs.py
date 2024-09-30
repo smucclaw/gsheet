@@ -1,16 +1,14 @@
 import asyncio
-from collections.abc import AsyncGenerator, Collection, Sequence
 import os
 import sys
-
-from cytoolz.functoolz import *
-from cytoolz.itertoolz import *
-from cytoolz.curried import *
-
-import pyrsistent as pyrs
-import pyrsistent_extras as pyrse
+from collections.abc import AsyncGenerator, Collection, Sequence
 
 import anyio
+import pyrsistent as pyrs
+import pyrsistent_extras as pyrse
+from cytoolz.curried import *
+from cytoolz.functoolz import *
+from cytoolz.itertoolz import *
 
 from natural4_server.task import Task
 

@@ -1,9 +1,8 @@
 import asyncio
-from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Sequence
 import sys
+from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Sequence
 
 import aiostream
-
 import pyrsistent as pyrs
 
 

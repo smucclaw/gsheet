@@ -10,36 +10,33 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import AsyncGenerator, Sequence
 import datetime
 import os
 import pathlib
-import sys
-import typing
-
-import anyio
-import aiostream
-import orjson
-
-from sanic import HTTPResponse, Request, Sanic, file, json
-
-from cytoolz.functoolz import *
-from cytoolz.itertoolz import *
-from cytoolz.curried import *
-
-from natural4_server.task import Task, run_tasks
-from natural4_server.plugins.docgen import get_pandoc_tasks
-from natural4_server.plugins.flowchart import get_flowchart_tasks
-from natural4_server.plugins.natural4_maude import get_maude_tasks
-import natural4_server.plugins.v8k as v8k
+import resource
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
 # cargo-culted from https://www.geeksforgeeks.org/python-how-to-put-limits-on-memory-and-cpu-usage/
 ##########################################################
-
 import signal
-import resource
+import sys
+import typing
+from collections.abc import AsyncGenerator, Sequence
+
+import aiostream
+import anyio
+import orjson
+from cytoolz.curried import *
+from cytoolz.functoolz import *
+from cytoolz.itertoolz import *
+from sanic import HTTPResponse, Request, Sanic, file, json
+
+import natural4_server.plugins.v8k as v8k
+from natural4_server.plugins.docgen import get_pandoc_tasks
+from natural4_server.plugins.flowchart import get_flowchart_tasks
+from natural4_server.plugins.natural4_maude import get_maude_tasks
+from natural4_server.task import Task, run_tasks
 
 
 # checking time limit exceed

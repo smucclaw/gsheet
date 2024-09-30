@@ -1,11 +1,11 @@
 import logging
 import os
 import sys
+
 import anyio
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-
 
 basedir = anyio.Path(os.environ.get("basedir", "."))
 

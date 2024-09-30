@@ -32,21 +32,18 @@ The strategy can also be a strategy describing a trace, say
 Note that it is important to put parens around "... does ..." actions.
 """
 
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 
 import maude
-from umaudemc.wrappers import create_graph
-
+import networkx as nx
 import pyrsistent as pyrs
-
+from cytoolz.curried import *
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
-from cytoolz.curried import *
-
-import networkx as nx
 from pyvis.network import Network
+from umaudemc.wrappers import create_graph
 
 
 @curry

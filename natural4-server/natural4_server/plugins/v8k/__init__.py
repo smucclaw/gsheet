@@ -33,24 +33,22 @@
 # v8k downdir slotname
 #     Delete an existing vue server by slot number.
 
+import argparse
 import asyncio
+import os
 import re
 import sys
-import os
-import argparse
-import orjson
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-import anyio
 import aioshutil
 import aiostream
-
+import anyio
+import orjson
+import pyrsistent as pyrs
+from cytoolz.curried import *
 from cytoolz.functoolz import *
 from cytoolz.itertoolz import *
-from cytoolz.curried import *
-
-import pyrsistent as pyrs
 
 from natural4_server.task import Task
 
