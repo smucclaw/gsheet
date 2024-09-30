@@ -1,34 +1,22 @@
 # Installing the python stuff
 
-There's a poetry config that you can use in the short term (in the long
-term, we'll probably try to move to `nix` at least partially), and which
-was adapted from the config Joe had around May 24.
+There's a uv config that you can use.
 
 To use this:
 
 1.  Install `pyenv` if you want to be able to easily toggle between
     python versions, and follow the docs for how to use `pyenv` with
-    `poetry`. The rest of the instructions won't talk about pyenv.
+    `uv`. The rest of the instructions won't talk about pyenv.
 
-2.  Install poetry in your user account, by following the instructions
-    at `https://python-poetry.org/docs/`. It will probably be better to
-    install poetry with python 3.11. As of end May 2023, the following
-    should work:
-    `curl -sSL https://install.python-poetry.org | python3.11 -`
+2.  Install uv in your user account, by following the instructions
+    at `https://docs.astral.sh/uv/getting-started/installation/`.
 
 3.  Then to install the base dependencies needed to run the server,
     navigate to the dir with the
-    poetry files (i.e., this subdir) and run
+    uv files (i.e., this subdir) and run
 
     ``` example
-    export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
-    # you'll probably need this for the server
-
-    poetry env use /usr/bin/python3.11 
-    # for the server. Replace that python path with the path to whereever your python3.11 is if it's different
-
-    poetry shell
-    poetry install
+    uv sync
     ```
 
 4. (Optional)
@@ -38,7 +26,7 @@ To use this:
   To install all extra dependencies for maximum functionality, you can run
 
   ```example
-  poetry install --all-extras
+  uv sync --all-extras
   ```
   
   - Alternatively, you can install them selectively to only enable those
@@ -52,7 +40,7 @@ To use this:
       To install this dependency group, you can run
 
       ```example
-      poetry install --extras docgen
+      uv sync --extras docgen
       ```
 
     - The `natural4-maude` group is used by the `plugins/natural4-maude` plugin
@@ -61,16 +49,10 @@ To use this:
       To install this dependency group, run
 
       ```example
-      poetry install --extras natural4-maude
+      uv sync --extras natural4-maude
       ```
 
-You can activate the virtual environment with `poetry shell`. Or to run
-the scripts, you can do `poetry run`. See the docs
-(<https://python-poetry.org/docs/>) for more info.
-
-To check what python the virtual env is using, do `poetry env info`.
-You'll want to make sure it's using a version that's consistent with
-what's specified in the .toml.
+You can run the scripts, with `uv run`.
 
 # Optional: if you want to use `pre-commit`:
 
@@ -135,7 +117,7 @@ With this, you can now run the app, powered by the Sanic server as a Python
 script, ie
 
 ```example
-poetry run python sanic.user.py
+uv run sanic.user.py
 ```
 
 # DevMode
