@@ -36,5 +36,7 @@ jobs:
           enable-cache: true
 
       - name: Run tests
-        run: uv run pytest
+        run: |
+          uv sync --all-extras
+          uv run pytest
         working-directory: natural4-server
