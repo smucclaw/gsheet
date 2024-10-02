@@ -11,13 +11,13 @@ on:
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
     paths:
-      - '!**'
       - 'natural4-server/Docker/webapi-ci/**'
+      - '.github/workflows/docker-publish-webapi-ci.yml'
   pull_request:
     branches: [ "main" ]
     paths:
-      - '!**'
       - 'natural4-server/Docker/webapi-ci/**'
+      - '.github/workflows/docker-publish-webapi-ci.yml'
   workflow_dispatch:
     inputs:
       dsl_app_tag_input:

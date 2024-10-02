@@ -15,14 +15,11 @@ permissions:
 jobs:
   test-backend:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/smucclaw/webapi-ci:main
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install graphviz
-        run: |
-          sudo apt-get update
-          sudo apt-get install graphviz
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,8 +32,13 @@ jobs:
           version: "0.4.15"
           enable-cache: true
 
+      - name: Install dependencies
+        run: uv sync --all-extras
+        working-directory: natural4-server
+
       - name: Run tests
-        run: |
-          uv sync --all-extras
+        run:
           uv run pytest
         working-directory: natural4-server
+        env:
+          v8k_startport: 8091
