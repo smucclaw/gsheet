@@ -40,3 +40,5 @@ jobs:
         run:
           uv run pytest
         working-directory: natural4-server
+        env:
+          v8k_startport: 8091
