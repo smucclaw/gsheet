@@ -34,6 +34,7 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --all-extras
+        working-directory: natural4-server
 
       - name: Run tests
         run:
