@@ -32,8 +32,10 @@ jobs:
           version: "0.4.15"
           enable-cache: true
 
+      - name: Install dependencies
+        run: uv sync --all-extras
+
       - name: Run tests
-        run: |
-          uv sync --all-extras
+        run:
           uv run pytest
         working-directory: natural4-server

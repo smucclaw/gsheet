@@ -8,7 +8,11 @@ async def test_live(app: Sanic):
     assert response.status == 200
 
 @pytest.mark.asyncio
-async def test_aasvg(app: Sanic):
-    request, response = await app.asgi_client.get("/aasvg/787aa580-7c24-4b3e-bcc6-3b1c627153f7/1GdDyNl6jWaeSwY_Ao2sA8yahQINPcnhRh9naGRIDGak/1206725099/CoveredIf-full.svg")
+async def test_post(app: Sanic, post_data):
+    with open('tests/data/rodents.csv') as f:  
+        input_data = f.read()
+
+    post_data['csvString'] = input_data
+    request, response = await app.asgi_client.post('/post', data=post_data)
 
     assert response.status == 200

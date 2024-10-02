@@ -12,10 +12,16 @@ on:
     tags: [ 'v*.*.*' ]
     paths-ignore:
       - 'natural4-server/Docker/nginx/**'
+      - 'natural4-server/Docker/webapi-ci/**'
+      - '.github/workflows/docker-publish-nginx.yml'
+      - '.github/workflows/docker-publish-webapi-ci.yml'
   pull_request:
     branches: [ "main" ]
     paths-ignore:
       - 'natural4-server/Docker/nginx/**'
+      - 'natural4-server/Docker/webapi-ci/**'
+      - '.github/workflows/docker-publish-nginx.yml'
+      - '.github/workflows/docker-publish-webapi-ci.yml'
   workflow_dispatch:
     inputs:
       dsl_app_tag_input:
