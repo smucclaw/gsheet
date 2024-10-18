@@ -19,6 +19,7 @@ async def test_post(app: Sanic, post_data):
     post_data['csvString'] = input_data
     request, response = await app.asgi_client.post('/post', data=post_data)
 
+    assert response.status == 200
     await sleep(1)
 
     response_json = json.loads(response.body)
@@ -27,5 +28,8 @@ async def test_post(app: Sanic, post_data):
     slot_str = qq.search(v8k_url).group(1)
     slot = int(slot_str)-1
     
-    print(f"V8K_WORKDIR = {os.environ['V8K_WORKDIR']}/vue-{slot:02}")
-    assert response.status == 200
+    vue_dir = f"{os.environ['V8K_WORKDIR']}/vue-{slot:02}"
+
+    interview_file_stats = os.stat(vue_dir + "/anyall-purs/src/RuleLib/Interview.purs")
+
+    assert interview_file_stats.st_size == 10769
