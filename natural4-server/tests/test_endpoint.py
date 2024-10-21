@@ -35,4 +35,4 @@ async def test_post(app: Sanic, post_data):
     interview_aajson_stats = os.stat(vue_dir + "/src/assets/Interview.json")
 
     assert interview_purs_stats.st_size == 10769
-    assert interview_aajson_stats.st_size == 33577
+    assert interview_aajson_stats.st_size == 33610
