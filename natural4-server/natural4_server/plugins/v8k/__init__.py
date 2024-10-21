@@ -187,6 +187,13 @@ async def vue_purs_post_process(
             purs_file_dst = (
                 server_config_dir / "anyall-purs" / "src" / "RuleLib" / "Interview.purs"
             )
+
+            aajson_file_src = anyio.Path(args.filename) / "aajson" / "LATEST.json"
+
+            aajson_file_dst = (
+                server_config_dir / "src" / "assets" / "Interview.json"
+            )
+
             print(rsync_command, file=sys.stderr)
             rsync_coro = await asyncio.subprocess.create_subprocess_exec(*rsync_command)
             await rsync_coro.wait()
@@ -201,6 +208,13 @@ async def vue_purs_post_process(
                     aioshutil.copy(
                         purs_file_src,
                         purs_file_dst,
+                    )
+                )
+
+                taskgroup.create_task(
+                    aioshutil.copy(
+                        aajson_file_src,
+                        aajson_file_dst,
                     )
                 )
 
@@ -289,10 +303,25 @@ async def do_up(args: argparse.Namespace, workdir: str | os.PathLike) -> V8kUpRe
                             / "RuleLib"
                             / "Interview.purs"
                         )
+
+                        aajson_file_src = anyio.Path(args.filename)  / "aajson" / "LATEST.json"
+                        aajson_file_dst = (
+                            anyio.Path(dir)
+                            / "src"
+                            / "assets"
+                            / "Interview.json"
+                        )
+
                         print(f"cp {purs_file_src} {purs_file_dst}", file=sys.stderr)
                         taskgroup.create_task(
                             aioshutil.copy(purs_file_src, purs_file_dst)
                         )
+
+                        print(f"cp {aajson_file_src} {aajson_file_dst}", file=sys.stderr)
+                        taskgroup.create_task(
+                            aioshutil.copy(aajson_file_src, aajson_file_dst)
+                        )
+
                         taskgroup.create_task((anyio.Path(dir) / "v8k.json").touch())
                         # print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
                         result = V8kUpResult(port=port, base_url=base_url)

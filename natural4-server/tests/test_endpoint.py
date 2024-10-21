@@ -30,6 +30,9 @@ async def test_post(app: Sanic, post_data):
     
     vue_dir = f"{os.environ['V8K_WORKDIR']}/vue-{slot:02}"
 
-    interview_file_stats = os.stat(vue_dir + "/anyall-purs/src/RuleLib/Interview.purs")
+    interview_purs_stats = os.stat(vue_dir + "/anyall-purs/src/RuleLib/Interview.purs")
 
-    assert interview_file_stats.st_size == 10769
+    interview_aajson_stats = os.stat(vue_dir + "/src/assets/Interview.json")
+
+    assert interview_purs_stats.st_size == 10769
+    assert interview_aajson_stats.st_size == 33610
