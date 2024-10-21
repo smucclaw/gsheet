@@ -182,6 +182,11 @@ async def vue_purs_post_process(
                 f"{server_config_dir}/",
             )
 
+            purs_file_src = anyio.Path(args.filename)  / "purs" / "LATEST.purs"
+
+            purs_file_dst = (
+                server_config_dir / "anyall-purs" / "src" / "RuleLib" / "Interview.purs"
+            )
             print(rsync_command, file=sys.stderr)
             rsync_coro = await asyncio.subprocess.create_subprocess_exec(*rsync_command)
             await rsync_coro.wait()
@@ -194,12 +199,8 @@ async def vue_purs_post_process(
             ):
                 taskgroup.create_task(
                     aioshutil.copy(
-                        args.filename,
-                        server_config_dir
-                        / "anyall-purs"
-                        / "src"
-                        / "RuleLib"
-                        / "Interview.purs",
+                        purs_file_src,
+                        purs_file_dst,
                     )
                 )
 
@@ -280,15 +281,18 @@ async def do_up(args: argparse.Namespace, workdir: str | os.PathLike) -> V8kUpRe
                         print("refreshing the purs file", file=sys.stderr)
                         # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
                         #  reread the file too soon, when the cp hasn't completed.
-                        purs_file = (
+                        purs_file_src = anyio.Path(args.filename)  / "purs" / "LATEST.purs"
+                        purs_file_dst = (
                             anyio.Path(dir)
                             / "anyall-purs"
                             / "src"
                             / "RuleLib"
                             / "Interview.purs"
                         )
-                        print(f"cp {args.filename} {purs_file}", file=sys.stderr)
-                        taskgroup.create_task(aioshutil.copy(args.filename, purs_file))
+                        print(f"cp {purs_file_src} {purs_file_dst}", file=sys.stderr)
+                        taskgroup.create_task(
+                            aioshutil.copy(purs_file_src, purs_file_dst)
+                        )
                         taskgroup.create_task((anyio.Path(dir) / "v8k.json").touch())
                         # print(f":{port}{base_url}") # the port and base_url returned on STDOUT are read by the caller hello.py
                         result = V8kUpResult(port=port, base_url=base_url)
@@ -518,7 +522,7 @@ async def main(
         + (pyrs.v("--poolsize", v8k_slots) if v8k_slots else pyrs.v())
         + pyrs.v(
             f"--startport={v8k_startport}",
-            f'{anyio.Path(uuid_ss_folder) / "purs" / "LATEST.purs"}',
+            f'{anyio.Path(uuid_ss_folder)}',
         )
     )
 
