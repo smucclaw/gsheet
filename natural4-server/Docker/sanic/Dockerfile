@@ -19,7 +19,7 @@ RUN apt update; \
     procps \
     libpcre3-dev \
     curl \
-    node
+    nodejs
 
 RUN npm install -g npm
 
