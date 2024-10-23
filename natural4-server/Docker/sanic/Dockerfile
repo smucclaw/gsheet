@@ -21,11 +21,9 @@ RUN apt update; \
     curl
 
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh; \
-    bash nodesource_setup.sh
-
-RUN apt-get install -y \
-    nodejs \
-    npm
+    bash nodesource_setup.sh; \
+    apt-get install -y nodejs; \
+    npm install -g npm
 
 WORKDIR /opt/vue-pure-pdpa
 ENV V8K_WORKDIR=/var/v8kworkdir
