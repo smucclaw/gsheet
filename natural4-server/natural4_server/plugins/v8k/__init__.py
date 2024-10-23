@@ -182,12 +182,6 @@ async def vue_purs_post_process(
                 f"{server_config_dir}/",
             )
 
-            purs_file_src = anyio.Path(args.filename)  / "purs" / "LATEST.purs"
-
-            purs_file_dst = (
-                server_config_dir / "anyall-purs" / "src" / "RuleLib" / "Interview.purs"
-            )
-
             aajson_file_src = anyio.Path(args.filename) / "aajson" / "LATEST.json"
 
             aajson_file_dst = (
@@ -204,12 +198,6 @@ async def vue_purs_post_process(
                 ) as v8k_json_file,
                 asyncio.TaskGroup() as taskgroup,
             ):
-                taskgroup.create_task(
-                    aioshutil.copy(
-                        purs_file_src,
-                        purs_file_dst,
-                    )
-                )
 
                 taskgroup.create_task(
                     aioshutil.copy(
@@ -250,7 +238,7 @@ class V8kUpResult(pyrs.PRecord):
 async def do_up(args: argparse.Namespace, workdir: str | os.PathLike) -> V8kUpResult:
     vuedict = await read_all(workdir)
 
-    if not await anyio.Path(args.filename).is_file():
+    if not await anyio.Path(args.filename).is_dir():
         print(
             f"have you got the right filename? I can't see {args.filename} from here",
             file=sys.stderr,
@@ -295,14 +283,6 @@ async def do_up(args: argparse.Namespace, workdir: str | os.PathLike) -> V8kUpRe
                         print("refreshing the purs file", file=sys.stderr)
                         # [TODO] do this in a more atomic way with a tmp file and a rename, because the vue server may try to
                         #  reread the file too soon, when the cp hasn't completed.
-                        purs_file_src = anyio.Path(args.filename)  / "purs" / "LATEST.purs"
-                        purs_file_dst = (
-                            anyio.Path(dir)
-                            / "anyall-purs"
-                            / "src"
-                            / "RuleLib"
-                            / "Interview.purs"
-                        )
 
                         aajson_file_src = anyio.Path(args.filename)  / "aajson" / "LATEST.json"
                         aajson_file_dst = (
@@ -310,11 +290,6 @@ async def do_up(args: argparse.Namespace, workdir: str | os.PathLike) -> V8kUpRe
                             / "src"
                             / "assets"
                             / "Interview.json"
-                        )
-
-                        print(f"cp {purs_file_src} {purs_file_dst}", file=sys.stderr)
-                        taskgroup.create_task(
-                            aioshutil.copy(purs_file_src, purs_file_dst)
                         )
 
                         print(f"cp {aajson_file_src} {aajson_file_dst}", file=sys.stderr)
