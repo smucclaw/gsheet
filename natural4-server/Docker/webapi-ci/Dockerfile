@@ -24,8 +24,7 @@ RUN npm install -g npm
 WORKDIR /opt/vue-pure-pdpa
 ENV V8K_WORKDIR=/var/v8kworkdir
 
-RUN npm install -g node-gyp@latest ;\
-    npm install
+RUN npm install
 
 RUN mkdir $V8K_WORKDIR \
     && rsync -a /opt/vue-pure-pdpa/ $V8K_WORKDIR/vue-big/ \
