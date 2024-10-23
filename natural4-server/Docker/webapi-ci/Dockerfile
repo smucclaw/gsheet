@@ -19,6 +19,8 @@ RUN apt update; \
     procps \
     libpcre3-dev
 
+RUN npm install -g npm
+
 WORKDIR /opt/vue-pure-pdpa
 ENV V8K_WORKDIR=/var/v8kworkdir
 

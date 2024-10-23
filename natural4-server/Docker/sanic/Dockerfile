@@ -14,12 +14,11 @@ COPY --from=dsl lib/haskell/natural4/grammars /usr/local/share/natural4/grammars
 RUN apt update; \
     apt-get install -y --no-install-recommends \
     graphviz \
+    npm \
     rsync \
     git \
     procps \
-    libpcre3-dev \
-    curl \
-    npm
+    libpcre3-dev
 
 RUN npm install -g npm
 
