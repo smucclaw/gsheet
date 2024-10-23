@@ -14,11 +14,18 @@ COPY --from=dsl lib/haskell/natural4/grammars /usr/local/share/natural4/grammars
 RUN apt update; \
     apt-get install -y --no-install-recommends \
     graphviz \
-    npm \
     rsync \
     git \
     procps \
-    libpcre3-dev
+    libpcre3-dev \
+    curl
+
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh; \
+    bash nodesource_setup.sh
+
+RUN apt-get install -y \
+    node \
+    npm
 
 WORKDIR /opt/vue-pure-pdpa
 ENV V8K_WORKDIR=/var/v8kworkdir
