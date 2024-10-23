@@ -18,12 +18,10 @@ RUN apt update; \
     git \
     procps \
     libpcre3-dev \
-    curl
+    curl \
+    node
 
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh; \
-    bash nodesource_setup.sh; \
-    apt-get install -y nodejs; \
-    npm install -g npm
+RUN npm install -g npm
 
 WORKDIR /opt/vue-pure-pdpa
 ENV V8K_WORKDIR=/var/v8kworkdir
