@@ -37,5 +37,3 @@ WORKDIR /opt/natural4-server
 
 ENV START_PORT=8090
 ENV natural4_datadir=/usr/local/share/natural4
-ENV WS_PROXY_HOSTNAME="cclaw.legalese.com"
-ENV WS_PROXY_PROTOCOL="wss"
