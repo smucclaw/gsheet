@@ -89,8 +89,9 @@ natural4_dir: anyio.Path = anyio.Path(
 
 app = Sanic("Larangan", dumps=orjson.dumps, loads=orjson.loads)
 
-app.extend(config={"templating_path_to_templates": pathlib.Path(template_dir)})
 app.static("/static", pathlib.Path(static_dir))
+app.config.CORS_ORIGINS = "http://localhost:8000,https://smucclaw.github.io"
+app.config.TEMPLATING_PATH_TO_TEMPLATES = pathlib.Path(template_dir)
 
 
 # ################################################
