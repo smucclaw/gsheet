@@ -31,7 +31,6 @@ from natural4_server.task import Task, run_tasks
 from natural4_server.plugins.docgen import get_pandoc_tasks
 from natural4_server.plugins.flowchart import get_flowchart_tasks
 from natural4_server.plugins.natural4_maude import get_maude_tasks
-import natural4_server.plugins.v8k as v8k
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -321,8 +320,6 @@ async def process_csv(request: Request) -> HTTPResponse:
     # Concurrently peform the following:
     # - Write natural4-exe's stdout to a file.
     # - Write natural4-exe's stderr to a file.
-    # - Run v8k up.
-    print("Running v8k", file=sys.stderr)
 
     async with (
         await anyio.open_file(target_folder / f"{time_now}.out", "w") as out_file,
@@ -332,39 +329,13 @@ async def process_csv(request: Request) -> HTTPResponse:
         taskgroup.create_task(out_file.write(nl4_out))
         taskgroup.create_task(err_file.write(nl4_err))
 
-        v8k_up_task: asyncio.Task[v8k.V8kUpResult | None] = taskgroup.create_task(
-            v8k.main("up", uuid, spreadsheet_id, sheet_id, uuid_ss_folder)
-        )
-
     # Once v8k up returns with the vue purs post processing task, we create a
     # new process and get it to run the slow tasks concurrently.
     # These include:
     # - Maude tasks
     # - Pandoc tasks
     # - vue purs task
-    v8k_url = None
     slow_tasks = aiostream.stream.chain(maude_tasks, pandoc_tasks)
-    match v8k_up_task.result():
-        case {
-            "port": v8k_port,
-            "base_url": v8k_base_url,
-            "vue_purs_task": vue_purs_task,
-        }:
-            v8k_url = f"/webapp/{v8k_port}{v8k_base_url}"
-            if vue_purs_task:
-                slow_tasks = aiostream.stream.chain(
-                    aiostream.stream.just(vue_purs_task), slow_tasks
-                )
-
-    print("hello.py main: v8k up returned", file=sys.stderr)
-    print(f"v8k up succeeded with: {v8k_url}", file=sys.stderr)
-    print(
-        f"""
-  to see v8k bring up vue using npm run serve, run
-  tail -f {await (uuid_ss_folder / "v8k.out").resolve()}
-  """,
-        file=sys.stderr,
-    )
 
     # Schedule all the slow tasks to run in the background.
     app.add_task(run_tasks(slow_tasks))
@@ -397,7 +368,7 @@ async def process_csv(request: Request) -> HTTPResponse:
         {
             "nl4_stdout": nl4_stdout,
             "nl4_err": nl4_stderr,
-            "v8k_url": v8k_url,
+            "v8k_url": "",
             "aasvg_index": aasvg_index_task.result(),
             "timestamp": f"{timestamp}",
         }
