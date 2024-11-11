@@ -31,7 +31,6 @@ from natural4_server.task import Task, run_tasks
 from natural4_server.plugins.docgen import get_pandoc_tasks
 from natural4_server.plugins.flowchart import get_flowchart_tasks
 from natural4_server.plugins.natural4_maude import get_maude_tasks
-import natural4_server.plugins.v8k as v8k
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
