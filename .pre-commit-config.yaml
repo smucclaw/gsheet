@@ -12,12 +12,12 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.4.29
+    rev: 0.5.7
     hooks:
       - id: uv-lock
         args: ["--directory=natural4-server", "--frozen"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.2
+    rev: v0.8.2
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
