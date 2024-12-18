@@ -77,6 +77,7 @@ function showSidebar() {
   Logger.log("fromFlask returned");
   Logger.log(sidebar.fromFlask);
   sidebar.native_url          = workDirUrl + "native/LATEST.hs";
+  sidebar.simala_url          = workDirUrl + "simala/LATEST.simala";
   sidebar.corel4url           = workDirUrl + "corel4/LATEST.l4";
   sidebar.petri_url           = workDirUrl + "petri/LATEST.png"
   sidebar.json_url            = workDirUrl + "json/LATEST.json"
@@ -95,15 +96,8 @@ function showSidebar() {
   sidebar.liveUpdates         = liveUpdates;
   Logger.log("returned from exportCSV()");
 
-  Logger.log("looking for v8k_url in fromFlask")
-  var v8k_url = sidebar.fromFlask.v8k_url;
-  if (v8k_url) {
-    Logger.log(`matched a v8k_url: ${v8k_url}`);
-    sidebar.v8k_url = url_host + v8k_url;
-  } else {
-    Logger.log("unable to return valid v8k link");
-    sidebar.v8k_url = "#";
-  }
+  sidebar.new_v8k_url = `https://smucclaw.github.io/vue-pure-pdpa/index.html?hostCode=dev&uuid=${cachedUuid}&spreadsheetId=${spreadsheetId}&sheetId=${sheetId}`
+
 
   let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
 
