@@ -11,6 +11,7 @@ const configLibDefaults = ConfigLib.configLibDefaults();
 
 var port       = configLibDefaults.parentUrlPort;
 var url_host = configLibDefaults.parentUrlHost;
+var backend_host = "prod";
 
 var liveUpdates = true;
 let sidebarRefreshInterval = 60000;
@@ -45,6 +46,7 @@ function loadDev() {
   Logger.log("reading sheet = " + sheet.getSheetId());
   port = devPort(range) || port;
   url_host = devHost(range);
+  backend_host = backendHost(range)
   liveUpdates = devScan(range, /live updates (true|false)/i) || true; if (liveUpdates.toString().toLowerCase() == "false") { liveUpdates = false }
   Logger.log("setting port to " + port);
   Logger.log("setting liveUpdates to " + liveUpdates);
@@ -96,7 +98,7 @@ function showSidebar() {
   sidebar.liveUpdates         = liveUpdates;
   Logger.log("returned from exportCSV()");
 
-  sidebar.new_v8k_url = `https://smucclaw.github.io/vue-pure-pdpa/index.html?hostCode=dev&uuid=${cachedUuid}&spreadsheetId=${spreadsheetId}&sheetId=${sheetId}`
+  sidebar.new_v8k_url = `https://smucclaw.github.io/vue-pure-pdpa/index.html?hostCode=${backend_host}&uuid=${cachedUuid}&spreadsheetId=${spreadsheetId}&sheetId=${sheetId}`
 
 
   let aasvgUrl = url_hp() + "/aasvg/" + cachedUuid + "/" + spreadsheetId + "/" + sheetId + "/";
@@ -169,8 +171,26 @@ function devPort(range) {
 
 function devHost(range) {
   let mymatch = devScan(range, /devMode host (\S+)/i);
-  if (mymatch) { return mymatch }
+  if (mymatch) {
+    if (mymatch.startsWith('https')) {
+      return mymatch
+    } else {
+      return `https://${mymatch}.dev.cclaw.legalese.com`
+    }
+  }
   return configLibDefaults.parentUrlHost;
+}
+
+function backendHost(range) {
+  let mymatch = devScan(range, /devMode host (\S+)/i);
+  if (mymatch) {
+    if (mymatch.startsWith('https')) {
+      return "dev"
+    } else {
+      return mymatch
+    }
+  }
+  return "prod";
 }
 
 function onChange(e) {
