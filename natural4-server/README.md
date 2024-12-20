@@ -43,14 +43,6 @@ To use this:
       uv sync --extras docgen
       ```
 
-    - The `natural4-maude` group is used by the `plugins/natural4-maude` plugin
-      to generate state spaces from contracts and find race conditions.
-      It utilizes Maude under the hood.
-      To install this dependency group, run
-
-      ```example
-      uv sync --extras natural4-maude
-      ```
 
 You can run the scripts, with `uv run`.
 

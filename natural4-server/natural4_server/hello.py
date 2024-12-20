@@ -30,7 +30,6 @@ from cytoolz.curried import *
 from natural4_server.task import Task, run_tasks
 from natural4_server.plugins.docgen import get_pandoc_tasks
 from natural4_server.plugins.flowchart import get_flowchart_tasks
-from natural4_server.plugins.natural4_maude import get_maude_tasks
 
 ##########################################################
 # SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
@@ -306,17 +305,6 @@ async def process_csv(request: Request) -> HTTPResponse:
         uuid_ss_folder, timestamp
     )
 
-    # ---------------------------------------------
-    # postprocessing:
-    # Use Maude to generate the state space and find race conditions
-    # ---------------------------------------------
-    maude_output_path: anyio.Path = uuid_ss_folder / "maude"
-    natural4_file: anyio.Path = maude_output_path / "LATEST.natural4"
-
-    maude_tasks: AsyncGenerator[Task | None, None] = get_maude_tasks(
-        natural4_file, maude_output_path
-    )
-
     # Concurrently peform the following:
     # - Write natural4-exe's stdout to a file.
     # - Write natural4-exe's stderr to a file.
@@ -332,10 +320,9 @@ async def process_csv(request: Request) -> HTTPResponse:
     # Once v8k up returns with the vue purs post processing task, we create a
     # new process and get it to run the slow tasks concurrently.
     # These include:
-    # - Maude tasks
     # - Pandoc tasks
     # - vue purs task
-    slow_tasks = aiostream.stream.chain(maude_tasks, pandoc_tasks)
+    slow_tasks = aiostream.stream.chain(pandoc_tasks)
 
     # Schedule all the slow tasks to run in the background.
     app.add_task(run_tasks(slow_tasks))
