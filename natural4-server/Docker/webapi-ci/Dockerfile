@@ -13,13 +13,10 @@ COPY --from=dsl lib/haskell/natural4/grammars /usr/local/share/natural4/grammars
 RUN apt update; \
     apt-get install -y --no-install-recommends \
     graphviz \
-    npm \
     rsync \
     git \
     procps \
     libpcre3-dev
-
-RUN npm install -g npm
 
 WORKDIR /opt/vue-pure-pdpa
 ENV V8K_WORKDIR=/var/v8kworkdir
