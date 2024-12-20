@@ -3,7 +3,7 @@ name = "natural4-server"
 version = "0.1.0"
 description = ""
 readme = "README.md"
-requires-python = "==3.12"
+requires-python = "==3.12.*"
 
 
 dependencies = [
@@ -26,11 +26,6 @@ dependencies = [
 [project.optional-dependencies]
 docgen = [
     "pypandoc-binary == 1.13",]
-natural4-maude = [
-    "maude == 1.4.0",
-    "umaudemc == 0.13.1",
-    "pyvis == 0.3.2",
-    "networkx == 3.3",]
 
 [build-system]
 requires = ["hatchling"]
