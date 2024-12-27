@@ -5,7 +5,7 @@ from hello import app
 
 START_PORT = int(os.getenv("START_PORT"))
 
-raw_env: str = f"""
+raw_env: str = """
 basedir=.
 """
 
