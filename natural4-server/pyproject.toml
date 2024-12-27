@@ -50,8 +50,6 @@ ignore = ["E731", "E701"]
 
 [tool.ruff.per-file-ignores] 
 "natural4_server/*.py" = ["F403", "E701", "F405"]
-# Ruff doesn't like the from module import * pattern
-"natural4_server/plugins/v8k/__init__.py" = ["F841"]
 # quiet warning for Joe's unused `runvue` variable
 "*joe*.py" = ["F403", "E701", "F405", "E402"]
 "*8090*.py" = ["F403", "E701", "F405", "E402"]

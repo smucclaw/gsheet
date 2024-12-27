@@ -317,11 +317,7 @@ async def process_csv(request: Request) -> HTTPResponse:
         taskgroup.create_task(out_file.write(nl4_out))
         taskgroup.create_task(err_file.write(nl4_err))
 
-    # Once v8k up returns with the vue purs post processing task, we create a
-    # new process and get it to run the slow tasks concurrently.
-    # These include:
     # - Pandoc tasks
-    # - vue purs task
     slow_tasks = aiostream.stream.chain(pandoc_tasks)
 
     # Schedule all the slow tasks to run in the background.

@@ -5,9 +5,8 @@ from hello import app
 
 START_PORT = int(os.getenv("START_PORT"))
 
-raw_env: str = f"""
+raw_env: str = """
 basedir=.
-v8k_startport={START_PORT + 1}
 """
 
 load_dotenv(stream=StringIO(raw_env))

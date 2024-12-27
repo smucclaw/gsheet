@@ -4,9 +4,6 @@ from dotenv import load_dotenv
 # Define and load environment variables.
 raw_env: str = """
 basedir=.
-V8K_WORKDIR=/home/mengwong/v8kworkdir-8090
-v8k_startport=8091
-v8k_path=/home/mengwong/src/smucclaw/vue-pure-pdpa/bin/v8k
 natural4_exe=natural4-unstable
 CCLAW_HTTPS="true, set in sanic.*.py"
 """
