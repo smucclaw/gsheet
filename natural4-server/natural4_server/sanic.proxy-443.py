@@ -5,8 +5,6 @@ from hello import app
 # Define and load environment variables.
 raw_env: str = """
 basedir=.
-V8K_WORKDIR=/home/rkhafizov/v8kworkdir
-v8k_startport=8401
 """
 
 load_dotenv(stream=StringIO(raw_env))
