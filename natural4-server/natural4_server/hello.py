@@ -80,7 +80,7 @@ except (KeyError, ValueError):
 # see gunicorn.conf.py for basedir, workdir, startport
 temp_dir: anyio.Path = basedir / "temp"
 natural4_dir: anyio.Path = anyio.Path(
-    os.environ.get("NL4_WORKDIR", temp_dir / "workdir")
+    os.environ.get("NL4_WORKDIR", temp_dir / "workdir/")
 )
 
 app = Sanic("Larangan", dumps=orjson.dumps, loads=orjson.loads)
@@ -93,52 +93,7 @@ app.config.CORS_ORIGINS = "http://localhost:8000,https://smucclaw.github.io"
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
 
-
-@app.route("/workdir/<uuid>/<ssid>/<sid>/<channel>/<filename>")
-async def get_workdir_file(
-    request: Request, uuid: str, ssid: str, sid: str, channel: str, filename: str
-) -> HTTPResponse:
-    print(
-        f"get_workdir_file: handling request for {uuid}/{ssid}/{sid}/{channel}/{filename}",
-        file=sys.stderr,
-    )
-
-    workdir_folder: anyio.Path = natural4_dir / uuid / ssid / sid / channel
-    workdir_folder_filename: anyio.Path = workdir_folder / filename
-
-    response = HTTPResponse(status=204)
-
-    if not await workdir_folder.exists():
-        msg = f"get_workdir_file: unable to find workdir_folder {workdir_folder}"
-    elif not await workdir_folder_filename.is_file():
-        msg = f"get_workdir_file: unable to find file {workdir_folder_filename}"
-    else:
-        exts = {
-            ".l4",
-            ".epilog",
-            ".purs",
-            ".org",
-            ".hs",
-            ".ts",
-            ".natural4",
-            ".le",
-            ".json",
-        }
-        if anyio.Path(filename).suffix in exts:
-            mime_type, mime_type_str = ("text/plain",) * 2
-        else:
-            mime_type, mime_type_str = None, ""
-
-        msg = f"get_workdir_file: returning {mime_type_str} {workdir_folder_filename}"
-
-        response = await file(
-            pathlib.Path(workdir_folder_filename), mime_type=mime_type
-        )
-
-    print(msg, file=sys.stderr)
-
-    return response
-
+app.static("/workdir/", natural4_dir, name="workdir")
 
 # ################################################
 #            SERVE SVG STATIC FILES
