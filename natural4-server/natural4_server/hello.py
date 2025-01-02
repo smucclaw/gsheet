@@ -93,7 +93,7 @@ app.config.CORS_ORIGINS = "http://localhost:8000,https://smucclaw.github.io"
 # ################################################
 #  secondary handler serves .l4, .md, .hs, etc static files
 
-app.static("/workdir/", natural4_dir, name="workdir")
+app.static("/workdir/", pathlib.Path(natural4_dir), name="workdir")
 
 # ################################################
 #            SERVE SVG STATIC FILES
