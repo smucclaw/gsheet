@@ -78,18 +78,14 @@ except (KeyError, ValueError):
 # in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
 
 # see gunicorn.conf.py for basedir, workdir, startport
-template_dir: anyio.Path = basedir / "template"
 temp_dir: anyio.Path = basedir / "temp"
-static_dir: anyio.Path = basedir / "static"
 natural4_dir: anyio.Path = anyio.Path(
     os.environ.get("NL4_WORKDIR", temp_dir / "workdir")
 )
 
 app = Sanic("Larangan", dumps=orjson.dumps, loads=orjson.loads)
 
-app.static("/static", pathlib.Path(static_dir))
 app.config.CORS_ORIGINS = "http://localhost:8000,https://smucclaw.github.io"
-app.config.TEMPLATING_PATH_TO_TEMPLATES = pathlib.Path(template_dir)
 
 
 # ################################################
