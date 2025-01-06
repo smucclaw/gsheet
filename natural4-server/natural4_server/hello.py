@@ -56,9 +56,6 @@ def set_max_runtime(seconds) -> None:
 # max run time
 set_max_runtime(10000)
 
-########################################################## end of setrlimit
-
-basedir = anyio.Path(os.environ.get("basedir", "."))
 
 default_filenm_natL4exe_from_stack_install = "natural4-exe"
 natural4_exe: str = os.environ.get(
@@ -73,14 +70,9 @@ except (KeyError, ValueError):
     # ValueError that could occur when casting that to a float.
     nl4exe_time_limit: float = 20
 
-# sometimes it is desirable to override the default name
-# that `stack install` uses with a particular binary from a particular commit
-# in which case you would set up gunicorn.conf.py with a natural4_exe = natural4-noqns or something like that
-
 # see gunicorn.conf.py for basedir, workdir, startport
-temp_dir: anyio.Path = basedir / "temp"
-natural4_dir: anyio.Path = anyio.Path(
-    os.environ.get("NL4_WORKDIR", temp_dir / "workdir/")
+natural4_dir: pathlib.Path = pathlib.Path(
+    os.environ.get("NL4_WORKDIR", pathlib.Path(os.getcwd()) / "temp" / "workdir/")
 )
 
 app = Sanic("Larangan", dumps=orjson.dumps, loads=orjson.loads)
@@ -142,14 +134,13 @@ async def process_csv(request: Request) -> HTTPResponse:
     uuid: str = data["uuid"][0]
     spreadsheet_id: str = data["spreadsheetId"][0]
     sheet_id: str = data["sheetId"][0]
-    target_folder = anyio.Path(natural4_dir) / uuid / spreadsheet_id / sheet_id
-    print(target_folder)
-    time_now: str = datetime.datetime.now().strftime("%Y%m%dT%H%M%S.%fZ")
-    target_file = anyio.Path(f"{time_now}.csv")
-    # target_path is for CSV data
-    target_path: anyio.Path = target_folder / target_file
 
-    await target_folder.mkdir(parents=True, exist_ok=True)
+    target_folder = natural4_dir / uuid / spreadsheet_id / sheet_id
+
+    time_now: str = datetime.datetime.now().strftime("%Y%m%dT%H%M%S.%fZ")
+    target_path = target_folder / f"{time_now}.csv"
+
+    await anyio.Path(target_folder).mkdir(parents=True, exist_ok=True)
 
     async with await anyio.open_file(target_path, "w") as fout:
         await fout.write(data["csvString"][0])
@@ -187,7 +178,7 @@ async def process_csv(request: Request) -> HTTPResponse:
         natural4_exe,
         # '--toasp', '--toepilog',
         f"--workdir={natural4_dir}",
-        f"--uuiddir={anyio.Path(uuid) / spreadsheet_id / sheet_id}",
+        f"--uuiddir={pathlib.Path(uuid) / spreadsheet_id / sheet_id}",
         f"{target_path}",
     )
 
@@ -235,13 +226,14 @@ async def process_csv(request: Request) -> HTTPResponse:
     # postprocessing: for petri nets: turn the DOT files into PNGs
     # we run this asynchronously and block at the end before returning.
     # ---------------------------------------------
-    uuid_ss_folder: anyio.Path = natural4_dir / uuid / spreadsheet_id / sheet_id
-    petri_folder: anyio.Path = uuid_ss_folder / "petri"
-    dot_path: anyio.Path = petri_folder / "LATEST.dot"
-    timestamp: anyio.Path = anyio.Path((await dot_path.readlink()).stem)
+    petri_folder = target_folder / "petri"
+    dot_path = anyio.Path(petri_folder / "LATEST.dot")
+    # dot_path resolves to something like 2025-01-06T03:00:52.dot
+    # stem is respectively a timestamp 2025-01-06T03:00:52
+    timestamp = (await dot_path.readlink()).stem
 
     flowchart_tasks: asyncio.Task[None] = pipe(
-        get_flowchart_tasks(uuid_ss_folder, timestamp), run_tasks, app.add_task
+        get_flowchart_tasks(target_folder, timestamp), run_tasks, app.add_task
     )
 
     # Slow tasks below.
@@ -253,7 +245,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     # Use pandoc to generate word and pdf docs from markdown.
     # ---------------------------------------------
     pandoc_tasks: AsyncGenerator[Task | None, None] = get_pandoc_tasks(
-        uuid_ss_folder, timestamp
+        target_folder, timestamp
     )
 
     # Concurrently peform the following:
@@ -291,7 +283,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     # - Read in the aasvg html file to return to the sidebar.
     async with (
         await anyio.open_file(
-            uuid_ss_folder / "aasvg" / "LATEST" / "index.html", "r"
+            target_folder / "aasvg" / "LATEST" / "index.html", "r"
         ) as aasvg_file,
         asyncio.TaskGroup() as taskgroup,
     ):
