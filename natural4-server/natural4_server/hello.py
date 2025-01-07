@@ -123,27 +123,19 @@ async def liveness_probe(request: Request) -> HTTPResponse:
 @app.route("/post", methods=["GET", "POST"])
 async def process_csv(request: Request) -> HTTPResponse:
     start_time: datetime.datetime = datetime.datetime.now()
+    time_now: str = start_time.strftime("%Y%m%dT%H%M%S.%fZ")
+
     print(
         "\n--------------------------------------------------------------------------\n",
         file=sys.stderr,
     )
     print("hello.py processCsv() starting at ", start_time, file=sys.stderr)
 
-    data = request.form
-
-    uuid: str = data["uuid"][0]
-    spreadsheet_id: str = data["spreadsheetId"][0]
-    sheet_id: str = data["sheetId"][0]
+    uuid, spreadsheet_id, sheet_id = extract_fields(request.form)
 
     target_folder = natural4_dir / uuid / spreadsheet_id / sheet_id
 
-    time_now: str = datetime.datetime.now().strftime("%Y%m%dT%H%M%S.%fZ")
-    target_path = target_folder / f"{time_now}.csv"
-
-    await anyio.Path(target_folder).mkdir(parents=True, exist_ok=True)
-
-    async with await anyio.open_file(target_path, "w") as fout:
-        await fout.write(data["csvString"][0])
+    target_path = await save_csv(request, target_folder, time_now)
 
     # Generate markdown files asynchronously in the background.
     # uuiddir: anyio.Path = anyio.Path(uuid) / spreadsheet_id / sheet_id
@@ -176,7 +168,6 @@ async def process_csv(request: Request) -> HTTPResponse:
     # one can leave out the ASP by adding the --toasp option
     create_files: Sequence[str] = (
         natural4_exe,
-        # '--toasp', '--toepilog',
         f"--workdir={natural4_dir}",
         f"--uuiddir={pathlib.Path(uuid) / spreadsheet_id / sheet_id}",
         f"{target_path}",
@@ -226,15 +217,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     # postprocessing: for petri nets: turn the DOT files into PNGs
     # we run this asynchronously and block at the end before returning.
     # ---------------------------------------------
-    petri_folder = target_folder / "petri"
-    dot_path = anyio.Path(petri_folder / "LATEST.dot")
-    # dot_path resolves to something like 2025-01-06T03:00:52.dot
-    # stem is respectively a timestamp 2025-01-06T03:00:52
-    timestamp = (await dot_path.readlink()).stem
-
-    flowchart_tasks: asyncio.Task[None] = pipe(
-        get_flowchart_tasks(target_folder, timestamp), run_tasks, app.add_task
-    )
+    timestamp, flowchart_tasks = await petri_post_process(target_folder)
 
     # Slow tasks below.
     # These are run in the background using app.add_background_task, which
@@ -299,6 +282,34 @@ async def process_csv(request: Request) -> HTTPResponse:
             "timestamp": f"{timestamp}",
         }
     )
+
+async def petri_post_process(target_folder):
+    petri_folder = target_folder / "petri"
+    dot_path = anyio.Path(petri_folder / "LATEST.dot")
+    # dot_path resolves to something like 2025-01-06T03:00:52.dot
+    # stem is respectively a timestamp 2025-01-06T03:00:52
+    timestamp = (await dot_path.readlink()).stem
+
+    flowchart_tasks: asyncio.Task[None] = pipe(
+        get_flowchart_tasks(target_folder, timestamp), run_tasks, app.add_task
+    )
+
+    return timestamp,flowchart_tasks
+
+async def save_csv(request, target_folder, time_now):
+    target_path = target_folder / f"{time_now}.csv"
+
+    await anyio.Path(target_folder).mkdir(parents=True, exist_ok=True)
+
+    async with await anyio.open_file(target_path, "w") as fout:
+        await fout.write(request.form["csvString"][0])
+    return target_path
+
+def extract_fields(data):
+    uuid: str = data["uuid"][0]
+    spreadsheet_id: str = data["spreadsheetId"][0]
+    sheet_id: str = data["sheetId"][0]
+    return uuid,spreadsheet_id,sheet_id
 
     # ---------------------------------------------
     # return to sidebar caller
