@@ -23,6 +23,6 @@ async def test_post(app: Sanic, post_data):
     request, response_json = await app.asgi_client.get(f'{workdir_url}/aajson/LATEST.json')
     assert response_json.status == 200
 
-    sleep(5)
+    sleep(10)
     request, response_pdf = await app.asgi_client.get(f'{workdir_url}/pdf/LATEST.pdf')
     assert response_pdf.status == 200
