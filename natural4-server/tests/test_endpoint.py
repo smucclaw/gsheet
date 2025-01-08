@@ -1,3 +1,5 @@
+import asyncio
+from time import sleep
 from sanic import Sanic
 import pytest
 
@@ -13,6 +15,15 @@ async def test_post(app: Sanic, post_data):
         input_data = f.read()
 
     post_data['csvString'] = input_data
-    request, response = await app.asgi_client.post('/post', data=post_data)
+    request, response_post = await app.asgi_client.post('/post', data=post_data)
+    assert response_post.status == 200
 
-    assert response.status == 200
+    workdir_url = f'/workdir/{post_data['uuid']}/{post_data['spreadsheetId']}/{post_data['sheetId']}'
+
+    print(f'/{workdir_url}/aajson/LATEST.json')
+    request, response_json = await app.asgi_client.get(f'{workdir_url}/aajson/LATEST.json')
+    assert response_json.status == 200
+
+    sleep(5)
+    request, response_pdf = await app.asgi_client.get(f'{workdir_url}/pdf/LATEST.pdf')
+    assert response_pdf.status == 200
