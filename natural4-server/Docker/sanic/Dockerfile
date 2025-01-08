@@ -15,7 +15,8 @@ RUN apt update; \
     graphviz \
     git \
     procps \
-    libpcre3-dev
+    libpcre3-dev \
+    fonts-droid-fallback
 
 WORKDIR /opt/vue-pure-pdpa
 

@@ -1,4 +1,3 @@
-import asyncio
 from time import sleep
 from sanic import Sanic
 import pytest
