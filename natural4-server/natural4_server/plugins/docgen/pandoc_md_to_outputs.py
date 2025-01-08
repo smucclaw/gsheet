@@ -68,16 +68,18 @@ async def pandoc_md_to_output(
                 print(f'Running {" ".join(pandoc_cmd)}', file=sys.stderr)
 
                 try:
-                    # await asyncio.to_thread(
-                    #   pypandoc.convert_file,
-                    #   f'{md_file}', file_extension,
-                    #   outputfile = f'{outputfile}', extra_args = extra_args
-                    # )
-                    await asyncio.subprocess.create_subprocess_exec(
+                    proc = await asyncio.subprocess.create_subprocess_exec(
                         *pandoc_cmd,
                         stdout=asyncio.subprocess.PIPE,
                         stderr=asyncio.subprocess.PIPE,
                     )
+                    stdout, stderr = await proc.communicate()
+
+                    if stdout:
+                        print(f'[pandoc out]\n{stdout.decode()}')
+
+                    if stderr:
+                        print(f'[pandoc err]\n{stderr.decode()}')
                 except RuntimeError as exc:
                     print(
                         f"Error occured while outputting to {file_extension}: {exc}",
