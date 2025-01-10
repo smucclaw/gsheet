@@ -87,6 +87,8 @@ async def flowchart_dot_to_output(
     await output_path.mkdir(parents=True, exist_ok=True)
     dot_file: anyio.Path = output_path / "LATEST.dot"
 
+    print(f"hello.py main: calling flowchart", file=sys.stderr)
+
     if await dot_file.exists():
         match flowchart_output:
             case {"suffix": suffix, "file_extension": file_extension, "args": args}:
@@ -115,6 +117,7 @@ async def flowchart_dot_to_output(
 async def get_flowchart_tasks(
     uuid_ss_folder: str | os.PathLike, timestamp: str | os.PathLike
 ) -> AsyncGenerator[Task, None]:
+    print(f"hello.py main: calling get_flowchart_tasks", file=sys.stderr)
     for output in flowchart_outputs:
         yield Task(
             func=flowchart_dot_to_output, args=(uuid_ss_folder, timestamp, output)
