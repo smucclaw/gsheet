@@ -1,6 +1,5 @@
 from time import sleep
 from sanic import Sanic
-import pytest
 from sanic_testing.reusable import ReusableClient
 
 # @pytest.mark.asyncio
