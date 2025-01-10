@@ -291,7 +291,7 @@ async def petri_post_process(target_folder):
     timestamp = (await dot_path.readlink()).stem
 
     flowchart_tasks: asyncio.Task[None] = pipe(
-        get_flowchart_tasks(target_folder, timestamp), run_tasks, app.add_task
+        get_flowchart_tasks(target_folder, timestamp), run_tasks
     )
 
     return timestamp,flowchart_tasks
