@@ -1,12 +1,15 @@
 from time import sleep
 from sanic import Sanic
 from sanic_testing.reusable import ReusableClient
-from time import sleep
+from sanic.application.constants import ServerStage
 
 def test_post(app: Sanic, post_data):
     with open('tests/data/rodents.csv') as f:
         input_data = f.read()
         with ReusableClient(app) as client:
+            for info in app.state.server_info:
+                info.stage = ServerStage.SERVING
+
             post_data['csvString'] = input_data
             request, response_post = client.post('/post', data=post_data)
             assert response_post.status == 200
@@ -16,6 +19,8 @@ def test_post(app: Sanic, post_data):
             request, response_json = client.get(f'{workdir_url}/aajson/LATEST.json')
             assert response_json.status == 200
 
+            sleep(1)
+
             request, response_json = client.get(f'{workdir_url}/petri/LATEST.png')
             assert response_json.status == 200
 
@@ -24,6 +29,8 @@ def test_post(app: Sanic, post_data):
 
             request, response_json = client.get(f'{workdir_url}/petri/LATEST-small.png')
             assert response_json.status == 200
+
+            sleep(15)
 
             request, response_pdf = client.get(f'{workdir_url}/pdf/LATEST.pdf')
             assert response_pdf.status == 200
