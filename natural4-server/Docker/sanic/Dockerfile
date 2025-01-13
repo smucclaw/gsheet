@@ -17,6 +17,7 @@ RUN apt update; \
     procps \
     libpcre3-dev \
     texlive-xetex \
+    texlive-fonts-extra \
     fonts-droid-fallback
 
 WORKDIR /opt/vue-pure-pdpa
