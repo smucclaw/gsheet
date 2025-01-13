@@ -1,7 +1,6 @@
 from collections.abc import AsyncGenerator
 import os
 import subprocess
-import sys
 
 import aiostream
 
