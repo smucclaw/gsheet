@@ -38,7 +38,6 @@ def test_post(app: Sanic, post_data):
                 request, response_pdf = client.get(f'{workdir_url}/pdf/LATEST.pdf')
                 if response_pdf.status != 200:
                     sleep(5)
-                    continue
                 else:
                     break
 
