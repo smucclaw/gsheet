@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep, time
 from sanic import Sanic
 from sanic_testing.reusable import ReusableClient
 from sanic.application.constants import ServerStage
@@ -32,5 +32,14 @@ def test_post(app: Sanic, post_data):
 
             sleep(15)
 
-            request, response_pdf = client.get(f'{workdir_url}/pdf/LATEST.pdf')
+            start_time = time()
+            while time() - start_time < 60:
+                print('Waiting for PDF...')
+                request, response_pdf = client.get(f'{workdir_url}/pdf/LATEST.pdf')
+                if response_pdf.status != 200:
+                    sleep(5)
+                    continue
+                else:
+                    break
+
             assert response_pdf.status == 200
