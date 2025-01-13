@@ -30,8 +30,6 @@ def test_post(app: Sanic, post_data):
             request, response_json = client.get(f'{workdir_url}/petri/LATEST-small.png')
             assert response_json.status == 200
 
-            sleep(15)
-
             start_time = time()
             while time() - start_time < 60:
                 print('Waiting for PDF...')
