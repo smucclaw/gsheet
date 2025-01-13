@@ -1,7 +1,5 @@
-from time import sleep
 from sanic import Sanic
 from sanic_testing.reusable import ReusableClient
-from time import sleep
 
 def test_post(app: Sanic, post_data):
     with open('tests/data/rodents.csv') as f:
