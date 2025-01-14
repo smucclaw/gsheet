@@ -29,9 +29,7 @@ def task_to_coro(task: Task) -> Coroutine:
             return _run_as_async(lambda: None, tuple())
 
 
-async def run_tasks(
-    tasks: AsyncGenerator[Task, None] | Generator[Task, None, None]
-) -> None:
+async def run_tasks(tasks: AsyncGenerator[Task, None] | Generator[Task, None, None]) -> None:
     """
     Runs tasks asynchronously in the background.
     """

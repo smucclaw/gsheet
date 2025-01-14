@@ -22,9 +22,7 @@ class PandocOutput(pyrs.PRecord):
 
 
 pandoc_outputs: Collection[PandocOutput] = pyrs.s(
-    PandocOutput(
-        file_extension="docx", extra_args=("-f", "markdown+hard_line_breaks", "-s")
-    ),
+    PandocOutput(file_extension="docx", extra_args=("-f", "markdown+hard_line_breaks", "-s")),
     PandocOutput(
         file_extension="pdf",
         extra_args=(
@@ -76,10 +74,10 @@ async def pandoc_md_to_output(
                     stdout, stderr = await proc.communicate()
 
                     if stdout:
-                        print(f'[pandoc out]\n{stdout.decode()}')
+                        print(f"[pandoc out]\n{stdout.decode()}")
 
                     if stderr:
-                        print(f'[pandoc err]\n{stderr.decode()}')
+                        print(f"[pandoc err]\n{stderr.decode()}")
                 except RuntimeError as exc:
                     print(
                         f"Error occured while outputting to {file_extension}: {exc}",

@@ -12,15 +12,14 @@ basedir = anyio.Path(os.environ.get("basedir", "."))
 template_dir: anyio.Path = basedir / "template"
 temp_dir: anyio.Path = basedir / "temp"
 static_dir: anyio.Path = basedir / "static"
-natural4_dir: anyio.Path = anyio.Path(
-    os.environ.get("NL4_WORKDIR", temp_dir / "workdir")
-)
+natural4_dir: anyio.Path = anyio.Path(os.environ.get("NL4_WORKDIR", temp_dir / "workdir"))
 
-logger = logging.getLogger('uvicorn.error')
+logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI()
 
 app.mount("/workdir", StaticFiles(directory=natural4_dir), name="static")
+
 
 @app.get("/aasvg/{uuid}/{ssid}/{sid}/{image}")
 async def show_aasvg_image(uuid: str, ssid: str, sid: str, image: str) -> FileResponse:
