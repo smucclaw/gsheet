@@ -42,14 +42,3 @@ dev-dependencies = [
 [tool.ruff]
 line-length = 130
 target-version = "py312"
-
-ignore = ["E731", "E701"]
-# E731: we are FPers, assigning lambdas is OK
-# E701: sometimes it looks better to have multiple statements after colon
-
-[tool.ruff.per-file-ignores]
-"natural4_server/*.py" = ["F403", "E701", "F405"]
-# quiet warning for Joe's unused `runvue` variable
-"*joe*.py" = ["F403", "E701", "F405", "E402"]
-"*8090*.py" = ["F403", "E701", "F405", "E402"]
-# disable false positive linting warnings for joe's config gnunicorn files
