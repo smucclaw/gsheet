@@ -65,16 +65,12 @@ async def _dot_file_to_output(
     output_file = anyio.Path(output_file)
 
     graphviz_cmd: Sequence[str] = (
-        pyrse.sq("dot", f"-T{output_file.suffix[1:]}", f"{dot_file}")
-        + pyrse.psequence(args)
-        + pyrse.sq("-o", f"{output_file}")
+        pyrse.sq("dot", f"-T{output_file.suffix[1:]}", f"{dot_file}") + pyrse.psequence(args) + pyrse.sq("-o", f"{output_file}")
     )  # type: ignore
 
     print(f'Calling graphviz with: {" ".join(graphviz_cmd)}', file=sys.stderr)
 
-    await asyncio.subprocess.create_subprocess_exec(
-        *graphviz_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-    )
+    await asyncio.subprocess.create_subprocess_exec(*graphviz_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
 
 
 async def flowchart_dot_to_output(
@@ -97,9 +93,7 @@ async def flowchart_dot_to_output(
                 print(f"Output file: {output_file}", file=sys.stderr)
                 await _dot_file_to_output(dot_file, output_file, args)
 
-                latest_file: anyio.Path = (
-                    output_path / f"LATEST{suffix}.{file_extension}"
-                )
+                latest_file: anyio.Path = output_path / f"LATEST{suffix}.{file_extension}"
                 try:
                     await latest_file.unlink(missing_ok=True)
                     await latest_file.symlink_to(timestamp_file)
@@ -112,10 +106,6 @@ async def flowchart_dot_to_output(
                     print(f"hello.py main: {exc}", file=sys.stderr)
 
 
-async def get_flowchart_tasks(
-    uuid_ss_folder: str | os.PathLike, timestamp: str | os.PathLike
-) -> AsyncGenerator[Task, None]:
+async def get_flowchart_tasks(uuid_ss_folder: str | os.PathLike, timestamp: str | os.PathLike) -> AsyncGenerator[Task, None]:
     for output in flowchart_outputs:
-        yield Task(
-            func=flowchart_dot_to_output, args=(uuid_ss_folder, timestamp, output)
-        )
+        yield Task(func=flowchart_dot_to_output, args=(uuid_ss_folder, timestamp, output))

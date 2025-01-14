@@ -58,9 +58,7 @@ set_max_runtime(10000)
 
 
 default_filenm_natL4exe_from_stack_install = "natural4-exe"
-natural4_exe: str = os.environ.get(
-    "natural4_exe", default_filenm_natL4exe_from_stack_install
-)
+natural4_exe: str = os.environ.get("natural4_exe", default_filenm_natL4exe_from_stack_install)
 
 try:
     nl4exe_time_limit: float = float(os.environ["NL4EXE_TIME_LIMIT"])
@@ -71,9 +69,7 @@ except (KeyError, ValueError):
     nl4exe_time_limit: float = 20
 
 # see gunicorn.conf.py for basedir, workdir, startport
-natural4_dir: pathlib.Path = pathlib.Path(
-    os.environ.get("NL4_WORKDIR", pathlib.Path(os.getcwd()) / "temp" / "workdir/")
-)
+natural4_dir: pathlib.Path = pathlib.Path(os.environ.get("NL4_WORKDIR", pathlib.Path(os.getcwd()) / "temp" / "workdir/"))
 
 app = Sanic("Larangan", dumps=orjson.dumps, loads=orjson.loads)
 
@@ -98,9 +94,7 @@ app.static("/workdir/", pathlib.Path(natural4_dir), name="workdir")
 
 
 @app.route("/aasvg/<uuid>/<ssid>/<sid>/<image>")
-async def show_aasvg_image(
-    request: Request, uuid: str, ssid: str, sid: str, image: str
-) -> HTTPResponse:
+async def show_aasvg_image(request: Request, uuid: str, ssid: str, sid: str, image: str) -> HTTPResponse:
     print("show_aasvg_image: handling request for /aasvg/ url", file=sys.stderr)
 
     image_path = natural4_dir / uuid / ssid / sid / "aasvg" / "LATEST" / image
@@ -186,11 +180,7 @@ async def process_csv(request: Request) -> HTTPResponse:
         try:
             (await nl4exe).terminate()
         finally:
-            return json(
-                {
-                    "nl4_err": f"natural4_exe timed out after {nl4exe_time_limit} seconds."
-                }
-            )
+            return json({"nl4_err": f"natural4_exe timed out after {nl4exe_time_limit} seconds."})
 
     print(
         f"hello.py main: back from natural4-exe (took {datetime.datetime.now() - start_time})",
@@ -200,12 +190,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     nl4_out, nl4_err = await nl4exe.communicate()
     nl4_out, nl4_err = nl4_out.decode(), nl4_err.decode()
 
-    print(
-        f"hello.py main: natural4-exe stdout length = {len(nl4_out)}", file=sys.stderr
-    )
-    print(
-        f"hello.py main: natural4-exe stderr length = {len(nl4_err)}", file=sys.stderr
-    )
+    print(f"hello.py main: natural4-exe stdout length = {len(nl4_out)}", file=sys.stderr)
+    print(f"hello.py main: natural4-exe stderr length = {len(nl4_err)}", file=sys.stderr)
 
     short_err_maxlen, long_err_maxlen = 2_000, 20_000
     nl4_stdout, nl4_stderr = nl4_out[:long_err_maxlen], nl4_err[:long_err_maxlen]
@@ -227,9 +213,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     # postprocessing:
     # Use pandoc to generate word and pdf docs from markdown.
     # ---------------------------------------------
-    pandoc_tasks: AsyncGenerator[Task | None, None] = get_pandoc_tasks(
-        target_folder, timestamp
-    )
+    pandoc_tasks: AsyncGenerator[Task | None, None] = get_pandoc_tasks(target_folder, timestamp)
 
     # Concurrently peform the following:
     # - Write natural4-exe's stdout to a file.
@@ -265,9 +249,7 @@ async def process_csv(request: Request) -> HTTPResponse:
     # - Wait for the flowcharts to be generated before returning to the sidebar.
     # - Read in the aasvg html file to return to the sidebar.
     async with (
-        await anyio.open_file(
-            target_folder / "aasvg" / "LATEST" / "index.html", "r"
-        ) as aasvg_file,
+        await anyio.open_file(target_folder / "aasvg" / "LATEST" / "index.html", "r") as aasvg_file,
         asyncio.TaskGroup() as taskgroup,
     ):
         aasvg_index_task: asyncio.Task[str] = taskgroup.create_task(aasvg_file.read())
@@ -283,6 +265,7 @@ async def process_csv(request: Request) -> HTTPResponse:
         }
     )
 
+
 async def petri_post_process(target_folder):
     petri_folder = target_folder / "petri"
     dot_path = anyio.Path(petri_folder / "LATEST.dot")
@@ -290,11 +273,10 @@ async def petri_post_process(target_folder):
     # stem is respectively a timestamp 2025-01-06T03:00:52
     timestamp = (await dot_path.readlink()).stem
 
-    flowchart_tasks: asyncio.Task[None] = pipe(
-        get_flowchart_tasks(target_folder, timestamp), run_tasks
-    )
+    flowchart_tasks: asyncio.Task[None] = pipe(get_flowchart_tasks(target_folder, timestamp), run_tasks)
 
-    return timestamp,flowchart_tasks
+    return timestamp, flowchart_tasks
+
 
 async def save_csv(request, target_folder, time_now):
     target_path = target_folder / f"{time_now}.csv"
@@ -305,11 +287,12 @@ async def save_csv(request, target_folder, time_now):
         await fout.write(request.form["csvString"][0])
     return target_path
 
+
 def extract_fields(data):
     uuid: str = data["uuid"][0]
     spreadsheet_id: str = data["spreadsheetId"][0]
     sheet_id: str = data["sheetId"][0]
-    return uuid,spreadsheet_id,sheet_id
+    return uuid, spreadsheet_id, sheet_id
 
     # ---------------------------------------------
     # return to sidebar caller
