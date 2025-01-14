@@ -23,9 +23,7 @@ import orjson
 
 from sanic import HTTPResponse, Request, Sanic, file, json
 
-from cytoolz.functoolz import *
-from cytoolz.itertoolz import *
-from cytoolz.curried import *
+import cytoolz.curried as cyz
 
 from natural4_server.task import Task, run_tasks
 from natural4_server.plugins.docgen import get_pandoc_tasks
@@ -273,7 +271,7 @@ async def petri_post_process(target_folder):
     # stem is respectively a timestamp 2025-01-06T03:00:52
     timestamp = (await dot_path.readlink()).stem
 
-    flowchart_tasks: asyncio.Task[None] = pipe(get_flowchart_tasks(target_folder, timestamp), run_tasks)
+    flowchart_tasks: asyncio.Task[None] = cyz.pipe(get_flowchart_tasks(target_folder, timestamp), run_tasks)
 
     return timestamp, flowchart_tasks
 
