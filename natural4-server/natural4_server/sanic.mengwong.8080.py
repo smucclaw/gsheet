@@ -1,7 +1,7 @@
 from io import StringIO
+
 from dotenv import load_dotenv
 from hello import app
-
 
 # Define and load environment variables.
 raw_env: str = """

@@ -1,14 +1,11 @@
 import asyncio
-from collections.abc import AsyncGenerator, Collection, Sequence
 import os
 import sys
-
-
-import pyrsistent as pyrs
+from collections.abc import AsyncGenerator, Sequence
 
 import anyio
-
 import pypandoc
+import pyrsistent as pyrs
 
 from natural4_server.task import Task
 
@@ -18,7 +15,7 @@ class PandocOutput(pyrs.PRecord):
     extra_args = pyrs.field(Sequence, initial=())
 
 
-pandoc_outputs: Collection[PandocOutput] = pyrs.s(
+pandoc_outputs = [
     PandocOutput(file_extension="docx", extra_args=("-f", "markdown+hard_line_breaks", "-s")),
     PandocOutput(
         file_extension="pdf",
@@ -31,7 +28,7 @@ pandoc_outputs: Collection[PandocOutput] = pyrs.s(
             "-s",
         ),
     ),
-)
+]
 
 pandoc_path = pypandoc.get_pandoc_path()
 
