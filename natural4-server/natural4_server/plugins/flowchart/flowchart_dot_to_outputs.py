@@ -1,13 +1,11 @@
 import asyncio
-from collections.abc import AsyncGenerator, Collection, Sequence
 import os
 import sys
-
-
-import pyrsistent as pyrs
-import pyrsistent_extras as pyrse
+from collections.abc import AsyncGenerator, Collection, Sequence
 
 import anyio
+import pyrsistent as pyrs
+import pyrsistent_extras as pyrse
 
 from natural4_server.task import Task
 

@@ -10,32 +10,23 @@
 # There is no #! line because we are run out of gunicorn.
 
 import asyncio
-from collections.abc import AsyncGenerator, Sequence
 import datetime
 import os
 import pathlib
+import resource
+import signal
 import sys
 import typing
+from collections.abc import Sequence
 
 import anyio
-import aiostream
+import cytoolz.curried as cyz
 import orjson
-
 from sanic import HTTPResponse, Request, Sanic, file, json
 
-import cytoolz.curried as cyz
-
-from natural4_server.task import Task, run_tasks
-from natural4_server.plugins.docgen import get_pandoc_tasks
+from natural4_server.plugins.docgen.pandoc_md_to_outputs import pandoc_md_to_output, pandoc_outputs
 from natural4_server.plugins.flowchart import get_flowchart_tasks
-
-##########################################################
-# SETRLIMIT to kill gunicorn runaway workers after a certain number of cpu seconds
-# cargo-culted from https://www.geeksforgeeks.org/python-how-to-put-limits-on-memory-and-cpu-usage/
-##########################################################
-
-import signal
-import resource
+from natural4_server.task import run_tasks
 
 
 # checking time limit exceed
@@ -211,8 +202,8 @@ async def process_csv(request: Request) -> HTTPResponse:
     # postprocessing:
     # Use pandoc to generate word and pdf docs from markdown.
     # ---------------------------------------------
-    pandoc_tasks: AsyncGenerator[Task | None, None] = get_pandoc_tasks(target_folder, timestamp)
-
+    app.add_task(pandoc_md_to_output(target_folder, timestamp, pandoc_outputs[0])) #docx
+    app.add_task(pandoc_md_to_output(target_folder, timestamp, pandoc_outputs[1])) #pdf
     # Concurrently peform the following:
     # - Write natural4-exe's stdout to a file.
     # - Write natural4-exe's stderr to a file.
@@ -224,12 +215,6 @@ async def process_csv(request: Request) -> HTTPResponse:
     ):
         taskgroup.create_task(out_file.write(nl4_out))
         taskgroup.create_task(err_file.write(nl4_err))
-
-    # - Pandoc tasks
-    slow_tasks = aiostream.stream.chain(pandoc_tasks)
-
-    # Schedule all the slow tasks to run in the background.
-    app.add_task(run_tasks(slow_tasks))
 
     # ---------------------------------------------
     # construct other response elements and log run-timings.
