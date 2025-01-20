@@ -39,7 +39,7 @@ async def pandoc_md_to_output(
 
     if await md_file.exists():
         match pandoc_output:
-            case {"file_extension": file_extension, "extra_args": extra_args}:
+            case PandocOutput(file_extension = file_extension, extra_args = extra_args):
                 outputpath: anyio.Path = uuid_ss_folder_path / file_extension
                 await outputpath.mkdir(parents=True, exist_ok=True)
 
