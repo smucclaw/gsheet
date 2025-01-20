@@ -1,36 +1,32 @@
 import asyncio
 import os
 import sys
-from collections.abc import AsyncGenerator, Sequence
+from dataclasses import dataclass
+from typing import List
 
 import anyio
 import pypandoc
-import pyrsistent as pyrs
-
-from natural4_server.task import Task
 
 
-class PandocOutput(pyrs.PRecord):
-    file_extension = pyrs.field(mandatory=True, type=str)
-    extra_args = pyrs.field(Sequence, initial=())
+@dataclass
+class PandocOutput:
+    file_extension: str
+    extra_args: List[str]
 
 
-pandoc_outputs = [
-    PandocOutput(file_extension="docx", extra_args=("-f", "markdown+hard_line_breaks", "-s")),
-    PandocOutput(
-        file_extension="pdf",
-        extra_args=(
-            "--pdf-engine=xelatex",
-            "-V",
-            "CJKmainfont=Droid Sans Fallback",
-            "-f",
-            "markdown+hard_line_breaks",
-            "-s",
-        ),
-    ),
-]
+pandoc_docx = PandocOutput(file_extension="docx", extra_args=["-f", "markdown+hard_line_breaks", "-s"])
 
-pandoc_path = pypandoc.get_pandoc_path()
+pandoc_pdf = PandocOutput(
+    file_extension="pdf",
+    extra_args=[
+        "--pdf-engine=xelatex",
+        "-V",
+        "CJKmainfont=Droid Sans Fallback",
+        "-f",
+        "markdown+hard_line_breaks",
+        "-s",
+    ],
+)
 
 
 async def pandoc_md_to_output(
@@ -43,7 +39,7 @@ async def pandoc_md_to_output(
 
     if await md_file.exists():
         match pandoc_output:
-            case {"file_extension": file_extension, "extra_args": extra_args}:
+            case PandocOutput(file_extension = file_extension, extra_args = extra_args):
                 outputpath: anyio.Path = uuid_ss_folder_path / file_extension
                 await outputpath.mkdir(parents=True, exist_ok=True)
 
@@ -51,7 +47,7 @@ async def pandoc_md_to_output(
                 outputfile: anyio.Path = outputpath / timestamp_file
 
                 pandoc_cmd = (
-                    pandoc_path,
+                    pypandoc.get_pandoc_path(),
                     "-o",
                     f"{outputfile}",
                     *extra_args,
@@ -83,17 +79,3 @@ async def pandoc_md_to_output(
                 await latest_file.symlink_to(timestamp_file)
             case _:
                 pass
-
-
-async def get_pandoc_tasks(
-    # markdown_coro: Awaitable[asyncio.subprocess.Process],
-    uuid_ss_folder: str | os.PathLike,
-    timestamp: str | os.PathLike,
-) -> AsyncGenerator[Task, None]:
-    # markdown_proc: asyncio.subprocess.Process = await markdown_coro
-    # await markdown_proc.wait()
-
-    print("Markdown output done.", file=sys.stderr)
-
-    for output in pandoc_outputs:
-        yield Task(func=pandoc_md_to_output, args=(uuid_ss_folder, timestamp, output))

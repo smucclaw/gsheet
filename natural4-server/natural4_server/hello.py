@@ -24,7 +24,7 @@ import cytoolz.curried as cyz
 import orjson
 from sanic import HTTPResponse, Request, Sanic, file, json
 
-from natural4_server.plugins.docgen.pandoc_md_to_outputs import pandoc_md_to_output, pandoc_outputs
+from natural4_server.plugins.docgen.pandoc_md_to_outputs import pandoc_docx, pandoc_md_to_output, pandoc_pdf
 from natural4_server.plugins.flowchart import get_flowchart_tasks
 from natural4_server.task import run_tasks
 
@@ -120,29 +120,6 @@ async def process_csv(request: Request) -> HTTPResponse:
 
     target_path = await save_csv(request, target_folder, time_now)
 
-    # Generate markdown files asynchronously in the background.
-    # uuiddir: anyio.Path = anyio.Path(uuid) / spreadsheet_id / sheet_id
-
-    # markdown_cmd: Sequence[str] = (
-    #   natural4_exe,
-    #   '--only', 'tomd', f'--workdir={natural4_dir}',
-    #   f'--uuiddir={uuiddir}',
-    #   f'{target_path}'
-    # )
-
-    # print(f'hello.py child: calling natural4-exe {natural4_exe} (slowly) for tomd', file=sys.stderr)
-    # print(f'hello.py child: {markdown_cmd}', file=sys.stderr)
-
-    # Coroutine which is awaited before pandoc is called to generate documents
-    # (ie word and pdf) from the markdown file.
-    # markdown_coro: Awaitable[asyncio.subprocess.Process] = (
-    #   asyncio.subprocess.create_subprocess_exec(
-    #     *markdown_cmd,
-    #     stdout = asyncio.subprocess.PIPE,
-    #     stderr = asyncio.subprocess.PIPE
-    #   )
-    # )
-
     # ---------------------------------------------
     # call natural4-exe, wait for it to complete.
     # ---------------------------------------------
@@ -194,16 +171,12 @@ async def process_csv(request: Request) -> HTTPResponse:
     # ---------------------------------------------
     timestamp, flowchart_tasks = await petri_post_process(target_folder)
 
-    # Slow tasks below.
-    # These are run in the background using app.add_background_task, which
-    # adds them to Sanic's event loop.
-
     # ---------------------------------------------
     # postprocessing:
     # Use pandoc to generate word and pdf docs from markdown.
     # ---------------------------------------------
-    app.add_task(pandoc_md_to_output(target_folder, timestamp, pandoc_outputs[0])) #docx
-    app.add_task(pandoc_md_to_output(target_folder, timestamp, pandoc_outputs[1])) #pdf
+    app.add_task(pandoc_md_to_output(target_folder, timestamp, pandoc_docx))
+    app.add_task(pandoc_md_to_output(target_folder, timestamp, pandoc_pdf))
     # Concurrently peform the following:
     # - Write natural4-exe's stdout to a file.
     # - Write natural4-exe's stderr to a file.
