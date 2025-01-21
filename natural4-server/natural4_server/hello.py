@@ -229,7 +229,8 @@ async def petri_post_process(target_folder):
     # stem is respectively a timestamp 2025-01-06T03:00:52
     timestamp = (await dot_path.readlink()).stem
 
-    flowchart_tasks: asyncio.Task[None] = cyz.pipe(get_flowchart_tasks(target_folder, timestamp), run_tasks)
+    flowchart_tasks: asyncio.Task[None] = cyz.pipe(
+        get_flowchart_tasks(target_folder, timestamp), run_tasks)
 
     return timestamp, flowchart_tasks
 
