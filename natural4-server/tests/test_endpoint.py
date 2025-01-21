@@ -1,4 +1,4 @@
-from time import sleep, time
+from time import sleep
 
 from sanic import Sanic
 from sanic.application.constants import ServerStage
