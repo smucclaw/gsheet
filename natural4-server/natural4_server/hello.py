@@ -169,7 +169,9 @@ async def process_csv(request: Request) -> HTTPResponse:
     # postprocessing: for petri nets: turn the DOT files into PNGs
     # we run this asynchronously and block at the end before returning.
     # ---------------------------------------------
-    timestamp, flowchart_tasks = await petri_post_process(target_folder)
+    timestamp = await extract_timestamp(target_folder)
+
+    flowchart_tasks = await petri_post_process(timestamp, target_folder)
 
     # ---------------------------------------------
     # postprocessing:
@@ -222,17 +224,20 @@ async def process_csv(request: Request) -> HTTPResponse:
     )
 
 
-async def petri_post_process(target_folder):
-    petri_folder = target_folder / "petri"
-    dot_path = anyio.Path(petri_folder / "LATEST.dot")
+async def extract_timestamp(target_folder):
+    aajson_folder = target_folder / "aajson"
+    latest_aajson = anyio.Path(aajson_folder / "LATEST.json")
     # dot_path resolves to something like 2025-01-06T03:00:52.dot
     # stem is respectively a timestamp 2025-01-06T03:00:52
-    timestamp = (await dot_path.readlink()).stem
+    timestamp = (await latest_aajson.readlink()).stem
 
+    return timestamp
+
+async def petri_post_process(timestamp, target_folder):
     flowchart_tasks: asyncio.Task[None] = cyz.pipe(
         get_flowchart_tasks(target_folder, timestamp), run_tasks)
 
-    return timestamp, flowchart_tasks
+    return flowchart_tasks
 
 
 async def save_csv(request, target_folder, time_now):

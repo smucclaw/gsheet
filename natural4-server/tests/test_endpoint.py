@@ -12,7 +12,9 @@ def is_not_200(value):
 
 @retry(retry=(retry_if_result(is_not_200)), wait=wait_fixed(5), stop=stop_after_delay(30))
 def poll_url(client, url):
-    print(f"Waiting for {url}...")
+    path = url.split("/")
+    print(f"Waiting for {path[-2]}/{path[-1]}")
+
     request, response = client.get(url)
     return response.status
 
