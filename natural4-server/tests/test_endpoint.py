@@ -1,8 +1,20 @@
-from time import sleep, time
+from time import sleep
 
 from sanic import Sanic
 from sanic.application.constants import ServerStage
 from sanic_testing.reusable import ReusableClient
+from tenacity import retry, retry_if_result, stop_after_delay, wait_fixed
+
+
+def is_not_200(value):
+    """Return True if value is None"""
+    return value != 200
+
+@retry(retry=(retry_if_result(is_not_200)), wait=wait_fixed(5), stop=stop_after_delay(30))
+def poll_url(client, url):
+    print(f"Waiting for {url}...")
+    request, response = client.get(url)
+    return response.status
 
 
 def test_post(app: Sanic, post_data):
@@ -32,22 +44,9 @@ def test_post(app: Sanic, post_data):
             request, response_json = client.get(f"{workdir_url}/petri/LATEST-small.png")
             assert response_json.status == 200
 
-            start_time = time()
-            while time() - start_time < 60:
-                print("Waiting for PDF...")
-                request, response_pdf = client.get(f"{workdir_url}/docx/LATEST.docx")
-                if response_pdf.status != 200:
-                    sleep(5)
-                else:
-                    break
+            response_docx = poll_url(client, f"{workdir_url}/docx/LATEST.docx")
+            assert response_docx == 200
 
-            start_time = time()
-            while time() - start_time < 60:
-                print("Waiting for PDF...")
-                request, response_pdf = client.get(f"{workdir_url}/pdf/LATEST.pdf")
-                if response_pdf.status != 200:
-                    sleep(5)
-                else:
-                    break
+            response_pdf = poll_url(client, f"{workdir_url}/pdf/LATEST.pdf")
 
-            assert response_pdf.status == 200
+            assert response_pdf == 200
