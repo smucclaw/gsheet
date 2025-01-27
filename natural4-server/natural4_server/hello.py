@@ -20,13 +20,11 @@ import typing
 from collections.abc import Sequence
 
 import anyio
-import cytoolz.curried as cyz
 import orjson
 from sanic import HTTPResponse, Request, Sanic, file, json
 
 from natural4_server.plugins.docgen.pandoc_md_to_outputs import pandoc_docx, pandoc_md_to_output, pandoc_pdf
-from natural4_server.plugins.flowchart import get_flowchart_tasks
-from natural4_server.task import run_tasks
+from natural4_server.plugins.flowchart.flowchart_dot_to_outputs import flowchart_dot_to_output, flowchart_outputs
 
 
 # checking time limit exceed
@@ -97,12 +95,6 @@ async def liveness_probe(request: Request) -> HTTPResponse:
     return json({"status": "ok"})
 
 
-# ################################################
-#                      main
-#      HANDLE POSTED CSV, RUN NATURAL4 & ETC
-# This is the function that does all the heavy lifting.
-
-
 @app.route("/post", methods=["GET", "POST"])
 async def process_csv(request: Request) -> HTTPResponse:
     start_time: datetime.datetime = datetime.datetime.now()
@@ -171,17 +163,10 @@ async def process_csv(request: Request) -> HTTPResponse:
     # ---------------------------------------------
     timestamp = await extract_timestamp(target_folder)
 
-    flowchart_tasks = await petri_post_process(timestamp, target_folder)
+    flowchart_tasks = petri_post_process(timestamp, target_folder)
 
-    # ---------------------------------------------
-    # postprocessing:
-    # Use pandoc to generate word and pdf docs from markdown.
-    # ---------------------------------------------
     app.add_task(pandoc_md_to_output(target_folder, timestamp, pandoc_docx))
     app.add_task(pandoc_md_to_output(target_folder, timestamp, pandoc_pdf))
-    # Concurrently peform the following:
-    # - Write natural4-exe's stdout to a file.
-    # - Write natural4-exe's stderr to a file.
 
     async with (
         await anyio.open_file(target_folder / f"{time_now}.out", "w") as out_file,
@@ -211,7 +196,8 @@ async def process_csv(request: Request) -> HTTPResponse:
         asyncio.TaskGroup() as taskgroup,
     ):
         aasvg_index_task: asyncio.Task[str] = taskgroup.create_task(aasvg_file.read())
-        await flowchart_tasks
+
+    asyncio.gather(*flowchart_tasks)
 
     return json(
         {
@@ -233,11 +219,9 @@ async def extract_timestamp(target_folder):
 
     return timestamp
 
-async def petri_post_process(timestamp, target_folder):
-    flowchart_tasks: asyncio.Task[None] = cyz.pipe(
-        get_flowchart_tasks(target_folder, timestamp), run_tasks)
 
-    return flowchart_tasks
+def petri_post_process(timestamp, target_folder):
+    return [asyncio.create_task(flowchart_dot_to_output(target_folder, timestamp, output)) for output in flowchart_outputs]
 
 
 async def save_csv(request, target_folder, time_now):
@@ -255,10 +239,6 @@ def extract_fields(data):
     spreadsheet_id: str = data["spreadsheetId"][0]
     sheet_id: str = data["sheetId"][0]
     return uuid, spreadsheet_id, sheet_id
-
-    # ---------------------------------------------
-    # return to sidebar caller
-    # ---------------------------------------------
 
 
 # ################################################

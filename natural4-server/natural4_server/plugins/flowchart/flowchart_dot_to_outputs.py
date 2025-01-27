@@ -1,23 +1,16 @@
 import asyncio
 import os
 import sys
-from collections.abc import AsyncGenerator, Collection, Sequence
+from collections.abc import Collection, Sequence
 
 import anyio
 import pyrsistent as pyrs
 import pyrsistent_extras as pyrse
 
-from natural4_server.task import Task
-
-
 class FlowchartOutput(pyrs.PRecord):
-    # petrifile{suffix}.{file_extension}
     suffix = pyrs.field(type=str, initial="")
     file_extension = pyrs.field(mandatory=True, type=str)
 
-    # We prefer PSequence, ie 2-3 finger tree, for args because the log(n) concat
-    # makes it efficient to splice them with other stuff to construct commands
-    # for subprocess.run.
     args = pyrs.field(type=Sequence, initial=pyrse.sq())
 
 
@@ -27,31 +20,6 @@ flowchart_outputs: Collection[FlowchartOutput] = pyrs.s(
     FlowchartOutput(file_extension="svg"),
 )
 
-
-# try:
-# from pygraphviz import AGraph
-
-# async def _dot_file_to_output(
-#   dot_file: str | os.PathLike[str],
-#   output_file: str | os.PathLike[str],
-#   args: Sequence[str]
-# ) -> None:
-#   output_file = pathlib.Path(output_file)
-#   dot_file = pathlib.Path(dot_file)
-
-#   args = ' '.join(args)
-#   print(f'Graphviz args: {args}', file=sys.stderr)
-
-#   await asyncio.to_thread(
-#     AGraph(dot_file).draw,
-#     output_file,
-#     format = f'{output_file.suffix[1:]}',
-#     prog = 'dot',
-#     args = args
-#   )
-
-
-# except ImportError:
 async def _dot_file_to_output(
     dot_file: str | os.PathLike[str],
     output_file: str | os.PathLike[str],
@@ -99,8 +67,3 @@ async def flowchart_dot_to_output(
                         file=sys.stderr,
                     )
                     print(f"hello.py main: {exc}", file=sys.stderr)
-
-
-async def get_flowchart_tasks(uuid_ss_folder: str | os.PathLike, timestamp: str | os.PathLike) -> AsyncGenerator[Task, None]:
-    for output in flowchart_outputs:
-        yield Task(func=flowchart_dot_to_output, args=(uuid_ss_folder, timestamp, output))
