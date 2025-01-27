@@ -7,15 +7,10 @@ requires-python = "==3.12.*"
 
 
 dependencies = [
-    "aioshutil == 1.5",
-    "aiostream == 0.5.2",
     "anyio == 4.6.0",
-    "cytoolz == 0.12.3",
     "jinja2 == 3.1.4",
     "orjson == 3.10.7",
     "pypandoc-binary == 1.13",
-    "pyrsistent == 0.20.0",
-    "pyrsistent-extras == 0.1.1",
     "python-dotenv == 1.0.1",
     "sanic-testing == 24.6.0",
     "sanic[ext] == 24.6.0",
