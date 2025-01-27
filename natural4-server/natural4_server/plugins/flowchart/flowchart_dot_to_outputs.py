@@ -1,35 +1,33 @@
 import asyncio
+from dataclasses import dataclass
 import os
 import sys
-from collections.abc import Collection, Sequence
 
 import anyio
-import pyrsistent as pyrs
-import pyrsistent_extras as pyrse
-
-class FlowchartOutput(pyrs.PRecord):
-    suffix = pyrs.field(type=str, initial="")
-    file_extension = pyrs.field(mandatory=True, type=str)
-
-    args = pyrs.field(type=Sequence, initial=pyrse.sq())
 
 
-flowchart_outputs: Collection[FlowchartOutput] = pyrs.s(
-    FlowchartOutput(file_extension="png", args=pyrse.sq("-Gdpi=150")),
-    FlowchartOutput(suffix="-small", file_extension="png", args=pyrse.sq("-Gdpi=72")),
-    FlowchartOutput(file_extension="svg"),
-)
+@dataclass
+class FlowchartOutput:
+    suffix: str
+    file_extension: str
+    gdpi: str
+
+
+flowchart_outputs = [
+    FlowchartOutput(suffix="", file_extension="png", gdpi="-Gdpi=150"),
+    FlowchartOutput(suffix="-small", file_extension="png", gdpi="-Gdpi=72"),
+    FlowchartOutput(suffix="", file_extension="svg", gdpi=""),
+]
+
 
 async def _dot_file_to_output(
     dot_file: str | os.PathLike[str],
     output_file: str | os.PathLike[str],
-    args: Sequence[str],
+    gdpi: str,
 ) -> None:
     output_file = anyio.Path(output_file)
 
-    graphviz_cmd: Sequence[str] = (
-        pyrse.sq("dot", f"-T{output_file.suffix[1:]}", f"{dot_file}") + pyrse.psequence(args) + pyrse.sq("-o", f"{output_file}")
-    )  # type: ignore
+    graphviz_cmd = ["dot", f"-T{output_file.suffix[1:]}", f"{dot_file}", gdpi, "-o", f"{output_file}"]
 
     print(f'Calling graphviz with: {" ".join(graphviz_cmd)}', file=sys.stderr)
 
@@ -48,13 +46,13 @@ async def flowchart_dot_to_output(
 
     if await dot_file.exists():
         match flowchart_output:
-            case {"suffix": suffix, "file_extension": file_extension, "args": args}:
+            case FlowchartOutput(suffix=suffix, file_extension=file_extension, gdpi=gdpi):
                 timestamp_file: str = f"{timestamp}{suffix}.{file_extension}"
                 output_file: str = f"{output_path / timestamp_file}"
 
                 print(f"Drawing {file_extension} from dot file", file=sys.stderr)
                 print(f"Output file: {output_file}", file=sys.stderr)
-                await _dot_file_to_output(dot_file, output_file, args)
+                await _dot_file_to_output(dot_file, output_file, gdpi)
 
                 latest_file: anyio.Path = output_path / f"LATEST{suffix}.{file_extension}"
                 try:
