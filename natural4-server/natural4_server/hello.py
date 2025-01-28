@@ -23,8 +23,8 @@ import anyio
 import orjson
 from sanic import HTTPResponse, Request, Sanic, file, json
 
-from natural4_server.plugins.docgen.pandoc_md_to_outputs import pandoc_docx, pandoc_md_to_output, pandoc_pdf
-from natural4_server.plugins.flowchart.flowchart_dot_to_outputs import flowchart_dot_to_output, flowchart_outputs
+from natural4_server.docgen.pandoc_md_to_outputs import pandoc_docx, pandoc_md_to_output, pandoc_pdf
+from natural4_server.flowchart.flowchart_dot_to_outputs import flowchart_dot_to_output, flowchart_outputs
 
 
 # checking time limit exceed
