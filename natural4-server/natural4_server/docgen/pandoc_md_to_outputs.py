@@ -2,7 +2,6 @@ import asyncio
 import os
 import sys
 from dataclasses import dataclass
-from typing import List
 
 import anyio
 import pypandoc
@@ -11,7 +10,7 @@ import pypandoc
 @dataclass
 class PandocOutput:
     file_extension: str
-    extra_args: List[str]
+    extra_args: list[str]
 
 
 pandoc_docx = PandocOutput(file_extension="docx", extra_args=["-f", "markdown+hard_line_breaks", "-s"])
